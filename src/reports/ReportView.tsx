@@ -1,14 +1,15 @@
 import { HomeworkTask, ImprovementItem, LessonReport, ReportTopic, WentWellItem } from '../types'
 import { conceptTitle, localizedTitle } from '../lessons/guidance'
 import { useI18n } from '../i18n/I18nProvider'
-import { PrinterIcon } from '../components/icons'
+import { ArrowRightIcon, PrinterIcon } from '../components/icons'
 import { useToast } from '../components/Toast'
 import { cefrLabel } from '../utils/cefr'
 import { formatDate } from '../utils/time'
 import { PRONUNCIATION_RATING_KEY } from '../data/pronunciationLibrary'
 import { Bdi } from '../components/Bdi'
 import { BidiText } from '../components/BidiText'
-import { quoted } from '../utils/quotes'
+import { quoted, localizeInlineQuotes } from '../utils/quotes'
+import { hasRTL } from '../utils/bidi'
 import { UILanguage } from '../types'
 import styles from './ReportView.module.css'
 
@@ -97,13 +98,19 @@ export function homeworkText(task: HomeworkTask, t: T, lang: UILanguage = 'en'):
   }
 }
 
-function pronunciationText(item: LessonReport['pronunciation'][number], t: T): string {
+function pronunciationText(item: LessonReport['pronunciation'][number], t: T, lang: UILanguage): string {
   const area = t(`pron.${item.area}`)
   const rating = t(PRONUNCIATION_RATING_KEY[item.rating])
-  return item.note ? `${area}: ${rating} — ${item.note}` : `${area}: ${rating}`
+  // A tutor's freeform note may quote a word or two with plain ASCII quotes
+  // ("think" came out as "sink") — normalize those to the locale's own marks
+  // rather than leaving raw `"` for BidiText/the bidi algorithm to fight over.
+  const note = item.note ? localizeInlineQuotes(item.note, lang) : undefined
+  return note ? `${area}: ${rating} — ${note}` : `${area}: ${rating}`
 }
 
-function reportToText(report: LessonReport, t: T, parent: boolean, lang: UILanguage): string {
+/** Exported for the cross-locale punctuation regression sweep — see
+ *  reportPunctuation.test.ts — as well as internal use by the copy buttons. */
+export function reportToText(report: LessonReport, t: T, parent: boolean, lang: UILanguage): string {
   const lines: string[] = [t('common.appName'), '']
   if (parent && report.parent) {
     lines.push(t('report.parentReport'))
@@ -131,7 +138,7 @@ function reportToText(report: LessonReport, t: T, parent: boolean, lang: UILangu
     if (report.reviewed?.missed.length)
       lines.push(`${t('report.reviewedMissed')}: ${report.reviewed.missed.join(', ')}`)
     if (report.pronunciation.length)
-      lines.push(`${t('report.pronunciation')}: ${report.pronunciation.map((p) => pronunciationText(p, t)).join('; ')}`)
+      lines.push(`${t('report.pronunciation')}: ${report.pronunciation.map((p) => pronunciationText(p, t, lang)).join('; ')}`)
     lines.push(
       `${t('report.nextFocus')}: ${conceptTitle(lang, report.nextFocusRef) ?? report.nextFocusTitle}`,
     )
@@ -204,7 +211,12 @@ export function ReportView({
                 <span className={styles.said} dir="ltr">
                   {c.said || '—'}
                 </span>
-                <span aria-hidden="true">→</span>
+                {/* A plain "→" always points right, which is backwards once an
+                    RTL page puts the correction on the LEFT of the original.
+                    `flip-in-rtl` mirrors the icon so it always points from the
+                    original toward the correction, whichever side that is. */}
+                <ArrowRightIcon className={`${styles.arrow} flip-in-rtl`} />
+                <span className="sr-only">{t('report.correctedTo')}</span>
                 <span className={styles.better} dir="ltr">
                   {c.better}
                 </span>
@@ -258,7 +270,7 @@ export function ReportView({
         {report.pronunciation.length > 0 && (
           <ReportBlock
             title={t('report.pronunciation')}
-            items={report.pronunciation.map((p) => pronunciationText(p, t))}
+            items={report.pronunciation.map((p) => pronunciationText(p, t, lang))}
           />
         )}
 
@@ -277,12 +289,18 @@ export function ReportView({
             <h3>{t('report.homework')}</h3>
           </div>
           <p className="muted">{t('report.homeworkNote')}</p>
-          <ol className={styles.homeworkList}>
-            {report.homework.map((task, i) => (
-              <li key={i} dir="auto">
-                <BidiText text={homeworkText(task, t, lang)} />
-              </li>
-            ))}
+          {/* `list-style: none` below (needed for the per-item bullet fix)
+              makes Safari drop the implicit list/listitem roles — restore
+              them explicitly rather than lose that structure for AT users. */}
+          <ol className={styles.homeworkList} role="list">
+            {report.homework.map((task, i) => {
+              const text = homeworkText(task, t, lang)
+              return (
+                <li key={i} dir={hasRTL(text) ? 'auto' : 'ltr'}>
+                  <BidiText text={text} />
+                </li>
+              )
+            })}
           </ol>
         </section>
       )}
@@ -335,9 +353,16 @@ function ReportBlock({ title, items, tone }: { title: string; items: string[]; t
   return (
     <div className={styles.block}>
       <div className={styles.blockTitle}>{title}</div>
-      <ul className={`${styles.list} ${tone === 'ok' ? styles.listOk : ''}`}>
+      {/* See the homework list above: `list-style: none` needs `role="list"`
+          put back explicitly for Safari. */}
+      <ul className={`${styles.list} ${tone === 'ok' ? styles.listOk : ''}`} role="list">
         {items.map((it, i) => (
-          <li key={i} dir="auto">
+          // A line with NO Hebrew/RTL characters at all (an English-only
+          // lesson topic in an otherwise-Hebrew report) renders as its own
+          // LTR unit — bullet, indent and text alignment all agree — rather
+          // than lean on `dir="auto"`, which only steers the TEXT run and
+          // leaves the list marker following the RTL container's gutter.
+          <li key={i} dir={hasRTL(it) ? 'auto' : 'ltr'}>
             {/* Report lines interpolate English (a correction, a word list)
                 into translated prose, so an RTL locale needs the embedded runs
                 isolated or their punctuation lands at the wrong end. */}

@@ -7,7 +7,7 @@
    ========================================================================== */
 
 import { describe, it, expect } from 'vitest'
-import { isMixedDirection, splitBidiRuns } from './bidi'
+import { hasRTL, isMixedDirection, splitBidiRuns } from './bidi'
 import { locales } from '../locales'
 import { flatten } from '../i18n/dict'
 
@@ -72,6 +72,43 @@ describe('splitBidiRuns', () => {
     expect(isMixedDirection('הקשיבו ואמרו “Hello”.')).toBe(true)
     expect(isMixedDirection('עברית בלבד')).toBe(false)
     expect(isMixedDirection('English only')).toBe(false)
+  })
+
+  /* Regression: a Hebrew pronunciation note quoting TWO separate English
+     words — `TH: "think" came out as "sink" — tongue between the teeth` —
+     has no Hebrew character anywhere after the em dash, so the whole English
+     tail grows into ONE run. The run-absorption loop only looked for a
+     closer AT THE RUN'S FAR END to pull in a matching leading opener; the
+     closer for "think" sits partway through instead (before "sink"), so the
+     leading quote before "think" was left stranded in the Hebrew text next
+     to it — a lone `"` the bidi algorithm then placed on the wrong side. */
+  it('pulls a leading quote into the run even when its closer lands mid-run, not at the far end', () => {
+    const text = 'צליל TH: דורש תרגול — "think" came out as "sink" — tongue between the teeth'
+    const runs = isolates(text)
+    // "TH" (the sound label, right after "צליל") is its own separate isolate;
+    // what this test guards is the SECOND one, which used to leave its
+    // leading quote behind.
+    expect(runs).toEqual(['TH', '"think" came out as "sink" — tongue between the teeth'])
+    expect(rejoin(text)).toBe(text)
+  })
+
+  it('still absorbs a leading opener with no closer at all, without crashing', () => {
+    const text = 'עברית "orphaned open quote with no close'
+    expect(() => splitBidiRuns(text)).not.toThrow()
+    expect(rejoin(text)).toBe(text)
+  })
+})
+
+describe('hasRTL', () => {
+  it('is true for any text containing a Hebrew character, mixed or not', () => {
+    expect(hasRTL('עברית בלבד')).toBe(true)
+    expect(hasRTL('הקשיבו ואמרו “Hello”.')).toBe(true)
+  })
+
+  it('is false for English-only or punctuation-only text', () => {
+    expect(hasRTL('Talking about last weekend (past simple)')).toBe(false)
+    expect(hasRTL('1, 2, 3…')).toBe(false)
+    expect(hasRTL('')).toBe(false)
   })
 })
 

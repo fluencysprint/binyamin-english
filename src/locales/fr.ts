@@ -746,6 +746,7 @@ const fr: Dict = {
       strongestArea: 'Point fort à ce jour : {{goal}}.',
     },
     corrections: 'Corrections utiles',
+    correctedTo: 'corrigé en',
     vocabulary: 'Nouveaux mots',
     pronunciation: 'Prononciation',
     nextFocus: 'Prochain objectif',

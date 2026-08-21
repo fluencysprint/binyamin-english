@@ -114,6 +114,122 @@ describe('ReportView in Hebrew', () => {
   })
 })
 
+describe('ReportView correction direction', () => {
+  function reportWith(corrections: Correction[]): ReturnType<typeof applyCompletedLesson>['report'] {
+    const student = makeStudent()
+    const model = initLearningModel(student.id, 'A2', now)
+    const lesson = makeLesson(student)
+    return applyCompletedLesson(model, lesson, student, corrections, now).report
+  }
+
+  const corrections: Correction[] = [
+    {
+      id: 'c1',
+      studentId: 'stu1',
+      category: 'grammar',
+      said: 'She go',
+      better: 'She goes',
+      priority: 'high',
+      at: now,
+    },
+  ]
+
+  it('renders the correction arrow as an icon that flips under RTL, plus a screen-reader label between the two halves', () => {
+    const report = reportWith(corrections)
+    render(
+      <I18nProvider initialLang="en">
+        <ToastProvider>
+          <ReportView report={report} parentSection={false} />
+        </ToastProvider>
+      </I18nProvider>,
+    )
+    const said = screen.getByText('She go', { exact: true })
+    const row = said.closest('div')!
+    expect(row.querySelector('svg.flip-in-rtl, svg[class*="flip-in-rtl"]')).toBeTruthy()
+    expect(row.textContent).toContain('corrected to')
+    // Semantic order in the DOM is said → (label) → better, regardless of
+    // which side either one ends up on visually under RTL.
+    const said2 = row.querySelector(`.${said.className.split(' ')[0]}`)
+    expect(said2).toBeTruthy()
+  })
+
+  it('keeps the same DOM order (said, then the corrected form) in Hebrew, with the icon set up to flip visually', () => {
+    const report = reportWith(corrections)
+    render(
+      <I18nProvider initialLang="he">
+        <ToastProvider>
+          <ReportView report={report} parentSection={false} />
+        </ToastProvider>
+      </I18nProvider>,
+    )
+    const said = screen.getByText('She go', { exact: true })
+    const row = said.closest('div')!
+    const icon = row.querySelector('svg')!
+    expect(icon.getAttribute('class')).toContain('flip-in-rtl')
+    expect(row.textContent).toContain('תוקן ל')
+    // DOM order: said's text node comes before better's.
+    const rowText = row.textContent ?? ''
+    expect(rowText.indexOf('She go')).toBeLessThan(rowText.indexOf('She goes'))
+  })
+})
+
+describe('ReportView bullet direction for English-only lines under Hebrew', () => {
+  it('gives a fully-English "worked on" line its own dir="ltr", not dir="auto"', () => {
+    const student = makeStudent()
+    const model = initLearningModel(student.id, 'A2', now)
+    const lesson = makeLesson(student)
+    const { report } = applyCompletedLesson(model, lesson, student, [], now)
+
+    render(
+      <I18nProvider initialLang="he">
+        <ToastProvider>
+          <ReportView report={report} parentSection={false} />
+        </ToastProvider>
+      </I18nProvider>,
+    )
+    const workedOnHeading = screen.getByText('היום עבדנו על')
+    const list = workedOnHeading.parentElement!.querySelector('ul')!
+    const items = Array.from(list.querySelectorAll('li'))
+    expect(items.length).toBeGreaterThan(0)
+    for (const li of items) {
+      const text = li.textContent ?? ''
+      const isEnglishOnly = !/[֐-׿]/.test(text)
+      expect(li.getAttribute('dir'), text).toBe(isEnglishOnly ? 'ltr' : 'auto')
+    }
+  })
+})
+
+describe('ReportView pronunciation note quoting', () => {
+  it('normalizes straight quotes in a freeform note to the locale marks and isolates the English inside Hebrew', () => {
+    const student = makeStudent()
+    const model = initLearningModel(student.id, 'A2', now)
+    const lesson = makeLesson(student)
+    const { report } = applyCompletedLesson(model, lesson, student, [], now)
+    report.pronunciation = [
+      { area: 'th', rating: 'needsPractice', note: '"think" came out as "sink" — tongue between the teeth' },
+    ]
+
+    render(
+      <I18nProvider initialLang="he">
+        <ToastProvider>
+          <ReportView report={report} parentSection={false} />
+        </ToastProvider>
+      </I18nProvider>,
+    )
+    const matched = screen.getByText(/tongue between the teeth/)
+    const item = matched.closest('li')!
+    expect(item.textContent).toContain('“think”')
+    expect(item.textContent).toContain('“sink”')
+    expect(item.textContent).not.toContain('"think"')
+    // The leading quote travels WITH "think" into its own LTR isolate rather
+    // than being stranded in the Hebrew text before it.
+    const isolate = matched.closest('bdi[dir="ltr"]') ?? matched
+    expect(isolate.tagName.toLowerCase()).toBe('bdi')
+    expect(isolate.getAttribute('dir')).toBe('ltr')
+    expect(isolate.textContent!.startsWith('“')).toBe(true)
+  })
+})
+
 describe('ReportView in Russian', () => {
   it('writes homework in everyday Russian, keeping the English being practised in English', () => {
     const student = makeStudent({ id: 'ru1', age: 34, ageBand: 'adult', interfaceLanguage: 'ru' })

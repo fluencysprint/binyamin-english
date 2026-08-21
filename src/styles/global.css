@@ -382,4 +382,53 @@ a {
   #root {
     display: block !important;
   }
+
+  /* ---- Black-and-white print ----
+     A home/office printer is assumed B&W: nothing on paper may depend on
+     teal/green/amber/rose/blue to mean something. Resetting the semantic
+     tokens once, here, covers every component that already reads them —
+     badges, chips, cards, the report's correction diff, the parent-report
+     tint — without a separate print rule in each one. It also guards against
+     printing while the DARK theme is active, whose `--text` is near-white:
+     without this, that text would be invisible on the forced white page.
+     `:root[data-theme='dark']` is repeated at equal specificity so this wins
+     over the normal dark-theme block regardless of source order there. */
+  :root,
+  :root[data-theme='dark'] {
+    --bg: #fff;
+    --bg-raised: #fff;
+    --bg-sunken: #fff;
+    --surface-border: #767676;
+    --text: #000;
+    --text-muted: #333;
+    --text-soft: #555;
+    --brand: #000;
+    --brand-strong: #000;
+    --brand-tint: transparent;
+    --on-brand: #fff;
+    --ok: #000;
+    --ok-tint: transparent;
+    --warn: #000;
+    --warn-tint: transparent;
+    --err: #000;
+    --err-tint: transparent;
+    --info: #000;
+    --info-tint: transparent;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+  }
+  .card {
+    padding: var(--sp-4);
+  }
+  /* A tint background can no longer distinguish a badge/chip's meaning once
+     printed — the label text already carries that. What print adds back is a
+     border, so it still reads as a discrete label rather than plain text. */
+  .badge {
+    border: 1px solid currentColor;
+  }
+  .chip.is-selected,
+  .chip[aria-pressed='true'] {
+    border-width: 2px;
+  }
 }

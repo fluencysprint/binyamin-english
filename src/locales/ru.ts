@@ -746,6 +746,7 @@ const ru: Dict = {
       strongestArea: 'Самая сильная сторона сейчас: {{goal}}.',
     },
     corrections: 'Полезные исправления',
+    correctedTo: 'исправлено на',
     vocabulary: 'Новые слова',
     pronunciation: 'Произношение',
     nextFocus: 'Следующий фокус',

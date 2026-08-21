@@ -42,12 +42,30 @@
   font-size: var(--fs-sm);
   color: var(--brand-strong);
 }
+/* Bullets are drawn with `::before`, not a native `::marker`. A native marker
+   for `list-style-position: outside` is positioned relative to the LI's OWN
+   direction, while the indent that makes room for it is a single
+   `padding-inline-start` on the shared <ul> — set once, for the container's
+   direction. Mix an LTR item (a fully-English lesson topic) into an RTL list
+   and the two disagree: the marker jumps to the item's own start edge with no
+   gutter reserved there. Scoping both the marker and its indent to each LI's
+   own direction sidesteps that entirely. */
 .list {
-  padding-inline-start: var(--sp-5);
+  list-style: none;
+  padding-inline-start: 0;
   display: grid;
   gap: 2px;
 }
-.listOk li::marker {
+.list li {
+  position: relative;
+  padding-inline-start: 1.1em;
+}
+.list li::before {
+  content: '•';
+  position: absolute;
+  inset-inline-start: 0;
+}
+.listOk li::before {
   color: var(--ok);
 }
 .correction {
@@ -57,6 +75,9 @@
   flex-wrap: wrap;
   unicode-bidi: plaintext;
   text-align: start;
+}
+.arrow {
+  flex-shrink: 0;
 }
 .said {
   text-decoration: line-through;
@@ -89,13 +110,26 @@
 }
 .homeworkList {
   margin: 0;
-  padding-inline-start: var(--sp-5);
+  padding-inline-start: 0;
+  list-style: none;
+  counter-reset: homework;
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
   line-height: 1.55;
 }
-.homeworkList li::marker {
+/* Same reasoning as .list above: the number is drawn per-item so it always
+   sits on THAT item's own start edge, even when a homework line is fully
+   English inside an otherwise-Hebrew report. */
+.homeworkList li {
+  position: relative;
+  counter-increment: homework;
+  padding-inline-start: 1.6em;
+}
+.homeworkList li::before {
+  content: counter(homework) '.';
+  position: absolute;
+  inset-inline-start: 0;
   color: var(--brand);
   font-weight: 700;
 }
@@ -131,5 +165,18 @@
   }
   .homeworkList li + li {
     margin-top: var(--sp-2);
+  }
+  /* A heading printed alone at the bottom of a sheet, with its content
+     starting on the next one, reads as a mistake — keep it with what follows.
+     A single correction row, or one homework/list line, never splits
+     mid-item either. */
+  .sectionHead,
+  .blockTitle {
+    break-after: avoid;
+  }
+  .correction,
+  .list li,
+  .homeworkList li {
+    break-inside: avoid;
   }
 }

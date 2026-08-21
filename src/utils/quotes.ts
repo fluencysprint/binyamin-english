@@ -126,6 +126,18 @@ export function quoted(raw: string, lang: UILanguage = 'en'): string {
 }
 
 /**
+ * Convert every straight-double-quoted span in free prose to this locale's
+ * PRIMARY marks. For a value some OTHER function wraps as a whole, use
+ * `quoted`/`embedQuoted` instead — this is for text that quotes a word or two
+ * inline, like a pronunciation note (`"think" came out as "sink"`), where the
+ * quoted words are standalone, not nested inside an outer pair.
+ */
+export function localizeInlineQuotes(text: string, lang: UILanguage = 'en'): string {
+  const m = quoteMarks(lang)
+  return text.replace(/"([^"]*)"/g, (_, inner: string) => `${m.open}${inner}${m.close}`)
+}
+
+/**
  * The value for a placeholder that a TEMPLATE has already put quotes around.
  * Same normalization, without adding marks of its own — the template supplies
  * those. Called from `interpolate`, so every locale gets it for free.

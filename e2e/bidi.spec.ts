@@ -185,6 +185,118 @@ test('the Hebrew sentence keeps its own punctuation, and never doubles a quote',
   expect(text).not.toContain('  ')
 })
 
+/* ==========================================================================
+   A fully-English report line (a lesson topic name) inside an otherwise
+   Hebrew report renders as its OWN left-to-right unit — bullet included —
+   rather than inheriting the RTL container's marker gutter.
+   ========================================================================== */
+
+test('an English-only "worked on" line gets its own LTR bullet, on the left, inside a Hebrew report', async ({
+  page,
+}) => {
+  await page.goto('/he/sample-report/')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+
+  const item = page.getByText('Talking about last weekend (past simple)', { exact: true })
+  await expect(item).toBeVisible()
+  expect(await item.evaluate((el) => el.tagName.toLowerCase())).toBe('li')
+  expect(await item.evaluate((el) => el.getAttribute('dir'))).toBe('ltr')
+  expect(await item.evaluate((el) => getComputedStyle(el).direction)).toBe('ltr')
+
+  // The manually-drawn bullet (`::before`) sits at the LI's own start edge —
+  // for an LTR item that is its LEFT edge, not the right edge the
+  // surrounding RTL list would otherwise reserve space on.
+  const { bulletLeft, itemLeft } = await item.evaluate((el) => {
+    const itemBox = el.getBoundingClientRect()
+    const beforeLeft = parseFloat(getComputedStyle(el, '::before').left || '0') + itemBox.left
+    return { bulletLeft: beforeLeft, itemLeft: itemBox.left }
+  })
+  expect(Math.abs(bulletLeft - itemLeft)).toBeLessThan(2)
+})
+
+/* ==========================================================================
+   Correction arrow direction — student/original form must always visually
+   point toward the improved form, whichever side of the row that is.
+   ========================================================================== */
+
+test('the correction arrow points from the original toward the correction, in EN (left-to-right) and HE (right-to-left)', async ({
+  page,
+}) => {
+  await page.goto('/sample-report/')
+  const saidEn = page.getByText('I go to my cousin house', { exact: true })
+  await expect(saidEn).toBeVisible()
+  const rowEn = saidEn.locator('xpath=..')
+  const betterEn = rowEn.getByText("I went to my cousin's house", { exact: true })
+  const arrowEn = rowEn.locator('svg')
+  await expect(arrowEn).toBeVisible()
+
+  const saidBoxEn = await saidEn.boundingBox()
+  const betterBoxEn = await betterEn.boundingBox()
+  const arrowBoxEn = await arrowEn.boundingBox()
+  expect(saidBoxEn && betterBoxEn && arrowBoxEn).toBeTruthy()
+  // LTR: said (original) is on the left, the arrow sits to its right, the
+  // correction is further right still — the arrow points rightward, from
+  // said toward better, matching an unflipped "→".
+  expect(arrowBoxEn!.x).toBeGreaterThan(saidBoxEn!.x)
+  expect(betterBoxEn!.x).toBeGreaterThan(arrowBoxEn!.x)
+  const rotationEn = await arrowEn.evaluate((el) => getComputedStyle(el).transform)
+  expect(rotationEn === 'none' || rotationEn === 'matrix(1, 0, 0, 1, 0, 0)').toBe(true)
+
+  await page.goto('/he/sample-report/')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+  const saidHe = page.getByText('I go to my cousin house', { exact: true })
+  await expect(saidHe).toBeVisible()
+  const rowHe = saidHe.locator('xpath=..')
+  const betterHe = rowHe.getByText("I went to my cousin's house", { exact: true })
+  const arrowHe = rowHe.locator('svg')
+
+  const saidBoxHe = await saidHe.boundingBox()
+  const betterBoxHe = await betterHe.boundingBox()
+  expect(saidBoxHe && betterBoxHe).toBeTruthy()
+  // RTL: the flex row reverses, so the original now sits on the RIGHT and
+  // the correction on the LEFT — the arrow icon must be mirrored
+  // (`flip-in-rtl`, scaleX(-1)) so it still points from said toward better,
+  // i.e. now pointing LEFT.
+  expect(saidBoxHe!.x).toBeGreaterThan(betterBoxHe!.x)
+  const transformHe = await arrowHe.evaluate((el) => getComputedStyle(el).transform)
+  expect(transformHe).toBe('matrix(-1, 0, 0, 1, 0, 0)')
+
+  // Screen readers get an explicit relationship, not just an arrow glyph.
+  await expect(rowHe.getByText('תוקן ל')).toHaveCount(1)
+})
+
+/* ==========================================================================
+   A full English sentence embedded in a Hebrew homework instruction must
+   stay isolated and readable at phone width, not overflow or get clipped by
+   a blunt `white-space: nowrap`.
+   ========================================================================== */
+
+test('an English sentence inside Hebrew homework wraps cleanly at 320px with no horizontal overflow', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.goto('/he/sample-report/')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+
+  const homework = page.getByRole('heading', { name: 'שיעורי בית' })
+  await expect(homework).toBeVisible()
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )
+  expect(overflow).toBeLessThanOrEqual(1)
+
+  // "She doesn't like it" is one of the embedded English corrections in the
+  // first homework task — it must render as an intact, LTR-isolated phrase.
+  const phrase = page.locator('bdi[dir="ltr"]', { hasText: "She doesn't like it" })
+  await expect(phrase.first()).toBeVisible()
+  expect(await phrase.first().evaluate((el) => getComputedStyle(el).direction)).toBe('ltr')
+  const box = await phrase.first().boundingBox()
+  expect(box).toBeTruthy()
+  expect(box!.x).toBeGreaterThanOrEqual(0)
+  expect(box!.x + box!.width).toBeLessThanOrEqual(321)
+})
+
 test('the tutor SAY block quotes a line exactly once', async ({ page }) => {
   await page.goto('/tutor')
   await page.evaluate(() => localStorage.setItem('ewb:hideLessonOrientation', 'true'))

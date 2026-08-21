@@ -11,6 +11,7 @@ import {
   DOUBLED_QUOTE_RE,
   demoteQuotes,
   embedQuoted,
+  localizeInlineQuotes,
   quoteMarks,
   quoted,
   stripOuterQuotes,
@@ -127,6 +128,25 @@ describe('quoteMarks', () => {
       expect(m.close, lang).toBeTruthy()
       expect(m.innerOpen, lang).not.toBe(m.open)
     }
+  })
+})
+
+describe('localizeInlineQuotes', () => {
+  it('converts straight double quotes to the locale primary marks, in place', () => {
+    expect(localizeInlineQuotes('"think" came out as "sink"', 'en')).toBe('“think” came out as “sink”')
+    expect(localizeInlineQuotes('"think" came out as "sink"', 'ru')).toBe('«think» came out as «sink»')
+    expect(localizeInlineQuotes('"think" came out as "sink"', 'he')).toBe('“think” came out as “sink”')
+  })
+
+  it('never produces a doubled mark for any locale', () => {
+    for (const lang of UI_LANGUAGES) {
+      const out = localizeInlineQuotes('"think" came out as "sink" — tongue between the teeth', lang)
+      expect(DOUBLED_QUOTE_RE.test(out), `${lang}: ${out}`).toBe(false)
+    }
+  })
+
+  it('leaves text with no straight quotes untouched', () => {
+    expect(localizeInlineQuotes('Understandable, noticeable', 'en')).toBe('Understandable, noticeable')
   })
 })
 

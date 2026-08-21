@@ -147,6 +147,18 @@
   font-size: var(--fs-sm);
 }
 
+/* A printed report is a document, not a printed webpage: the site nav,
+   language/theme switches and the marketing footer have no place on paper.
+   (The lesson-report route itself never renders this Layout at all — see
+   LessonReportPage — this covers the sample report and anything else that
+   gets printed from inside the public site chrome.) */
+@media print {
+  .header,
+  .footer {
+    display: none;
+  }
+}
+
 /* The wordmark drops to the "B" monogram as soon as the row needs the space —
    see useHeaderStage. It is removed from the DOM rather than hidden, so the
    measurement reflects what is actually rendered. Below the full stage the row

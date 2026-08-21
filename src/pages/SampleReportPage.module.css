@@ -35,3 +35,16 @@
 .footerNote {
   font-size: var(--fs-sm);
 }
+
+/* Printed, this page is a document: the marketing badge/headline/description
+   above the report have no place on paper. The one line noting the report is
+   a fictional sample stays — printed with no such notice, it would be
+   indistinguishable from a real student's report. */
+@media print {
+  .intro > :not(.fictionalNote) {
+    display: none;
+  }
+  .fictionalNote {
+    color: #000;
+  }
+}

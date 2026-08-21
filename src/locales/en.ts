@@ -748,6 +748,7 @@ const en: Dict = {
       strongestArea: 'Strongest area so far: {{goal}}.',
     },
     corrections: 'Helpful corrections',
+    correctedTo: 'corrected to',
     vocabulary: 'New words',
     pronunciation: 'Pronunciation',
     nextFocus: 'Next focus',

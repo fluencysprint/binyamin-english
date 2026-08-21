@@ -36,6 +36,16 @@ const OPENER_FOR: Record<string, string> = {
   '"': '"',
 }
 
+/** Every mark this app can emit as an OPENER — the reverse direction of
+ *  `OPENER_FOR`, used to recognize a quote/bracket sitting just before a run
+ *  starts. */
+const OPENERS = new Set(Object.values(OPENER_FOR))
+
+/** Opener → its closer, the inverse of `OPENER_FOR`. */
+const CLOSER_OF: Record<string, string> = Object.fromEntries(
+  Object.entries(OPENER_FOR).map(([closer, opener]) => [opener, closer]),
+)
+
 export interface BidiRun {
   text: string
   /** True when this run must be rendered inside its own LTR isolate. */
@@ -84,6 +94,19 @@ export function splitBidiRuns(text: string): BidiRun[] {
       end = r
     }
 
+    // A quote/bracket that opens immediately before the run belongs to its
+    // content even when the matching closer lands INSIDE the run rather than
+    // at its far end — one quoted word mid-sentence ("think" came out as
+    // "sink"), not a pair wrapping the whole thing. Left outside, that lone
+    // opener is a neutral character bordering RTL text, and the bidi
+    // algorithm renders it on the wrong side of the content it introduces.
+    let lead = start - 1
+    while (lead >= 0 && text[lead] === ' ') lead--
+    if (lead >= 0 && OPENERS.has(text[lead])) {
+      const closer = CLOSER_OF[text[lead]]
+      if (closer && text.slice(start, end + 1).includes(closer)) start = lead
+    }
+
     if (start > cursor) runs.push({ text: text.slice(cursor, start), isolate: false })
     runs.push({ text: text.slice(start, end + 1), isolate: true })
     cursor = end + 1
@@ -97,4 +120,12 @@ export function splitBidiRuns(text: string): BidiRun[] {
 /** True when `text` mixes an RTL script with an embedded LTR run. */
 export function isMixedDirection(text: string): boolean {
   return splitBidiRuns(text).some((r) => r.isolate)
+}
+
+/** True when `text` contains any RTL-script character. A list item with NONE
+ *  should render as its own LTR unit (`dir="ltr"`) rather than lean on
+ *  `dir="auto"` heuristics — the bullet, indent and text alignment all need
+ *  to agree it is LTR, not just the text run inside it. */
+export function hasRTL(text: string): boolean {
+  return RTL_RE.test(text)
 }
