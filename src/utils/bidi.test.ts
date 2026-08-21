@@ -97,6 +97,46 @@ describe('splitBidiRuns', () => {
     expect(() => splitBidiRuns(text)).not.toThrow()
     expect(rejoin(text)).toBe(text)
   })
+
+  /* Regression: an English phrase whose OWN parenthetical sits at its tail —
+     `Talking about last weekend (past simple)` — starts several words before
+     the `(`, so the opener is not adjacent to the run's start the way
+     `(see below)` is. The core-growth only widens `end` on letters, so the
+     trailing `)` was left one character short of the run, and worse: when
+     the whole phrase is itself quoted, the stranded `)` then blocked the
+     outer-quote lookup below from ever finding its closer at the true end. */
+  it('keeps a tail parenthetical inside the run, even a quoted one', () => {
+    expect(isolates('בתרגיל: Talking about last weekend (past simple) בסדר.')).toEqual([
+      'Talking about last weekend (past simple)',
+    ])
+    expect(
+      isolates('השתמשת ב-"Talking about last weekend (past simple)" בצורה מדוייקת.'),
+    ).toEqual(['"Talking about last weekend (past simple)"'])
+  })
+
+  it('keeps a tail bracketed phrase inside the run', () => {
+    expect(isolates('כתבו את המילה החסרה [past simple] במשפט.')).toEqual([
+      '[past simple]',
+    ])
+  })
+
+  it('keeps commas and hyphens with the English run they punctuate, and leaves an unwrapped trailing period to the outer Hebrew sentence', () => {
+    const runs = splitBidiRuns('אמרו: Yes, I did — but not on time. בבקשה.')
+    expect(runs.some((r) => r.isolate && r.text === 'Yes, I did — but not on time')).toBe(true)
+    expect(isolates('שימו לב ל-well-known idioms בטקסט.')).toEqual(['well-known idioms'])
+    expect(isolates('הוא אמר It’s a well-known fact לפני שהמשיך.')).toEqual([
+      'It’s a well-known fact',
+    ])
+  })
+
+  it('never adds, drops or reorders a character even with a tail parenthetical', () => {
+    const samples = [
+      'בתרגיל: Talking about last weekend (past simple) בסדר.',
+      'השתמשת ב-"Talking about last weekend (past simple)" בצורה מדוייקת.',
+      'כתבו את המילה החסרה [past simple] במשפט.',
+    ]
+    for (const s of samples) expect(rejoin(s)).toBe(s)
+  })
 })
 
 describe('hasRTL', () => {

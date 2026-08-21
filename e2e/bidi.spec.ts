@@ -297,6 +297,58 @@ test('an English sentence inside Hebrew homework wraps cleanly at 320px with no 
   expect(box!.x + box!.width).toBeLessThanOrEqual(321)
 })
 
+/* ==========================================================================
+   Regression: an embedded English phrase that ends in its OWN parenthetical
+   — `"Talking about last weekend (past simple)"` — inside a Hebrew "what
+   went well" sentence. The opening quote sits right before "Talking", not
+   right before "past", so the `(past simple)` parenthetical's own opener is
+   INSIDE the isolate rather than at its edge; the closing `)` (and the `”`
+   past it) used to fall outside the <bdi> and land on the wrong side of the
+   Hebrew sentence, exactly as shown in the reported screenshot.
+   ========================================================================== */
+
+test('a quoted English phrase with a trailing parenthetical stays one LTR isolate inside a Hebrew sentence', async ({
+  page,
+}) => {
+  await page.goto('/he/sample-report/')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+
+  const sentence = page.getByText(/השתמשתם ב-.*בצורה מדויקת\./).first()
+  await expect(sentence).toBeVisible()
+
+  // The whole quoted phrase — opener, parenthetical, closer — is ONE isolate.
+  const isolate = sentence.locator('bdi[dir="ltr"]', { hasText: 'Talking about last weekend' }).first()
+  await expect(isolate).toBeVisible()
+  expect(await isolate.innerText()).toBe('“Talking about last weekend (past simple)”')
+  expect(await isolate.evaluate((el) => getComputedStyle(el).direction)).toBe('ltr')
+
+  // Visual proof: the opening quote renders to the LEFT of the closing one,
+  // and the closing paren renders to the left of the closing quote — i.e.
+  // nothing was reordered by the surrounding RTL paragraph.
+  const { openX, closeParenX, closeQuoteX } = await isolate.evaluate((el) => {
+    const node = el.firstChild as Text
+    const rect = (start: number, end: number) => {
+      const range = document.createRange()
+      range.setStart(node, start)
+      range.setEnd(node, end)
+      return range.getBoundingClientRect().x
+    }
+    const text = node.textContent!
+    return {
+      openX: rect(0, 1),
+      closeParenX: rect(text.length - 2, text.length - 1),
+      closeQuoteX: rect(text.length - 1, text.length),
+    }
+  })
+  expect(closeParenX).toBeGreaterThan(openX)
+  expect(closeQuoteX).toBeGreaterThan(closeParenX)
+
+  // No stray quote/paren left stranded in the Hebrew text around it.
+  const sentenceText = await sentence.innerText()
+  expect(sentenceText).not.toMatch(/([“”])\1/)
+  expect(sentenceText).toContain('“Talking about last weekend (past simple)” בצורה')
+})
+
 test('the tutor SAY block quotes a line exactly once', async ({ page }) => {
   await page.goto('/tutor')
   await page.evaluate(() => localStorage.setItem('ewb:hideLessonOrientation', 'true'))

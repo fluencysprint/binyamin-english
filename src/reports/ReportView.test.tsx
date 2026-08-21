@@ -76,9 +76,19 @@ describe('ReportView in Hebrew', () => {
     // "What went well" narrative (objective outcome was 'correct') must be
     // Hebrew — it appears in both the student section and the parent
     // "strengths" section (minors get both), so there are two matches.
-    expect(screen.getAllByText(/השתמשתם ב-.+ בצורה מדויקת\./).length).toBeGreaterThan(0)
+    // Matched against `li.textContent` (not `getByText`'s regex form) because
+    // the English phrase is isolated in a nested <bdi>, and testing-library's
+    // default text matcher only looks at an element's own direct text-node
+    // children, not descendant elements' text.
+    const wentWellItems = screen
+      .getAllByRole('listitem')
+      .filter((li) => /השתמשתם ב-.+ בצורה מדויקת\./.test(li.textContent ?? ''))
+    expect(wentWellItems.length).toBeGreaterThan(0)
     // "Signs of progress" narrative (parent section, minor student) must be Hebrew.
-    expect(screen.getByText(/יישמתם את .+ נכון עד סוף השיעור\./)).toBeInTheDocument()
+    const progressItems = screen
+      .getAllByRole('listitem')
+      .filter((li) => /יישמתם את .+ נכון עד סוף השיעור\./.test(li.textContent ?? ''))
+    expect(progressItems.length).toBeGreaterThan(0)
 
     // The correction quote ("said" → "better") stays LTR even inside the
     // Hebrew page. "She go"/"She goes" also appear elsewhere (priorities,
@@ -227,6 +237,42 @@ describe('ReportView pronunciation note quoting', () => {
     expect(isolate.tagName.toLowerCase()).toBe('bdi')
     expect(isolate.getAttribute('dir')).toBe('ltr')
     expect(isolate.textContent!.startsWith('“')).toBe(true)
+  })
+
+  /* Regression: an English phrase ending in its OWN parenthetical, quoted —
+     `"Talking about last weekend (past simple)"` — must isolate as ONE run,
+     closing paren AND closing quote both included. Previously the trailing
+     `)` — and with it the closing `”` past it — fell outside the <bdi> and
+     landed on the wrong side of the Hebrew sentence around it, because the
+     run's opening quote sits right before "Talking", not right before
+     "past" — the paren's own opener is INSIDE the run, not at its edge. */
+  it('keeps a quoted English phrase and its trailing parenthetical in one LTR isolate', () => {
+    const student = makeStudent()
+    const model = initLearningModel(student.id, 'A2', now)
+    const lesson = makeLesson(student)
+    const { report } = applyCompletedLesson(model, lesson, student, [], now)
+    report.pronunciation = [
+      {
+        area: 'vowels',
+        rating: 'needsPractice',
+        note: '"Talking about last weekend (past simple)"',
+      },
+    ]
+
+    render(
+      <I18nProvider initialLang="he">
+        <ToastProvider>
+          <ReportView report={report} parentSection={false} />
+        </ToastProvider>
+      </I18nProvider>,
+    )
+    const matched = screen.getByText(/Talking about last weekend/)
+    const item = matched.closest('li')!
+    expect(item.textContent).not.toContain('"') // normalized away by localizeInlineQuotes
+    const isolate = item.querySelector('bdi[dir="ltr"]')!
+    expect(isolate).toBeTruthy()
+    // The whole quoted phrase — opener, parenthetical, closer — is ONE run.
+    expect(isolate.textContent).toBe('“Talking about last weekend (past simple)”')
   })
 })
 

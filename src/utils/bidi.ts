@@ -80,6 +80,24 @@ export function splitBidiRuns(text: string): BidiRun[] {
       j++
     }
 
+    // A closing bracket/quote sitting right after the run whose OPENER is
+    // already INSIDE it — `weekend (past simple)` — belongs to the run too.
+    // The core-growth above only widens `end` on letters, so a trailing
+    // closer with no more letters after it (nothing left to widen `end` to)
+    // is stranded one character short even though it closes something the
+    // run already opened, unlike the wrapping-pair case below where the
+    // opener sits OUTSIDE the run, right before `start`.
+    for (;;) {
+      const closer = text[end + 1]
+      const opener = closer && OPENER_FOR[closer]
+      if (!opener) break
+      const slice = text.slice(start, end + 1)
+      const opens = slice.split(opener).length - 1
+      const closes = slice.split(closer).length - 1
+      if (opens <= closes) break
+      end++
+    }
+
     // Absorb the quote/bracket pair wrapping the run, plus any sentence
     // punctuation that sits INSIDE it.
     for (;;) {
