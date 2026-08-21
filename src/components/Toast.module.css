@@ -1,0 +1,47 @@
+.region {
+  position: fixed;
+  /* --bottom-bar-h is published by whatever screen currently pins a bar to the
+     bottom of the viewport (the lesson runner's StepActionBar), so a toast
+     never lands on top of the primary action. Zero everywhere else. */
+  bottom: calc(env(safe-area-inset-bottom, 0) + var(--sp-4) + var(--bottom-bar-h, 0px));
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  pointer-events: none;
+  z-index: 200;
+  padding-inline: var(--sp-4);
+}
+
+.toast {
+  pointer-events: auto;
+  background: var(--c-ink-900);
+  color: #fff;
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-lg);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  max-width: min(92vw, 480px);
+  text-align: center;
+  animation: rise var(--dur) var(--ease);
+}
+
+.ok {
+  background: var(--ok);
+}
+.err {
+  background: var(--err);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,46 @@
+/* Calm by construction: the page's own card surface, no alert colour, no
+   icon shouting. It reads as information, because that is what it is. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  border-inline-start: 3px solid var(--brand);
+}
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.title {
+  margin: 0;
+  font-size: var(--fs-base);
+}
+.headline {
+  margin: 0;
+  font-weight: 600;
+}
+.text p:last-child {
+  font-size: var(--fs-sm);
+  margin: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+/* Mobile first: the stack above is the phone layout. Only once there is real
+   width does the action move beside the text. */
+@media (min-width: 40rem) {
+  .card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .actions {
+    flex-shrink: 0;
+  }
+}

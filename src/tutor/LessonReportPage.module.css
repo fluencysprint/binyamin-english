@@ -1,0 +1,6 @@
+.backRow {
+  padding-block-start: var(--sp-4);
+}
+.wrap {
+  padding-block: var(--sp-4) var(--sp-8);
+}

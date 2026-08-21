@@ -1,0 +1,84 @@
+.bar {
+  background: var(--bg-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.track {
+  block-size: 6px;
+  border-radius: var(--r-pill);
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.fill {
+  block-size: 100%;
+  background: var(--brand);
+  border-radius: var(--r-pill);
+  transition: inline-size var(--dur) var(--ease);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.sep {
+  color: var(--text-soft);
+}
+
+/* The advice chip. Note that NONE of these is an error colour: running long is
+   information, not a mistake, and the component must never scold. */
+.advice {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: var(--r-pill);
+  padding: 3px var(--sp-3);
+  white-space: nowrap;
+}
+.continue {
+  background: var(--ok-tint);
+  color: var(--ok);
+}
+.advance {
+  background: var(--info-tint);
+  color: var(--info);
+}
+.simplify {
+  background: var(--warn-tint);
+  color: var(--warn);
+}
+.changeActivity {
+  background: var(--warn-tint);
+  color: var(--warn);
+}
+.wrapUp {
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+.reason {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}
+.note {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  line-height: var(--lh-snug);
+}

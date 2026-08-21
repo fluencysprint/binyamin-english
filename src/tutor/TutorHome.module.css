@@ -1,0 +1,60 @@
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+.empty {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--sp-3);
+}
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.card:hover {
+  border-color: var(--brand);
+  transform: translateY(-1px);
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--brand-tint);
+  color: var(--brand-strong);
+  font-weight: 800;
+  font-size: var(--fs-lg);
+  flex-shrink: 0;
+}
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.info span {
+  font-size: var(--fs-sm);
+}
+.open {
+  color: var(--brand);
+  font-size: var(--fs-lg);
+}

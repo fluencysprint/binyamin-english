@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "strict": true,
+    "types": ["node"]
+  },
+  /* vite.config.ts imports the SEO prerenderer, which is plain TS shared with
+     the app. Those modules are listed here so the Node-side project can see
+     them; they deliberately contain no DOM or React code. */
+  "include": [
+    "vite.config.ts",
+    "src/seo/site.ts",
+    "src/seo/head.ts",
+    "src/seo/prerender.ts",
+    "src/locales/**/*.ts",
+    "src/i18n/dict.ts",
+    "src/utils/quotes.ts",
+    "src/types/**/*.ts"
+  ]
+}

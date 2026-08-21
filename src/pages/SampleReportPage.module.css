@@ -1,0 +1,37 @@
+.intro {
+  padding-block: var(--sp-6) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  align-items: flex-start;
+}
+.title {
+  margin: 0;
+}
+.fictionalNote {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  max-width: 62ch;
+}
+
+.reportWrap {
+  padding-block-end: var(--sp-6);
+}
+
+.ctaBlock {
+  padding-block-end: var(--sp-8);
+}
+.ctaCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  align-items: flex-start;
+  background: linear-gradient(180deg, var(--brand-tint), var(--bg-raised));
+}
+.ctaLine {
+  font-weight: 600;
+  font-size: var(--fs-md);
+}
+.footerNote {
+  font-size: var(--fs-sm);
+}

@@ -1,0 +1,284 @@
+/* ==========================================================================
+   The step action bar.
+   --------------------------------------------------------------------------
+   One pinned control surface per micro-step, replacing four stacked clusters.
+   Two rows at most, at every width from 320px up:
+
+       How did that go?   [ ✓ Correct ][ ~ Partial ][ ✕ Needs work ]
+       [ ‹ ]  [ ☰ Tools ]  [        Next step  ›                   ]
+
+   Everything here is sized so that the bar costs about 110px of viewport on a
+   phone — less than half of what the old Previous/Next row + score row + beige
+   capture tray + skip footer occupied, and with no auto-fit grid left to leave
+   holes at awkward widths.
+   ========================================================================== */
+
+.bar {
+  position: sticky;
+  bottom: 0;
+  /* Sticky keeps its place in normal flow, so the bar reserves its own space:
+     it can pin to the bottom of the viewport for the whole scroll and still
+     never cover the last line of the step card. */
+  background: var(--bg-raised);
+  border-top: 1px solid var(--surface-border);
+  box-shadow: 0 -2px 10px rgba(28, 63, 60, 0.07);
+  padding-block: var(--sp-2);
+  /* Home-indicator gestures on iOS live in the bottom inset. */
+  padding-bottom: max(var(--sp-2), env(safe-area-inset-bottom));
+}
+:root[data-theme='dark'] .bar {
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.4);
+}
+.inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* ---- 1. Outcome ---- */
+.outcomeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+/* The label is what teaches a first-time tutor that these three buttons are a
+   judgement about the student, not about the app. It is worth a row of its own
+   on a phone; on anything wider it sits inline and costs nothing. */
+.outcomeLabel {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-1);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.seg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  flex-wrap: wrap;
+  min-height: 40px;
+  min-width: 0;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+/* Long localized verdicts ("Требует доработки", "Necesita trabajo") wrap inside
+   their own third of the row rather than widening it. */
+.segLabel {
+  overflow-wrap: anywhere;
+}
+.seg:hover {
+  border-color: var(--brand);
+}
+/* Selected state reuses the proven chip tokens rather than inventing a
+   red/amber/green fill: those tints are unreadable behind text in dark mode,
+   and "Needs work" painted red reads as a scolding rather than a note. The
+   semantic colour lives in the icon, where 3:1 is the right bar. */
+.seg[aria-pressed='true'] {
+  background: var(--brand-tint);
+  border-color: var(--brand);
+  color: var(--brand-strong);
+  font-weight: 800;
+}
+.correct svg {
+  color: var(--ok);
+}
+.partial svg {
+  color: var(--warn);
+}
+.needsWork svg {
+  color: var(--err);
+}
+
+/* ---- 2/3/4. Navigation row ---- */
+.navRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.iconBtn {
+  display: grid;
+  place-items: center;
+  flex: 0 0 var(--touch);
+  width: var(--touch);
+  min-height: var(--touch);
+  border: 1.5px solid var(--surface-border);
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.iconBtn:hover:not(:disabled) {
+  border-color: var(--brand);
+}
+.iconBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.toolsBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  flex: 0 0 auto;
+  min-height: var(--touch);
+  padding-inline: var(--sp-3);
+  border: 1.5px solid var(--surface-border);
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.toolsBtn:hover,
+.toolsBtn[aria-expanded='true'] {
+  border-color: var(--brand);
+}
+/* The primary takes every pixel the other two do not. It is tapped twenty to
+   forty times a lesson, one-handed, while the tutor is looking at the student
+   rather than the phone — so it is the tallest thing in the bar and the only
+   filled control on the screen. */
+.next {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 48px;
+  font-size: var(--fs-md);
+  padding-inline: var(--sp-3);
+  white-space: normal;
+  line-height: var(--lh-tight);
+}
+
+/* Below 560px the label moves above the segmented control: three verdicts and
+   a question do not fit on one line on a phone, and the answer is not to
+   shrink the touch targets. */
+@media (max-width: 559px) {
+  .outcomeRow {
+    display: block;
+  }
+  .outcomeLabel {
+    display: block;
+    margin-bottom: var(--sp-1);
+    font-size: var(--fs-xs);
+  }
+}
+
+/* On the narrowest phones the verdict labels are what decides whether the bar
+   costs one row or two. Trimming the type a step keeps "Needs work" — and
+   "Нужна работа", the longest of the five locales — on a single line, without
+   touching the 40px target. */
+@media (max-width: 419px) {
+  .seg {
+    font-size: var(--fs-xs);
+    padding-inline: var(--sp-1);
+    gap: 2px;
+  }
+}
+
+/* Under ~360px "Tools" as a word costs more than it earns next to the primary
+   action; the icon plus its accessible name carry it. */
+@media (max-width: 359px) {
+  .toolsLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .toolsBtn {
+    width: var(--touch);
+    padding-inline: 0;
+  }
+}
+
+/* ---- Tools disclosure ---- */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: transparent;
+}
+.panel {
+  position: absolute;
+  z-index: 46;
+  bottom: calc(100% + var(--sp-2));
+  inset-inline-start: 0;
+  width: min(20rem, 100%);
+  max-height: min(60vh, 26rem);
+  overflow-y: auto;
+  padding: var(--sp-2);
+  display: grid;
+  gap: 1px;
+  background: var(--bg-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+}
+/* Anchored to the bar's own container, so it can never spill past the viewport
+   edge at 320px or flip to the wrong side under RTL. */
+.groupLabel {
+  margin: var(--sp-2) var(--sp-2) var(--sp-1);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+.groupLabel:first-child {
+  margin-top: 0;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: var(--touch);
+  padding: var(--sp-2) var(--sp-2);
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  text-align: start;
+  line-height: var(--lh-snug);
+  cursor: pointer;
+}
+.item:hover,
+.item:focus-visible {
+  background: var(--bg-sunken);
+}
+.item svg {
+  flex: 0 0 auto;
+  color: var(--brand);
+}

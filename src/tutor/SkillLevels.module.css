@@ -1,0 +1,50 @@
+/* One shared grid for every skill row (rows use `display: contents`), so the
+   four tracks — name, bar, level, confidence marker — line up across rows no
+   matter how wide any single label is ("A1" vs "Pre-A1", "C1" vs "C1~"). */
+.grid {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr) max-content 0.75rem;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+}
+.row {
+  display: contents;
+}
+.name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.bar {
+  height: 8px;
+  background: var(--bg-sunken);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand), var(--c-teal-500));
+  border-radius: var(--r-pill);
+  transition: width var(--dur) var(--ease);
+}
+/* The level track is sized by its widest label and ends flush, so every row's
+   level reads off the same edge; the "~" never pushes it. */
+.level {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  text-align: end;
+  color: var(--brand);
+  white-space: nowrap;
+}
+.confidence {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+  text-align: start;
+  line-height: 1;
+}
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 6rem minmax(0, 1fr) max-content 0.75rem;
+    gap: var(--sp-1) var(--sp-2);
+  }
+}

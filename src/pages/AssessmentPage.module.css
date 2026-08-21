@@ -1,0 +1,47 @@
+/* Quiz-item styles live with the runner itself (AssessmentRunner.module.css);
+   what remains here is specific to the public page's intro and result. */
+.foundationalNote {
+  background: var(--brand-tint);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}
+.cta {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  align-items: center;
+  background: linear-gradient(180deg, var(--brand-tint), var(--bg-raised));
+}
+.cta .cluster {
+  justify-content: center;
+}
+
+/* What a lesson adds to the snapshot. Left-aligned inside a centred card:
+   a three-item list centred line by line is unreadable. */
+.next {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--sp-3);
+  text-align: start;
+  max-width: 46ch;
+}
+.next li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sp-3);
+  align-items: start;
+  line-height: var(--lh-snug);
+}
+.next svg {
+  color: var(--brand);
+  margin-top: 0.2em;
+}
+.price {
+  font-weight: 600;
+  margin: 0;
+}

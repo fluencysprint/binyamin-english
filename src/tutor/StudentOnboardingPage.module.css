@@ -1,0 +1,70 @@
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+@media (max-width: 560px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+}
+.englishSection {
+  border: 1.5px solid var(--surface-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.englishSection legend {
+  padding-inline: var(--sp-2);
+}
+.parentToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+/* Starting-point triage — three large, unmistakable choices. */
+.triageList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.triageOption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  text-align: start;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--surface-border);
+  background: var(--bg-raised);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+.triageOption:hover {
+  border-color: var(--brand);
+}
+.triageActive {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+}
+.triageLabel {
+  font-weight: 700;
+  font-size: var(--fs-md);
+}
+.triageDesc {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: var(--lh-snug);
+}
+.reviewNote {
+  background: var(--brand-tint);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}

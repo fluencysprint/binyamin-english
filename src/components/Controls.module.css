@@ -1,0 +1,81 @@
+/* The language control is a real <select> at every size: the native picker is
+   the most usable and most accessible list of five languages on a phone. Only
+   its presentation changes — a labelled control wherever the header row has
+   space for one, and a 40px globe button when it does not, with the select
+   laid transparently over the icon so the tap target and the keyboard
+   behaviour are unchanged. The switch is driven by `.selectCompact` from the
+   header's measured stage, NOT by a viewport media query: a 1024px Russian
+   tutor header runs out of room while a 1024px English one does not. */
+.selectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.select {
+  min-height: 40px;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--surface-border);
+  background: var(--bg-raised);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 10rem;
+}
+.select:hover {
+  border-color: var(--brand);
+}
+
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--surface-border);
+  background: var(--bg-raised);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.iconBtn:hover {
+  border-color: var(--brand);
+}
+
+.selectCompact {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--surface-border);
+  background: var(--bg-raised);
+}
+.selectCompact:focus-within {
+  box-shadow: var(--focus-ring);
+}
+.selectCompact .selectIcon {
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  font-size: 1.15rem;
+}
+.selectCompact .select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  max-width: none;
+  /* Safari needs an explicit appearance reset for a fully transparent
+     overlay select to stay tappable across its whole box. */
+  -webkit-appearance: none;
+  appearance: none;
+}

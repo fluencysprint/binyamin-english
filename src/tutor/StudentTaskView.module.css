@@ -1,0 +1,54 @@
+/* Deliberately large and sparse. The learner may be five years old, may be
+   nervous, and may be reading at arm's length on a shared phone. */
+
+.task {
+  display: grid;
+  gap: var(--sp-5);
+  padding: var(--sp-5) 0;
+}
+
+.instruction {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  text-align: start;
+}
+
+/* The English target, clearly a different thing from the instruction. */
+.target {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4);
+  background: var(--brand-tint);
+  border: 2px solid var(--brand);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+}
+.targetText {
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.passage {
+  margin: 0;
+  background: var(--bg-sunken);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+}
+
+@media (max-width: 400px) {
+  .instruction {
+    font-size: var(--fs-lg);
+  }
+  .targetText {
+    font-size: var(--fs-xl);
+  }
+}

@@ -1,0 +1,148 @@
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+.back {
+  font-size: var(--fs-sm);
+  text-decoration: none;
+  color: var(--text-muted);
+}
+.back:hover {
+  color: var(--brand);
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--sp-4);
+}
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+.colMain,
+.colSide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.h2 {
+  font-size: var(--fs-lg);
+}
+.sectionHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.levelHero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bigLevel {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  color: var(--brand);
+}
+.levelName {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.nextLesson {
+  background: linear-gradient(180deg, var(--brand-tint), var(--bg-raised));
+  border-color: var(--brand);
+}
+.nextObjective {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+/* A vertical schedule at every width: one fixed time column sized to the widest
+   range, one flexible activity column. Rows use `display: contents` so both
+   columns stay aligned across the whole list instead of each row measuring
+   itself (the old auto-fit track count reflowed awkwardly between widths). */
+.phaseList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--sp-3);
+  row-gap: var(--sp-1);
+  align-items: baseline;
+  font-size: var(--fs-sm);
+}
+.phaseList li {
+  display: contents;
+}
+.phaseTime {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-soft);
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+.phaseName {
+  min-width: 0;
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.panelTitle {
+  font-size: var(--fs-md);
+}
+.plainList {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+}
+/* A "mistake → correction" pair must read as ONE left-to-right unit under
+   RTL — isolating the two halves separately (bdi/dir=ltr each) still lets an
+   RTL paragraph reorder the two isolates relative to each other, putting the
+   correction before the mistake. unicode-bidi: plaintext derives the whole
+   line's base direction from its own content instead, so both halves stay in
+   source order. */
+.issueText {
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+.historyList {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--surface-border);
+}
+.historyMain {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 160px;
+}
+.historyMain span {
+  font-size: var(--fs-sm);
+}

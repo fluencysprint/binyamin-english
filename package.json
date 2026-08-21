@@ -1,0 +1,46 @@
+{
+  "name": "binyamin-english",
+  "version": "1.0.0",
+  "description": "Binyamin English — personalized English tutoring focused on clear American pronunciation, practical English, and real conversation. A zero-cost adaptive 1-on-1 English tutoring system.",
+  "private": true,
+  "type": "module",
+  "homepage": "https://fluencysprint.github.io/binyamin-english/",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "idb": "^8.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^26.2.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.6.0",
+    "@typescript-eslint/parser": "^8.6.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.12",
+    "fake-indexeddb": "^6.0.0",
+    "jsdom": "^25.0.0",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.6",
+    "vite-plugin-pwa": "^0.20.5",
+    "vitest": "^2.1.1"
+  }
+}

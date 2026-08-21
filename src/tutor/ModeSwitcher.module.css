@@ -1,0 +1,57 @@
+.wrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  max-width: 100%;
+  min-width: 0;
+}
+.row {
+  display: inline-flex;
+  background: var(--bg-sunken);
+  border-radius: var(--r-pill);
+  padding: 3px;
+  gap: 2px;
+  max-width: 100%;
+}
+.btn {
+  border: none;
+  background: transparent;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-height: 34px;
+  /* Three long localized mode names (ru/fr run ~2x English) must never push
+     the control wider than its container on a 320px phone. */
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.active {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+/* The way back out of Student mode. It appears under the switch rather than
+   in a dialog: the tutor has just taken the device back and is standing up. */
+.unlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.unlock .field {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+.unlockError {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--err);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}

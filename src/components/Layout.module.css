@@ -1,0 +1,157 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.2) blur(8px);
+  border-bottom: 1px solid var(--surface-border);
+}
+.headerInner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 64px;
+  padding-block: var(--sp-2);
+}
+/* Nothing in the row shrinks. Shrinking is what let the wordmark collapse to
+   zero width and paint over the navigation in Russian and French; instead the
+   row reports its true required width and useHeaderStage drops a whole item.
+   It also makes each child's border box its NATURAL width, which is what the
+   measurement sums. */
+.headerInner > * {
+  flex-shrink: 0;
+  min-width: 0;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+}
+/* The mark draws its own teal tile and white B (src/components/BrandMark.tsx),
+   so the header only has to stop flexbox from squashing it. */
+.brandMark {
+  display: block;
+  flex-shrink: 0;
+}
+.brandName {
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+.nav {
+  display: flex;
+  gap: var(--sp-1);
+}
+/* Compact horizontal padding: four links carry it eight times over, and the
+   translated labels are up to 30% longer than the English ones this header
+   was originally sized around. */
+.nav a {
+  padding: var(--sp-2) var(--sp-2);
+  border-radius: var(--r-md);
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+.nav a:hover {
+  background: var(--bg-sunken);
+  color: var(--text);
+}
+.active {
+  color: var(--brand) !important;
+  background: var(--brand-tint) !important;
+}
+.controls {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+/* ---- Mobile menu ----
+   The four public destinations used to wrap across two extra rows above the
+   content, so a phone lost ~150px of viewport to navigation before a single
+   word of the page appeared. They now live behind one 40px button, and the
+   header holds a single row at every width. */
+.menuBtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--surface-border);
+  background: var(--bg-raised);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1.15rem;
+}
+.menuBtn:hover {
+  border-color: var(--brand);
+}
+.menuPanel {
+  border-top: 1px solid var(--surface-border);
+  background: var(--bg-raised);
+  padding-block: var(--sp-2);
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+}
+.menuPanel[hidden] {
+  display: none;
+}
+.menuNav {
+  display: flex;
+  flex-direction: column;
+}
+.menuNav a {
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+}
+.menuNav a:hover {
+  background: var(--bg-sunken);
+}
+.menuExtra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding-top: var(--sp-3);
+  margin-top: var(--sp-2);
+  border-top: 1px solid var(--surface-border);
+}
+
+.main {
+  flex: 1;
+  outline: none;
+}
+.footer {
+  border-top: 1px solid var(--surface-border);
+  padding-block: var(--sp-5);
+  margin-top: var(--sp-8);
+}
+.footerInner {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+}
+
+/* The wordmark drops to the "B" monogram as soon as the row needs the space —
+   see useHeaderStage. It is removed from the DOM rather than hidden, so the
+   measurement reflects what is actually rendered. Below the full stage the row
+   also tightens, which buys back roughly one control's worth of width. */
+.header:not([data-stage='full']) .headerInner {
+  min-height: 56px;
+  gap: var(--sp-2);
+}

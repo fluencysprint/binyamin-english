@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- %BASE_URL%, not a relative path: the same shell is served from nested
+         URLs like /he/about/, where "favicon.svg" would resolve underneath the
+         page instead of at the site root. -->
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#2f6f6b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Binyamin" />
+    <!-- Boot/offline shell. Painted before the bundle evaluates and on a cold
+         offline start, so the first thing on screen is the same brand mark as
+         the home-screen icon rather than a white page. React replaces it. -->
+    <style>
+      #boot {
+        min-height: 60vh;
+        display: grid;
+        place-items: center;
+      }
+      #boot svg {
+        width: 72px;
+        height: 72px;
+        animation: boot-fade 1.4s ease-in-out infinite alternate;
+      }
+      @keyframes boot-fade {
+        from {
+          opacity: 0.45;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot svg {
+          animation: none;
+        }
+      }
+    </style>
+    <!-- Replaced at build time, once per public page per locale, with that
+         page's description, canonical, hreflang set, Open Graph tags and
+         JSON-LD. See src/seo/prerender.ts. -->
+    <!--seo-head-->
+    <title>Binyamin English</title>
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot" aria-hidden="true">
+        <svg viewBox="0 0 64 64" focusable="false">
+          <rect width="64" height="64" rx="14.08" fill="#2f6f6b" />
+          <path
+            d="M19.2 16.64H24.32V47.36H19.2ZM24.32 16.64A7.68 7.68 0 0 1 24.32 32L24.32 26.56A2.24 2.24 0 0 0 24.32 22.08ZM24.32 32A7.68 7.68 0 0 1 24.32 47.36L24.32 41.28A1.6 1.6 0 0 0 24.32 38.08Z"
+            fill="#faf9f6"
+          />
+        </svg>
+      </div>
+    </div>
+    <!-- Replaced at build time with a crawlable copy of the page's headline,
+         summary and links, read from the same locale dictionary React renders
+         from. Removed by the app on mount. -->
+    <!--seo-body-->
+    <noscript>Binyamin English requires JavaScript to run. Please enable it in your browser.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

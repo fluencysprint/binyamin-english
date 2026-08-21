@@ -1,0 +1,144 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.title {
+  font-size: var(--fs-xl);
+}
+.levelRow {
+  display: flex;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+.level {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  color: var(--brand);
+  line-height: 1.1;
+}
+.levelName {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.strength {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+.skillGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--sp-2);
+}
+.skillChip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-2);
+  background: var(--bg-sunken);
+  border-radius: var(--r-md);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm);
+}
+.skillChip strong {
+  color: var(--brand);
+}
+/* A limited-evidence marker sits under the level so the chip stays scannable
+   and the caveat travels with the number it qualifies. */
+.skillChip {
+  flex-wrap: wrap;
+}
+.skillNote {
+  flex-basis: 100%;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.notAssessed,
+.evidence {
+  font-size: var(--fs-sm);
+}
+.ceiling {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  margin-top: var(--sp-1);
+}
+.foundation {
+  background: var(--brand-tint);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.foundationLead {
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+.foundationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--sp-3);
+  margin: 0;
+}
+.foundationGrid dt {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.foundationGrid dd {
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+.foundationFocus {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}
+.subhead {
+  font-weight: 700;
+  margin-bottom: var(--sp-2);
+}
+.priorities {
+  padding-inline-start: var(--sp-5);
+  display: grid;
+  gap: var(--sp-1);
+}
+.correction {
+  background: var(--brand-tint);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+}
+/* Priorities + example are English content; keep them LTR under RTL UIs. */
+.priorities,
+.correction {
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+.corrRow {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: baseline;
+  margin-bottom: var(--sp-1);
+}
+.corrLabel {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 7ch;
+}
+.said {
+  text-decoration: line-through;
+  text-decoration-color: var(--err);
+  color: var(--text-muted);
+}
+.better {
+  color: var(--ok);
+  font-weight: 700;
+}
+.disclaimer {
+  font-size: var(--fs-xs);
+}

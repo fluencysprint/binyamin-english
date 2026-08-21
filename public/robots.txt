@@ -1,0 +1,18 @@
+# Binyamin English
+#
+# NOTE: this file is served from /binyamin-english/robots.txt. A crawler only
+# honours the robots.txt at the HOST root (fluencysprint.github.io/robots.txt),
+# which belongs to the user Pages site, not to this project. So this file is
+# documentation plus forward-compatibility for a custom domain — the control
+# that actually keeps the tutor area out of search results is the
+# `noindex, nofollow` meta tag those screens emit (see src/seo/Seo.tsx), which
+# is host-independent.
+
+User-agent: *
+Allow: /
+
+# Private tutoring workspace: no public content, nothing to index.
+Disallow: /binyamin-english/tutor
+Disallow: /tutor
+
+Sitemap: https://fluencysprint.github.io/binyamin-english/sitemap.xml

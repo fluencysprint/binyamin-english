@@ -1,0 +1,194 @@
+.hero {
+  padding-block: var(--sp-8) var(--sp-7);
+  background: radial-gradient(120% 120% at 100% 0%, var(--brand-tint) 0%, transparent 55%);
+}
+
+/* Two columns from 900px up. The single-column hero left roughly half a
+   1280px screen empty next to the headline, which reads as an unfinished
+   template rather than as calm space — and wasted the most valuable strip on
+   the site. `start` alignment keeps the card's top edge on the eyebrow. */
+.heroInner {
+  display: grid;
+  gap: var(--sp-6);
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .heroInner {
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: var(--sp-7);
+  }
+}
+.heroCopy {
+  min-width: 0;
+}
+
+.eyebrow {
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: 0.01em;
+  margin-bottom: var(--sp-3);
+}
+.title {
+  font-size: clamp(2.2rem, 6vw, var(--fs-4xl));
+  max-width: 16ch;
+}
+.subtitle {
+  font-size: var(--fs-md);
+  color: var(--text-muted);
+  max-width: 52ch;
+  margin-top: var(--sp-4);
+}
+.strengths {
+  margin-top: var(--sp-4);
+  font-weight: 600;
+  color: var(--brand-strong);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.01em;
+}
+.ctas {
+  margin-top: var(--sp-6);
+}
+.priceLine {
+  margin-top: var(--sp-4);
+  font-weight: 600;
+  color: var(--text);
+}
+.ctaNote {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+}
+
+/* The deliverables card. Raised off the tinted hero rather than tinted itself:
+   it is the one thing on the page that has to look like a receipt. */
+.deliverables {
+  padding: var(--sp-6);
+}
+.deliverablesTitle {
+  font-size: var(--fs-md);
+  margin-bottom: var(--sp-4);
+}
+.getList {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+.getList li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sp-3);
+  align-items: start;
+  line-height: var(--lh-snug);
+}
+.getList svg {
+  color: var(--brand);
+  margin-top: 0.2em;
+  flex: none;
+}
+
+/* A quiet second-tier link, not a button — the primary/secondary CTAs
+   already sit in the hero, and this one is proof, not another ask. */
+.sampleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--brand-strong);
+}
+.sampleLink svg {
+  width: 1em;
+  height: 1em;
+}
+
+
+.sectionTitle {
+  margin-top: var(--sp-7);
+  margin-bottom: var(--sp-5);
+}
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-4);
+}
+.audience h3 {
+  color: var(--brand);
+}
+/* Heading beside the sequence, not above it. A five-item list at a 62ch
+   measure left most of a desktop row empty, which is the same dead space the
+   hero had. The heading takes the empty column instead. */
+.how {
+  display: grid;
+  gap: var(--sp-4);
+  align-items: start;
+  /* The section owns the leading space; the heading inside a grid cell must
+     not, or its margin offsets it from the list sharing the row. */
+  margin-top: var(--sp-7);
+}
+.how .sectionTitle {
+  margin-top: 0;
+}
+@media (min-width: 900px) {
+  .how {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: var(--sp-7);
+  }
+  .how .sectionTitle {
+    margin-bottom: 0;
+  }
+}
+.steps {
+  display: grid;
+  gap: var(--sp-4);
+  padding-inline-start: var(--sp-5);
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--fs-md);
+}
+.steps li {
+  padding-inline-start: var(--sp-2);
+  line-height: var(--lh-snug);
+}
+
+/* Pricing. Two columns on a wide screen — the offer, then what it contains —
+   so the number never sits alone with nothing justifying it. */
+.pricing {
+  margin-top: var(--sp-5);
+  display: grid;
+  gap: var(--sp-6);
+  background: linear-gradient(180deg, var(--brand-tint), var(--bg-raised));
+}
+@media (min-width: 760px) {
+  .pricing {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--sp-7);
+    align-items: start;
+  }
+}
+.priceTitle {
+  margin-bottom: var(--sp-3);
+}
+.included {
+  min-width: 0;
+}
+.includedTitle {
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-4);
+}
+
+.finalCta {
+  margin-top: var(--sp-7);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  background: linear-gradient(180deg, var(--brand-tint), var(--bg-raised));
+}
+.finalCta .cluster {
+  justify-content: center;
+}

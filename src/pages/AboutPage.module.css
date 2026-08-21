@@ -1,0 +1,253 @@
+/* ==========================================================================
+   About — an editorial masthead, a typographic language specimen, and a
+   closing statement. No character illustration: the page carries its warmth
+   through type scale, measure, hairline structure and one honest visual idea
+   (the three scripts Binyamin actually speaks).
+   ========================================================================== */
+
+.page {
+  padding-bottom: var(--sp-6);
+}
+
+/* ---- Masthead -----------------------------------------------------------
+   Magazine structure: oversized headline on one side, standfirst and body on
+   the other, separated by a hairline column rule. The brand wash is anchored
+   to the far corner and mirrored for RTL so the light always falls away from
+   where the eye enters. */
+.hero {
+  padding-block: var(--sp-8) var(--sp-7);
+  background: radial-gradient(115% 130% at 100% 0%, var(--brand-tint) 0%, transparent 60%);
+}
+[dir='rtl'] .hero {
+  background: radial-gradient(115% 130% at 0% 0%, var(--brand-tint) 0%, transparent 60%);
+}
+
+.masthead {
+  margin-top: var(--sp-5);
+  display: grid;
+  gap: var(--sp-5);
+  align-items: start;
+}
+@media (min-width: 820px) {
+  .masthead {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--sp-7);
+  }
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: var(--lh-snug);
+  color: var(--brand);
+}
+.eyebrow::before {
+  content: '';
+  flex: none;
+  inline-size: 28px;
+  block-size: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.65;
+}
+
+.title {
+  min-width: 0;
+  font-size: clamp(2.4rem, 5.4vw, var(--fs-4xl));
+  letter-spacing: -0.035em;
+  max-width: 11ch;
+}
+
+.standfirst {
+  min-width: 0;
+}
+@media (min-width: 820px) {
+  .standfirst {
+    border-inline-start: 1px solid color-mix(in srgb, var(--surface-border) 80%, transparent);
+    padding-inline-start: var(--sp-7);
+    align-self: stretch;
+  }
+}
+
+.lede {
+  font-size: var(--fs-xl);
+  font-weight: 500;
+  line-height: var(--lh-snug);
+  letter-spacing: -0.01em;
+  color: var(--brand-strong);
+  max-width: 24ch;
+}
+
+.body {
+  margin-top: var(--sp-4);
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+  color: var(--text-muted);
+  max-width: 46ch;
+}
+
+/* ---- Language specimen band --------------------------------------------
+   The one graphic moment on the page, and it is made of real content: the
+   three scripts, given room, on equal footing, divided by hairlines. */
+.langBand {
+  border-block: 1px solid var(--surface-border);
+  background: linear-gradient(180deg, var(--brand-tint) 0%, transparent 140%);
+  padding-block: var(--sp-6);
+}
+
+.langLabel {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.langList {
+  list-style: none;
+  margin: var(--sp-4) 0 0;
+  padding: 0;
+  display: grid;
+}
+.langList li {
+  min-width: 0;
+  padding-block: var(--sp-3);
+  font-size: clamp(1.7rem, 4.4vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--brand-strong);
+  overflow-wrap: anywhere;
+}
+/* Stacked, the hairline that divides the three scripts simply rotates —
+   same structural device, same rhythm, at every width. */
+.langList li + li {
+  border-block-start: 1px solid color-mix(in srgb, var(--surface-border) 70%, transparent);
+}
+@media (min-width: 720px) {
+  .langBand {
+    padding-block: var(--sp-7);
+  }
+  .langList {
+    margin-top: var(--sp-5);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .langList li {
+    padding-block: 0;
+    padding-inline-end: var(--sp-6);
+  }
+  .langList li + li {
+    border-block-start: 0;
+    border-inline-start: 1px solid color-mix(in srgb, var(--surface-border) 80%, transparent);
+    padding-inline-start: var(--sp-6);
+  }
+}
+
+/* ---- How I work ---------------------------------------------------------
+   Three claims about process, on the same hairline grid as the rest of the
+   page. Numbered rules rather than cards: cards would make this read as a
+   feature list, and it is meant to read as a way of working. */
+.method {
+  margin-top: var(--sp-7);
+}
+.methodTitle {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--brand);
+  margin-bottom: var(--sp-5);
+}
+.methodGrid {
+  display: grid;
+  gap: var(--sp-5);
+}
+@media (min-width: 820px) {
+  .methodGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-6);
+  }
+}
+.methodItem {
+  min-width: 0;
+  border-block-start: 2px solid color-mix(in srgb, var(--brand) 45%, transparent);
+  padding-block-start: var(--sp-4);
+}
+.methodItem h3 {
+  font-size: var(--fs-md);
+  line-height: var(--lh-snug);
+  margin-bottom: var(--sp-2);
+}
+.methodItem p {
+  line-height: var(--lh-normal);
+}
+.methodNote {
+  margin-top: var(--sp-5);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--brand-strong);
+  max-width: 52ch;
+}
+
+/* ---- Closing statement + CTAs ---- */
+.close {
+  margin-top: var(--sp-7);
+  display: grid;
+  gap: var(--sp-5);
+}
+@media (min-width: 820px) {
+  .close {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--sp-7);
+    align-items: center;
+  }
+}
+
+.statement {
+  min-width: 0;
+  font-size: clamp(1.18rem, 2.2vw, var(--fs-lg));
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text);
+  max-width: 42ch;
+  text-wrap: balance;
+}
+
+.ctas {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+}
+/* Desktop: the two calls stack at one shared width. Localized labels differ
+   in length by ~2x (ru/fr are the long ones), and shrink-to-fit buttons of
+   two different widths read as an accident rather than a decision. */
+@media (min-width: 820px) {
+  .ctas {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: center;
+    max-width: 22rem;
+    border-inline-start: 1px solid color-mix(in srgb, var(--surface-border) 80%, transparent);
+    padding-inline-start: var(--sp-7);
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero {
+    padding-block: var(--sp-6);
+  }
+  .close {
+    margin-top: var(--sp-6);
+  }
+  .ctas > * {
+    width: 100%;
+  }
+}

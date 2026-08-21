@@ -1,0 +1,118 @@
+/* Progress and briefing surfaces.
+   Calm on purpose: a tutor two minutes before a lesson needs to find one
+   answer, not read a dashboard. Everything is a plain list on a card, sized
+   for a phone held in one hand. */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.h2 {
+  font-size: var(--fs-lg);
+  margin: 0;
+}
+.h3 {
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0;
+}
+.block + .block {
+  margin-top: var(--sp-4);
+}
+.list {
+  list-style: none;
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.row {
+  min-width: 0;
+}
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.label {
+  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.why {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* A "mistake → correction" pair must read as ONE left-to-right unit under
+   RTL — isolating the two halves separately (bdi/dir=ltr each) still lets an
+   RTL paragraph reorder the two isolates relative to each other, putting the
+   correction before the mistake. unicode-bidi: plaintext derives the whole
+   line's base direction from its own content instead, so both halves stay in
+   source order. */
+.issueText {
+  unicode-bidi: plaintext;
+  text-align: start;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  display: block;
+  min-width: 0;
+}
+.headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+.focusTitle {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.history {
+  list-style: none;
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.historyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding-block: var(--sp-2);
+  border-top: 1px solid var(--surface-border);
+}
+.historyRow:first-child {
+  border-top: 0;
+}
+.historyWhen {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  margin-inline-start: auto;
+}
+.empty {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  margin: var(--sp-2) 0 0;
+}
+/* Briefing sits above the fold and should read as one calm block, not as a
+   stack of competing cards. */
+.briefing {
+  border-inline-start: 3px solid var(--brand);
+}
+.briefingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--sp-4);
+}

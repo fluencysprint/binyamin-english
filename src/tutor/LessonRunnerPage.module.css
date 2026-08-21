@@ -1,0 +1,312 @@
+.runner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--surface-border);
+  padding: var(--sp-2) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  box-shadow: var(--shadow-sm);
+}
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+/* The student's name is the only elastic thing in the row: it truncates so a
+   long name can never push the timer, pause control or level badge off the
+   edge of a 320px screen. */
+.backBtn {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding-inline: var(--sp-2);
+}
+.studentName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.timer {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: var(--fs-lg);
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.time {
+  margin-inline-start: 2px;
+}
+.timerTotal {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.timer.over {
+  color: var(--err);
+}
+.timerToggle {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: var(--bg-sunken);
+  color: var(--text);
+  border-radius: var(--r-md);
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+/* With the timer hidden there is nothing else to push the level badge over. */
+.headerRow > .levelBadge:nth-child(2) {
+  margin-inline-start: auto;
+}
+.levelBadge {
+  background: var(--brand);
+  color: var(--on-brand);
+  border-radius: var(--r-pill);
+  padding: var(--sp-1) var(--sp-3);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+  flex-shrink: 0;
+}
+.phaseBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+}
+.phaseName {
+  font-weight: 700;
+}
+
+/* The action area that used to live here — a beige full-bleed tray of five
+   capture buttons in an auto-fit grid, plus a separate Previous/Next row, a
+   score row and a "skip section" footer — is gone. All of it is now one pinned
+   bar: see StepActionBar.module.css. */
+.body {
+  flex: 1;
+  padding-block: var(--sp-5);
+}
+.togetherNote {
+  background: var(--info-tint);
+  color: var(--info);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  margin-bottom: var(--sp-4);
+}
+.objective {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+  flex-wrap: wrap;
+}
+.activity {
+  margin-bottom: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.activityTitle {
+  font-size: var(--fs-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.studentPrompt {
+  font-size: var(--fs-md);
+  line-height: var(--lh-snug);
+  /* Lesson/exercise content is English — stay LTR under RTL UIs. */
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+.passage {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-sunken);
+  border-inline-start: 3px solid var(--brand);
+  border-radius: var(--r-md);
+  font-size: var(--fs-md);
+  line-height: var(--lh-relaxed, 1.6);
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+.speakRow {
+  margin-block: var(--sp-2);
+}
+.moreGuidance {
+  margin-top: var(--sp-2);
+}
+.moreGuidance > summary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--brand);
+  padding: var(--sp-2) 0;
+}
+.orientationList {
+  padding-inline-start: var(--sp-5);
+  display: grid;
+  gap: var(--sp-2);
+  line-height: var(--lh-snug);
+}
+.parentAssist {
+  margin-top: var(--sp-3);
+  background: var(--brand-tint);
+  border-radius: var(--r-md);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm);
+}
+.orientationDismiss {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.objectiveScore {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  background: var(--brand-tint);
+  border-color: var(--brand);
+}
+.capturedList {
+  text-align: center;
+  padding: var(--sp-3);
+  font-size: var(--fs-sm);
+}
+
+/* Stands in for the guidance panel while a locale's teaching prose is still
+   loading. Sized close to MicroStepView's own panel so the swap does not
+   visibly shift the page under it. */
+.guidancePending {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-block: var(--sp-4);
+  text-align: center;
+}
+.guidanceError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  background: var(--warn-tint);
+  color: var(--warn);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  margin-bottom: var(--sp-3);
+}
+
+@media (max-width: 560px) {
+  .timer {
+    font-size: var(--fs-md);
+  }
+  .header {
+    padding-inline: var(--sp-3);
+  }
+}
+
+/* Under ~400px the elapsed/total pair is the first thing to collide with the
+   level badge. Elapsed time is the number a tutor actually reads mid-lesson;
+   the planned total is on the lesson plan and in the progress bar. */
+@media (max-width: 400px) {
+  .timerTotal {
+    display: none;
+  }
+}
+
+/* The rest of the phase, collapsed. Look-ahead without competing with NOW. */
+.phaseOutline {
+  margin-block: var(--sp-4);
+}
+.phaseOutline > summary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--brand);
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+}
+.phaseOutline ol {
+  margin: var(--sp-2) 0 0;
+  padding-inline-start: var(--sp-5);
+  display: grid;
+  gap: var(--sp-1);
+}
+.phaseOutline li[aria-current='step'] {
+  font-weight: 700;
+}
+.phaseOutline button {
+  text-align: start;
+  white-space: normal;
+  height: auto;
+  padding-block: var(--sp-2);
+}
+
+/* Spaced-recall verdicts — sits directly under the retrieval micro-step.
+   One row per word, both verdicts always visible, thumb-sized on a phone. */
+.recall {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md, 10px);
+  background: var(--bg-raised);
+}
+.recallTitle {
+  margin: 0;
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.recallHint {
+  margin: var(--sp-1) 0 var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.recallList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.recallRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.recallTerm {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,135 @@
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+.brandLine {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--brand);
+  margin-bottom: var(--sp-1);
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.parent {
+  background: var(--info-tint);
+}
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.blockTitle {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: var(--brand-strong);
+}
+.list {
+  padding-inline-start: var(--sp-5);
+  display: grid;
+  gap: 2px;
+}
+.listOk li::marker {
+  color: var(--ok);
+}
+.correction {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  flex-wrap: wrap;
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+.said {
+  text-decoration: line-through;
+  text-decoration-color: var(--err);
+  color: var(--text-muted);
+}
+.better {
+  color: var(--ok);
+  font-weight: 700;
+}
+.next {
+  padding-top: var(--sp-2);
+  border-top: 1px dashed var(--surface-border);
+  font-size: var(--fs-sm);
+}
+.levelRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+.level {
+  font-size: var(--fs-xl);
+  color: var(--brand);
+}
+
+/* Homework is the one block the student is meant to act on, so it is visually
+   separated from the report above it rather than reading as another section. */
+.homework {
+  border-inline-start: 4px solid var(--brand);
+}
+.homeworkList {
+  margin: 0;
+  padding-inline-start: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  line-height: 1.55;
+}
+.homeworkList li::marker {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+@media print {
+  .sectionHead button,
+  .report > button {
+    display: none;
+  }
+  /* Flex containers are not fragmented across sheets by Chrome — a report that
+     spans a page break gets padded with blank sheets. Plain block flow (with
+     the flex `gap` re-expressed as margins) breaks cleanly instead. */
+  .report,
+  .section {
+    display: block;
+  }
+  .report > * + * {
+    margin-top: var(--sp-4);
+  }
+  .section > * + * {
+    margin-top: var(--sp-3);
+  }
+  .section {
+    box-shadow: none;
+  }
+  /* Homework must never be orphaned onto a page of its own, or split so the
+     student gets task 1 on one sheet and tasks 2–3 on another. */
+  .homework {
+    break-inside: avoid;
+  }
+  .homeworkList {
+    display: block;
+  }
+  .homeworkList li + li {
+    margin-top: var(--sp-2);
+  }
+}

@@ -1,0 +1,61 @@
+.rating {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.ratingBtns {
+  display: flex;
+  gap: var(--sp-2);
+}
+.ratingBtn {
+  flex: 1;
+  min-width: var(--touch);
+  min-height: var(--touch);
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--surface-border);
+  background: var(--bg-raised);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+.ratingBtn:hover {
+  border-color: var(--brand);
+}
+.ratingActive {
+  background: var(--brand);
+  color: var(--on-brand);
+  border-color: var(--brand);
+}
+.ratingLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+}
+
+.tagInput {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.tagRemove {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  padding: 0 0 0 var(--sp-1);
+  color: inherit;
+}
+
+.progress {
+  height: 8px;
+  background: var(--bg-sunken);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: var(--r-pill);
+  transition: width var(--dur) var(--ease);
+}

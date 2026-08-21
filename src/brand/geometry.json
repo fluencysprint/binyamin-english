@@ -1,0 +1,11 @@
+{
+  "_comment": "Single source of truth for the Binyamin English brand mark. The installed Android PWA icon is the canonical treatment (teal rounded tile + a geometric white B built from a stem and two open bowls). Both the PNG generator (scripts/gen-icons.mjs) and the in-app <BrandMark> SVG read these numbers, so the launcher icon, the favicon and the header monogram can never drift apart. All glyph values are normalized 0..1 fractions of the icon's edge.",
+  "canvas": 64,
+  "tileRadiusRatio": 0.22,
+  "teal": "#2f6f6b",
+  "ink": "#faf9f6",
+  "stem": { "left": 0.3, "right": 0.38, "top": 0.26, "bottom": 0.74 },
+  "upperBowlThickness": 0.085,
+  "lowerBowlThickness": 0.095,
+  "maskableSafeRadius": 0.4
+}

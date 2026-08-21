@@ -1,0 +1,64 @@
+.quizHead {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-sm);
+}
+.prompt {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  margin-block: var(--sp-4);
+  line-height: var(--lh-snug);
+  /* English exercise text stays LTR even when the UI is RTL (Hebrew). */
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+.options {
+  display: grid;
+  gap: var(--sp-3);
+}
+.option {
+  text-align: start;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--surface-border);
+  background: var(--bg-raised);
+  font-size: var(--fs-md);
+  cursor: pointer;
+  min-height: var(--touch);
+  transition: all var(--dur-fast) var(--ease);
+  unicode-bidi: plaintext;
+}
+.option:hover {
+  border-color: var(--brand);
+}
+.optionActive {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+  font-weight: 600;
+}
+/* Picture/listening items: large, tappable emoji choices for non-readers. */
+.optionsPicture {
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: var(--sp-4);
+}
+.optionPicture {
+  text-align: center;
+  font-size: 2.75rem;
+  line-height: 1.1;
+  padding: var(--sp-4);
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.listen {
+  margin-block: var(--sp-4);
+  display: flex;
+  justify-content: center;
+}
+.sayAloud {
+  margin-block: var(--sp-4);
+  font-size: var(--fs-md);
+  text-align: center;
+}

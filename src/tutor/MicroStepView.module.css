@@ -1,0 +1,198 @@
+/* The most-read surface in the app. Everything here is tuned for a glance:
+   generous type on SAY, strong colour separation between the two branches,
+   nothing that needs horizontal scrolling at 320px. */
+
+.panel {
+  border: 2px solid var(--brand);
+  border-radius: var(--r-lg);
+  background: var(--brand-tint);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-block: var(--sp-4);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.headTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  justify-content: space-between;
+}
+.moveBadge {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+  color: var(--on-brand);
+  background: var(--brand);
+  border-radius: var(--r-pill);
+  padding: 2px var(--sp-3);
+}
+.stepMeta {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  flex-wrap: wrap;
+}
+.stepMinutes {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.nowText {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: var(--lh-snug);
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+
+.block {
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+  padding: var(--sp-3);
+  border-inline-start: 4px solid var(--surface-border);
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-1);
+}
+.hint {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  margin-bottom: var(--sp-1);
+}
+
+.list {
+  margin: 0;
+  padding-inline-start: var(--sp-4);
+  display: grid;
+  gap: var(--sp-1);
+  line-height: var(--lh-snug);
+}
+.list li {
+  /* English exemplars stay LTR even under an RTL tutor UI. */
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+.quotes {
+  list-style: none;
+  padding-inline-start: 0;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  margin-bottom: var(--sp-2);
+}
+
+/* Colour-coding: the tutor learns the stripe faster than the label. */
+.say {
+  border-inline-start-color: var(--brand);
+}
+.do {
+  border-inline-start-color: var(--info);
+}
+.student {
+  border-inline-start-color: var(--c-teal-500);
+}
+.look {
+  border-inline-start-color: var(--warn);
+}
+.help {
+  border-inline-start-color: var(--err);
+}
+.challenge {
+  border-inline-start-color: var(--ok);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+@media (max-width: 620px) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}
+
+.closers {
+  display: grid;
+  gap: var(--sp-2);
+  background: var(--bg-raised);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+}
+.doneWhen,
+.nextAction {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}
+.nextAction {
+  font-weight: 600;
+}
+
+.deeper > summary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--brand);
+  padding: var(--sp-2) 0;
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+}
+
+/* Exactly what the learner is seeing, in the learner's language — so the tutor
+   can read it aloud or point at it. Visually quoted so it is never confused
+   with an instruction to the tutor. */
+.studentSees {
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-sunken);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}
+
+/* The stand-in for the Listen button where the browser has no speech engine
+   at all: the tutor reads the target aloud themselves, so it has to be as easy
+   to find as the button it replaces. */
+.sayAloud {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}
+
+/* Grid children default to min-content:auto, so a long unbroken word in a
+   two-column pair pushes the whole page wider — which is exactly how Spanish
+   overflowed at 768px while English did not. */
+.pair > * {
+  min-inline-size: 0;
+}
+.list li,
+.nowText,
+.doneWhen,
+.nextAction,
+.studentSees,
+.sayAloud {
+  overflow-wrap: anywhere;
+}
