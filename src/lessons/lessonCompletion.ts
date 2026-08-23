@@ -9,6 +9,7 @@ import {
   LessonRecord,
   LessonReport,
   ScoreOutcome,
+  Skill,
   StudentProfile,
 } from '../types'
 import {
@@ -27,10 +28,10 @@ import { homeworkOutcome } from '../students/evidence'
 import { getGrammarById } from '../data/grammarLibrary'
 import { getPronunciationByArea } from '../data/pronunciationLibrary'
 import { generateReport } from '../reports/reportGenerator'
-import { overallCefr } from '../utils/cefr'
+import { cefrIndex, makeEstimate, overallCefr } from '../utils/cefr'
 import { nextStageFromLesson } from '../students/beginnerModel'
 import { pushRecentContentIds } from './selection'
-import { newPhraseIdsOf } from '../curriculum/phraseProgress'
+import { newPhraseIdsOf, phraseCurriculumComplete, phraseEvidence } from '../curriculum/phraseProgress'
 
 export interface CompletionResult {
   model: LearningModel
@@ -98,6 +99,32 @@ export function applyCompletedLesson(
            phrase evidence answers the same question from what was produced. */
         lesson.objectiveOutcome ?? phraseLessonOutcome(lesson),
       ),
+    }
+
+    /* The comment above promises repeated success "graduates skills to A1 via
+       the estimates" — but a phrase lesson never produces a scored
+       `ItemResponse`, so `applyResponses` above never touches them, and
+       nothing else in the app raises them either. Without this, a learner who
+       produces all one hundred phrases unaided stays "Pre-A1" forever: the
+       lesson generator has nothing left to teach and can only recycle review.
+       Only the skills the phrase curriculum actually evidences move — reading
+       and writing stay exactly where the learner's own literacy placed them,
+       since the curriculum is spoken-only and never tested either one. */
+    const graduated = phraseCurriculumComplete(
+      phraseEvidence(
+        [...priorLessons.filter((l) => l.id !== lesson.id), { ...lesson, status: 'completed', completedAt: now }],
+        model,
+      ),
+    )
+    if (graduated) {
+      const oralSkills: Skill[] = ['listening', 'speaking', 'pronunciation', 'vocabulary', 'grammar']
+      const estimates = { ...model.skillEstimates }
+      for (const skill of oralSkills) {
+        if (cefrIndex(estimates[skill].level) < cefrIndex('A1')) {
+          estimates[skill] = makeEstimate('A1', 0.3, 1, now)
+        }
+      }
+      model = { ...model, skillEstimates: estimates }
     }
   }
 

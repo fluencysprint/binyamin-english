@@ -33,7 +33,7 @@
    schedule someone has to maintain.
    ========================================================================== */
 
-import { LearningModel, LessonRecord, PracticeOutcome } from '../types'
+import { LearningModel, LessonRecord, PracticeOutcome, PRE_A1_STAGES } from '../types'
 import { PhraseTarget, getPhrase, phraseCurriculum } from './phrases'
 import { PreA1Stage } from '../types'
 import { stageIndex } from '../students/beginnerModel'
@@ -333,6 +333,21 @@ export function producedUnaided(evidence: Map<string, PhraseEvidence>): PhraseTa
     .filter((p): p is PhraseTarget => Boolean(p))
 }
 
+/**
+ * True once every phrase in the curriculum has been produced unaided at least
+ * once. Nothing else in the app currently promotes a Pre-A1 learner out of the
+ * phrase pathway — without this signal, a learner who masters all one hundred
+ * targets keeps being told they are Pre-A1 forever, and the lesson generator
+ * has nothing left to teach them: it can only ever recycle review. See
+ * `applyCompletedLesson` in lessons/lessonCompletion.ts, the only caller.
+ */
+export function phraseCurriculumComplete(evidence: Map<string, PhraseEvidence>): boolean {
+  return phraseCurriculum.every((p) => {
+    const state = evidence.get(p.id)?.state
+    return state === 'unaided' || state === 'secure'
+  })
+}
+
 /** Phrases that are due to come back, most urgent first. */
 export function phrasesDue(
   evidence: Map<string, PhraseEvidence>,
@@ -418,10 +433,11 @@ export function selectLessonPhrases(input: {
 
   /* Stage gates how far ahead the learner may reach: one stage above where
      they are is a stretch, two is a lesson they cannot follow. */
-  const ceiling = stageIndex(stage) + 1
+  const baseCeiling = stageIndex(stage) + 1
+  const maxCeiling = PRE_A1_STAGES.length - 1
   const met = new Set([...evidence.keys()].filter((id) => evidence.get(id)!.state !== 'new'))
 
-  const ready = (p: PhraseTarget, picked: string[], strict: boolean): boolean => {
+  const ready = (p: PhraseTarget, picked: string[], strict: boolean, ceiling: number): boolean => {
     if (met.has(p.id)) return false
     if (stageIndex(p.stage) > ceiling) return false
     return p.requires.every((r) => {
@@ -432,19 +448,34 @@ export function selectLessonPhrases(input: {
     })
   }
 
-  const pick = (strict: boolean, into: PhraseTarget[]) => {
+  const pick = (strict: boolean, ceiling: number, into: PhraseTarget[]) => {
     for (const p of phraseCurriculum) {
       if (into.length >= count) break
       if (into.some((x) => x.id === p.id)) continue
-      if (ready(p, into.map((x) => x.id), strict)) into.push(p)
+      if (ready(p, into.map((x) => x.id), strict, ceiling)) into.push(p)
     }
   }
 
   const fresh: PhraseTarget[] = []
-  pick(true, fresh)
+  pick(true, baseCeiling, fresh)
   /* A prerequisite stuck at "introduced" must not stall the curriculum for
      ever — after the strict pass, met-at-all is enough. */
-  if (fresh.length < count) pick(false, fresh)
+  if (fresh.length < count) pick(false, baseCeiling, fresh)
+  /* The stage ceiling is meant to SLOW a learner down, never to stop them for
+     good. Advancing a stage requires a lesson the tutor judged clearly
+     successful (see `nextStageFromLesson`), which a learner who reliably needs
+     support — never quite failing, never quite unaided — may not produce for a
+     long time. Without this, such a learner exhausts every phrase reachable at
+     their stage and then gets an empty lesson forever: `fresh` stays empty,
+     the ceiling never lifts because the evidence that would lift it is the
+     thing being blocked, and up to 40 of the 100 targets (P2/P3) are never
+     taught. So when the ceiling genuinely has nothing left, reach one stage
+     further — the same relaxation `strict: false` already does for a stuck
+     prerequisite, applied to a stuck STAGE instead of a stuck phrase. */
+  for (let ceiling = baseCeiling + 1; fresh.length === 0 && ceiling <= maxCeiling; ceiling++) {
+    pick(true, ceiling, fresh)
+    if (fresh.length < count) pick(false, ceiling, fresh)
+  }
 
   const units = fresh.map((p) => p.unit)
   const unit = units.length

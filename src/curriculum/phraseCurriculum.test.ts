@@ -11,11 +11,13 @@
 import { describe, it, expect } from 'vitest'
 import { LearningModel, LessonRecord, StudentProfile } from '../types'
 import { initLearningModel } from '../students/learningModel'
-import { generateFirstLesson, generateLesson } from '../lessons/lessonGenerator'
+import { generateFirstLesson, generateLesson, isBeginnerPathway } from '../lessons/lessonGenerator'
+import { applyCompletedLesson } from '../lessons/lessonCompletion'
 import { buildMicroSteps } from '../lessons/microSteps'
 import { buildStudentBoard } from '../lessons/studentBoard'
 import { generateHomework } from '../lessons/homework'
 import { buildHomeworkSet } from '../practice/practiceSet'
+import { overallCefr } from '../utils/cefr'
 import { phraseContentStrings, phraseTextKey } from '../data/contentStrings'
 import {
   PhraseVerdict,
@@ -109,6 +111,27 @@ describe('the phrase inventory', () => {
     }
   })
 
+  it('never glues a suffix directly onto the slot', () => {
+    /* `imDoing` used to be 'I'm ___ing.' with slots already carrying '-ing'
+       ('working', 'eating', …), so every substitution drill and tutor card
+       said "I'm workinging." — shown live on the swap block, the tutor card's
+       practice line, and the student board. `___` must always sit at a word
+       boundary (end of the chunk, or followed by whitespace/punctuation), so
+       a slot filler is never asked to carry a suffix the template also adds. */
+    for (const f of phraseCurriculum.filter(isFrame)) {
+      expect(f.chunk, f.id).toMatch(/___(?:[\s.,?!’']|$)/)
+    }
+  })
+
+  it('fills every slot of “I’m ___.” (imDoing) into one of its own examples', () => {
+    const p = getPhrase('imDoing')!
+    expect(fillSlot(p, 'working')).toBe('I’m working.')
+    expect(fillSlot(p, 'eating')).toBe('I’m eating.')
+    for (const example of p.examples) {
+      expect(p.slots.some((s) => fillSlot(p, s) === example), example).toBe(true)
+    }
+  })
+
   it('teaches repair language before anything beyond first greetings', () => {
     /* The single most important ordering decision in the file: without "I
        don't understand" a beginner's only strategy is to nod. */
@@ -125,6 +148,16 @@ describe('the phrase inventory', () => {
       expect(keys.has(phraseTextKey(p.id, 'meaning')), p.id).toBe(true)
       expect(p.meaning.trim().length, p.id).toBeGreaterThan(5)
     }
+  })
+
+  it('never teaches “Good night” as a greeting', () => {
+    /* "goodMorning"'s meaning is "A greeting that says which part of the day
+       it is" — but "Good night" is a farewell/bedtime phrase in natural
+       English, never something said on arrival. A learner filling this
+       frame's slot at random would be taught to greet someone with it. */
+    const p = getPhrase('goodMorning')!
+    expect(p.slots).not.toContain('night')
+    expect(p.examples.join(' ')).not.toContain('Good night')
   })
 
   it('covers ten units and names each one', () => {
@@ -360,6 +393,40 @@ describe('how much a lesson teaches', () => {
       }
     }
   })
+
+  it('reaches past the stage ceiling rather than going permanently silent', () => {
+    /* The stage ceiling (one stage above the learner's own) exists to slow a
+       learner down, not to stop them. Advancing a stage needs a lesson the
+       tutor judged clearly successful — a learner who reliably needs support
+       but is never quite marked "correct" can stay at P0 indefinitely. Before
+       this, once every P0/P1 target was met, `fresh` came back empty FOREVER:
+       the ceiling only ever lifts on the evidence this exact situation
+       withholds. Met everything reachable at the ceiling, still at P0. */
+    const evidence = new Map(
+      phraseCurriculum
+        .filter((p) => p.stage === 'P0' || p.stage === 'P1')
+        .map((p) => [
+          p.id,
+          {
+            id: p.id,
+            state: 'guided' as const,
+            lastSeenAt: T0,
+            occasions: 1,
+            recognisedOccasions: 0,
+            guidedOccasions: 1,
+            unaidedOccasions: 0,
+            delayedUnaidedOccasions: 0,
+            unaidedDays: 0,
+            lastVerdict: 'guided' as const,
+            lapses: 0,
+            reviewDue: T0,
+          },
+        ]),
+    )
+    const sel = selectLessonPhrases({ evidence, stage: 'P0', ageBand: 'adult', now: T0 })
+    expect(sel.fresh.length).toBeGreaterThan(0)
+    expect(sel.fresh.every((p) => p.stage === 'P2' || p.stage === 'P3')).toBe(true)
+  })
 })
 
 /* -------------------------------------------------------------------------- */
@@ -573,6 +640,44 @@ describe('week on week', () => {
     expect(next.objective.ref).not.toBe(first.objective.ref)
     const fresh = next.newPhraseIds ?? []
     expect(fresh.some((id) => ids.includes(id))).toBe(false)
+  })
+
+  it('graduates a learner who produces every phrase unaided out of the beginner pathway', () => {
+    /* Before this fix, nothing ever moved `skillEstimates` for a phrase-only
+       learner — `applyResponses` only reads `lesson.responses`, which a phrase
+       lesson never sets. A learner who mastered all one hundred targets stayed
+       "Pre-A1" forever and the generator could only recycle review, contradicting
+       `buildBeginnerLesson`'s own comment that finishing the curriculum moves
+       the estimates. This performs an actual multi-lesson run — acing every
+       phrase, two days apart so "secure" is reachable — and checks the learner
+       is eventually released into the ordinary A1 pathway. */
+    const s = student()
+    let model = beginnerModel()
+    let lessons: LessonRecord[] = []
+    let plan = generateFirstLesson(s, model, () => 0.4, T0)
+
+    for (let i = 0; i < 20 && isBeginnerPathway(overallCefr(model.skillEstimates)); i++) {
+      const at = T0 + i * 2 * DAY
+      const ids = lessonPhraseIds({ plan } as LessonRecord)
+      const rec = {
+        ...completed(plan, Object.fromEntries(ids.map((id) => [id, 'unaided' as PhraseVerdict])), at),
+        id: `l${i}`,
+      }
+      const result = applyCompletedLesson(model, rec, s, [], at, lessons)
+      model = result.model
+      lessons = [...lessons, { ...rec, status: 'completed', completedAt: at }]
+      plan = generateLesson(s, model, { label: `Lesson ${i + 2}`, lessons, now: at + 2 * DAY })
+    }
+
+    expect(overallCefr(model.skillEstimates)).toBe('A1')
+    expect(isBeginnerPathway(overallCefr(model.skillEstimates))).toBe(false)
+    // The curriculum never taught or tested reading/writing — those must stay
+    // exactly where the learner's own literacy (not their speaking) placed them.
+    expect(model.skillEstimates.reading.level).toBe('preA1')
+    expect(model.skillEstimates.writing.level).toBe('preA1')
+    // And the next lesson this learner gets is an ordinary A1 lesson, not
+    // another lap of phrase review.
+    expect(plan.objective.ref).not.toMatch(/^phrase:/)
   })
 })
 

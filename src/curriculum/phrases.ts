@@ -127,7 +127,10 @@ const UNITS: Draft[][] = [
       unit: 1,
       stage: 'P0',
       fn: 'greeting',
-      slots: ['morning', 'afternoon', 'evening', 'night'],
+      /* Not 'night': "Good night" is a farewell/bedtime phrase, never a
+         greeting on arrival — including it here would teach the opposite of
+         what `meaning` promises. */
+      slots: ['morning', 'afternoon', 'evening'],
       examples: ['Good morning.', 'Good afternoon.', 'Good evening.'],
       requires: ['hello'],
       reply: 'Good morning!',
@@ -988,7 +991,10 @@ const UNITS: Draft[][] = [
     },
     {
       id: 'imDoing',
-      chunk: 'I’m ___ing.',
+      /* The slot fillers are already inflected ('working', 'eating', …), so the
+         chunk must not add its own '-ing' — `fillSlot` would otherwise produce
+         "I'm workinging." */
+      chunk: 'I’m ___.',
       say: 'I’m working.',
       meaning: 'Saying what you are doing right now.',
       unit: 7,
