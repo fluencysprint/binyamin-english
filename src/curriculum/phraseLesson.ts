@@ -232,12 +232,27 @@ export function buildPhraseLesson(input: {
      two things that are always worth more time at this level: coming back to
      the first group after a gap (spaced retrieval inside one lesson, which is
      the cheapest real memory work there is) and talking. */
-  const fillers: Block[] = [
-    ...groups.slice(0, 2).map((g) => ({ block: 'use' as const, phrases: g, minutes: mins.use })),
-    { block: 'realUse', phrases: all.slice(0, 6), minutes: mins.realUse },
-    ...groups.slice(2).map((g) => ({ block: 'use' as const, phrases: g, minutes: mins.use })),
-    { block: 'exchange', phrases: all.slice(0, 6), minutes: mins.exchange },
-  ]
+  const fillers: Block[] = groups.length
+    ? [
+        ...groups.slice(0, 2).map((g) => ({ block: 'use' as const, phrases: g, minutes: mins.use })),
+        { block: 'realUse', phrases: all.slice(0, 6), minutes: mins.realUse },
+        ...groups.slice(2).map((g) => ({ block: 'use' as const, phrases: g, minutes: mins.use })),
+        { block: 'exchange', phrases: all.slice(0, 6), minutes: mins.exchange },
+      ]
+    : /* Nothing fresh to come back to — every phrase reachable at this stage
+         has already been met at least once, so this is a pure-review lesson.
+         The fifty minutes still have to be used, and with no new material the
+         only honest way to do that is more of what a review lesson already
+         is: the same due phrases, asked for again, further apart in the hour
+         than the opening recall block managed. Repeated enough times that the
+         greedy fit below reaches the full budget regardless of this age
+         band's block lengths — see the "lesson ran out of plan at minute
+         thirty-two" failure this pathway exists to remove. */
+      Array.from({ length: 4 }, () => [
+        { block: 'recall' as const, phrases: selection.review, minutes: mins.recall },
+        { block: 'exchange' as const, phrases: all.slice(0, 6), minutes: mins.exchange },
+        { block: 'realUse' as const, phrases: all.slice(0, 6), minutes: mins.realUse },
+      ]).flat()
   for (const f of fillers) {
     if (t + f.minutes > budget) continue
     if (f.phrases.length === 0) continue

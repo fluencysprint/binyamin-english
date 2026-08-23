@@ -29,6 +29,7 @@ import {
   selectLessonPhrases,
 } from './phraseProgress'
 import { fillSlot, getPhrase, isFrame, phraseCurriculum, PHRASE_UNITS } from './phrases'
+import { buildPhraseLesson } from './phraseLesson'
 
 const DAY = 86_400_000
 const T0 = Date.UTC(2026, 0, 5, 10, 0, 0)
@@ -426,6 +427,66 @@ describe('how much a lesson teaches', () => {
     const sel = selectLessonPhrases({ evidence, stage: 'P0', ageBand: 'adult', now: T0 })
     expect(sel.fresh.length).toBeGreaterThan(0)
     expect(sel.fresh.every((p) => p.stage === 'P2' || p.stage === 'P3')).toBe(true)
+  })
+
+  /** Every P0/P1 target, marked with the same verdict — the shape both tests
+   *  below share, differing only in how well the learner actually did. */
+  function metAllReachable(verdict: 'guided' | 'recognised') {
+    return new Map(
+      phraseCurriculum
+        .filter((p) => p.stage === 'P0' || p.stage === 'P1')
+        .map((p) => [
+          p.id,
+          {
+            id: p.id,
+            state: verdict,
+            lastSeenAt: T0,
+            occasions: 1,
+            recognisedOccasions: verdict === 'recognised' ? 1 : 0,
+            guidedOccasions: verdict === 'guided' ? 1 : 0,
+            unaidedOccasions: 0,
+            delayedUnaidedOccasions: 0,
+            unaidedDays: 0,
+            lastVerdict: verdict,
+            lapses: 0,
+            reviewDue: T0,
+          },
+        ]),
+    )
+  }
+
+  it('does NOT reach past the ceiling for a learner who has only ever recognised a phrase, never produced one', () => {
+    /* The escalation above exists for a learner stuck at "guided" — support
+       withheld, not evidence withheld. "Recognised" is one rung short of
+       that: nothing has ever been produced, with or without help, so reaching
+       for harder material here is the stage gate failing at its one job. A
+       lesson with nothing fresh to teach still has the review block to fall
+       back on (see the lesson-length test below) — it must not fall back to
+       new P2/P3 targets instead. */
+    const sel = selectLessonPhrases({
+      evidence: metAllReachable('recognised'),
+      stage: 'P0',
+      ageBand: 'adult',
+      now: T0,
+    })
+    expect(sel.fresh).toEqual([])
+  })
+
+  it('still fills the full fifty minutes with nothing fresh left to teach — a pure-review lesson', () => {
+    /* The exact "ran out of plan at minute thirty-two" failure the beginner
+       pathway exists to remove, reached a different way: not by a themed
+       activity bank running dry, but by the phrase curriculum's OWN fresh
+       supply running dry while a large review backlog remains. */
+    const sel = selectLessonPhrases({
+      evidence: metAllReachable('recognised'),
+      stage: 'P0',
+      ageBand: 'adult',
+      now: T0,
+    })
+    expect(sel.fresh).toEqual([])
+    expect(sel.review.length).toBeGreaterThan(0)
+    const shape = buildPhraseLesson({ selection: sel, ageBand: 'adult', stage: 'P0', seed: 1 })
+    expect(shape.totalMinutes).toBeGreaterThanOrEqual(48)
   })
 })
 

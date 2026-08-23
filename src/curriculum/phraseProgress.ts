@@ -471,8 +471,24 @@ export function selectLessonPhrases(input: {
      thing being blocked, and up to 40 of the 100 targets (P2/P3) are never
      taught. So when the ceiling genuinely has nothing left, reach one stage
      further — the same relaxation `strict: false` already does for a stuck
-     prerequisite, applied to a stuck STAGE instead of a stuck phrase. */
-  for (let ceiling = baseCeiling + 1; fresh.length === 0 && ceiling <= maxCeiling; ceiling++) {
+     prerequisite, applied to a stuck STAGE instead of a stuck phrase.
+
+     But "nothing left to introduce" and "ready to reach further" are not the
+     same claim, and `fresh.length === 0` alone only tests the first. A learner
+     stuck on `recognised` — met everything, produced nothing with support —
+     hits an empty `fresh` exactly as fast as one who has secured everything,
+     and reaching further for THAT learner is the stage gate failing at the
+     one job it has. `open` already answers the right question: it is zero
+     only once every phrase this learner has met has cleared at least guided
+     production, which is the same bar `nextStageFromLesson` itself requires
+     to call a lesson "clearly successful". Gating on it here means the
+     escalation fires for the plateaued-at-guided learner it was built for,
+     and stays off for one who is still only recognising. */
+  for (
+    let ceiling = baseCeiling + 1;
+    fresh.length === 0 && open === 0 && ceiling <= maxCeiling;
+    ceiling++
+  ) {
     pick(true, ceiling, fresh)
     if (fresh.length < count) pick(false, ceiling, fresh)
   }
