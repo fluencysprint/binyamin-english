@@ -176,6 +176,11 @@ export function LessonRunnerPage() {
       // learner's device it is an English message about app internals.
       if (rec.status === 'inProgress') {
         if (access.tutorGuidance) toast(t('lesson.recoveredBody'), 'info')
+        // This lesson was already running — the tutor saw "Your job today"
+        // when it started. A reload (dropped connection, a locked phone)
+        // should hand them straight back to their step, not stack a second
+        // full-screen orientation modal on top of the recovery toast.
+        setShowOrientation(false)
       } else {
         await saveLessonProgress({ ...rec, status: 'inProgress', startedAt: rec.startedAt ?? Date.now() })
       }
@@ -709,7 +714,14 @@ export function LessonRunnerPage() {
               is exactly the competition this pass removed. */}
           {phaseIndex === phases.length - 1 && access.scoring && (
             <div className={`card ${styles.objectiveScore}`}>
-              <strong>{t('lesson.objectiveResult')}</strong>
+              {/* Names the objective inline rather than just "overall": by the
+                  last phase the objective badge at the top of the page is long
+                  scrolled past, and this control's own three Correct/Partial/
+                  Needs-work chips otherwise read as a repeat of the identical
+                  per-step "How did that go?" chips in the pinned bar below. */}
+              <strong>
+                {t('lesson.objectiveResult', { objective: objectiveTitle(lang, lesson.plan.objective) })}
+              </strong>
               <div className="cluster">
                 {(['correct', 'partial', 'needsWork'] as ScoreOutcome[]).map((o) => (
                   <button
@@ -838,6 +850,10 @@ export function LessonRunnerPage() {
             <button className="btn btn-primary btn-lg" onClick={finish}>
               {t('common.finish')}
             </button>
+            {/* Deliberately not "Cancel" — this button does not dismiss the
+                dialog and return to the lesson (the × already does that). It
+                navigates away, which "Cancel" next to a primary "Finish"
+                reads as the opposite of. */}
             <button
               className="btn btn-lg"
               onClick={() => {
@@ -846,7 +862,7 @@ export function LessonRunnerPage() {
                 navigate(`/tutor/student/${student.id}`)
               }}
             >
-              {t('common.cancel')}
+              {t('lesson.leaveLesson')}
             </button>
           </div>
           <p className="muted" style={{ fontSize: 'var(--fs-sm)', marginTop: 'var(--sp-3)' }}>

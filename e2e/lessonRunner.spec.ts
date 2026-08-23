@@ -153,6 +153,88 @@ test.describe('the tutor always knows what to do right now', () => {
       expect(open).toBe(false)
     }
   })
+
+  test('the closing whole-lesson score names the objective, not just "overall"', async ({ page }) => {
+    // A tutor reaching the last phase has been tapping a per-step "How did
+    // that go?" in the pinned bar on every step already. A second control
+    // asking the near-identical question, with no visible reminder of what
+    // it is scoring (the objective badge is long scrolled past), is exactly
+    // the kind of thing a tired tutor mis-taps or skips without noticing.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await startLesson(page)
+
+    for (let i = 0; i < 30; i++) {
+      if (await page.getByRole('button', { name: /finish lesson/i }).isVisible().catch(() => false)) break
+      const next = page.getByRole('button', { name: /next step/i })
+      if (!(await next.isVisible().catch(() => false))) break
+      await next.click()
+    }
+
+    const wholeLessonScore = page.getByText(/how did it go/i)
+    await expect(wholeLessonScore).toBeVisible()
+    // Self-contained: names the actual lesson objective in quotes, rather
+    // than only repeating the pinned bar's generic "How did that go?".
+    await expect(wholeLessonScore).toContainText(/[“"]/)
+  })
+
+  test('resuming after a reload does not stack the orientation modal on top of the recovery toast', async ({
+    page,
+  }) => {
+    // Deliberately not using startLesson()/unlockTutor(): this test needs the
+    // orientation modal ON (not pre-suppressed via localStorage), the same
+    // state a tutor who has never dismissed it is actually in.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/tutor')
+    await page.getByPlaceholder(/access phrase/i).fill(TUTOR_GATE_PHRASE)
+    await page.getByRole('button', { name: /unlock/i }).click()
+    await page.goto('/tutor/data')
+    await page.getByRole('button', { name: /Casey/ }).click()
+    await page.waitForURL(/\/tutor\/student\//)
+    await page.getByRole('button', { name: /start first lesson|start lesson|resume/i }).first().click()
+
+    // First time this lesson opens: the orientation modal shows, and is
+    // dismissed WITHOUT checking "don't show this reminder again".
+    const orientationTitle = page.getByRole('dialog', { name: /your job today/i })
+    await expect(orientationTitle).toBeVisible()
+    await page.getByRole('button', { name: /let’s go|let's go/i }).click()
+    await expect(orientationTitle).not.toBeVisible()
+    await page.getByRole('button', { name: /next step/i }).click()
+
+    // Simulate an interruption: a dropped connection or a locked phone.
+    await page.reload()
+    await expect(page.getByRole('region', { name: /do this now/i })).toBeVisible()
+    // The recovery toast is the only thing telling the tutor what happened —
+    // the orientation modal must not reappear on top of it.
+    await expect(orientationTitle).not.toBeVisible()
+  })
+
+  test('the back button’s confirmation never labels "leave the lesson" as "Cancel"', async ({ page }) => {
+    // "Cancel" next to a primary "Finish" reads as "stay here, do nothing" —
+    // the universal convention. This dialog's second button actually
+    // navigates away from the lesson. A tutor who taps it expecting to just
+    // dismiss the dialog would be unexpectedly dropped out of a live lesson.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await startLesson(page)
+
+    await page.getByRole('button', { name: /casey/i }).click() // header back button
+    await expect(page.getByRole('dialog', { name: /finish lesson/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^cancel$/i })).toHaveCount(0)
+    const leave = page.getByRole('button', { name: /leave lesson/i })
+    await expect(leave).toBeVisible()
+
+    // The × closes the dialog and keeps the tutor on the same step — the
+    // actual "changed my mind, stay here" action.
+    const nowLine = () => page.getByRole('region', { name: /do this now/i }).locator('p').first().textContent()
+    const before = await nowLine()
+    await page.getByRole('button', { name: /close/i }).click()
+    await expect(page.getByText(/finish this lesson and generate/i)).not.toBeVisible()
+    expect(await nowLine()).toBe(before)
+
+    // "Leave lesson" actually leaves, landing back on the student dashboard.
+    await page.getByRole('button', { name: /casey/i }).click()
+    await leave.click()
+    await page.waitForURL(/\/tutor\/student\/[^/]+$/)
+  })
 })
 
 test.describe('student mode leaks nothing', () => {

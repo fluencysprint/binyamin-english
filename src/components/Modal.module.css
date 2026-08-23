@@ -6,7 +6,10 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  z-index: 150;
+  /* Above Toast (z-index 200): a modal is the thing the tutor must act on
+     right now, so an ambient "Saved" toast from a moment ago must never sit
+     on top of its text or buttons. */
+  z-index: 250;
   padding: var(--sp-3);
 }
 @media (min-width: 640px) {
