@@ -16,7 +16,7 @@ the tutor exports a backup.
 
 ---
 
-## Two experiences
+## Three experiences
 
 ### 1. Public student experience (open)
 - A landing page built around what a lesson actually delivers — a plan built
@@ -38,7 +38,31 @@ the tutor exports a backup.
 
 The public experience gives real value without exposing the full teaching system.
 
-### 2. Tutor system (behind a light access gate)
+### 2. The learner between lessons (their own device)
+
+The part a generic platform cannot copy: the app remembers this learner, so
+what it asks them to do next is about them.
+
+- **Student Home** — a mobile-first screen that answers one question: *what
+  should I do now?* One action at the top ("6-minute practice", **Start**),
+  then only what there is real evidence for — what got better since the last
+  lesson, the one thing still worth working on, what is waiting for review,
+  and a small amount of progress. No dashboard, no statistics grid, no CEFR
+  band, no XP, no streaks, no badges.
+- **Homework you actually do, not homework you read.** The tasks the report
+  already built from the lesson are expanded into one screen each and run as
+  retrieval practice: **cue → the learner attempts it → reveal → how did that
+  go? → next**. Their own wrong sentence is the cue and the corrected version
+  is held back; a word captured with a meaning is asked for *from* the meaning,
+  so the learner produces the English instead of reading it. Anything that
+  needed help comes round once more before the set ends.
+- **Nothing is lost.** Every answer is written the moment it is given, so a set
+  half-done on the bus resumes on the next item, not at the beginning.
+- **Practice evidence, not self-report.** Each attempt is recorded as one of
+  three things — produced unaided, produced after looking, not yet — which is
+  what makes every claim on the next page truthful rather than encouraging.
+
+### 3. Tutor system (behind a light access gate)
 - Student profiles and onboarding
 - A guided **~50-minute lesson runner** built around **micro-steps**: two-to-five
   minutes of one clear thing, each answering nine questions at a glance —
@@ -96,6 +120,27 @@ The public experience gives real value without exposing the full teaching system
   set was done, half-done or missed; a learner who did not do it gets a shorter set
   next time rather than a longer one, and the tutor sees the rate with its
   denominator ("came back 4 of the last 6 times") instead of a streak.
+- **Homework that comes back as evidence, not as a claim.** When the learner
+  runs the set on their own device the briefing says *"Practised in the app: 6
+  of 7 — 5 of 6 came back without looking at the answer"*, and anything they
+  typed on a writing task is there to read. The tutor's own tap still outranks
+  it, because a deliberate human answer beats an inference — but "never asked"
+  is no longer the only thing the app can say.
+- **A weakness can now be retired by evidence, not only by silence.** Counting
+  corrections could only ever make a problem look worse: nothing was recorded
+  at the moment the learner got the same thing right a week later. Practice
+  attempts are that other half of the ledger, so something produced unaided on
+  two separate occasions stops driving lesson planning.
+- **Recurring real-world errors can escape the curriculum taxonomy.** "I am
+  agree" → "I agree" matches no concept in the grammar library, so it could be
+  drilled inside a lesson but never be the *point* of one. A slip seen in three
+  separate lessons, still structural, still uncorrected, and with a corrected
+  form to teach towards, now becomes a lesson objective in its own right — with
+  a real five-step sequence built from the learner's own two sentences (hear
+  the contrast → drill → guided turn → real conversation → one correction),
+  not a slide showing the right answer again. One-offs, compliments, fluency
+  notes and anything the library *can* teach are all excluded, and a pattern
+  the learner has since produced unaided twice retires itself.
 - **Backups**: export / import all data (including audio) as a single JSON file
 
 > The tutor gate is a light deterrent, not security. This is a static site whose
@@ -246,6 +291,8 @@ Four suites carry most of the pedagogy and safety guarantees:
 | `src/lessons/microSteps.test.ts` | Every activity, for every learner profile in the audit matrix, produces steps with all nine sections filled and an age-appropriate length |
 | `src/tests/educationalDecisions.test.ts` | The decisions themselves: a P0 child and a P0 older adult get different lessons, oral ability above reading ability never produces a paragraph, a repeated error picks the next objective, spaced review returns, and mastery needs repeated evidence |
 | `src/tests/validation.test.ts` | Hebrew, Cyrillic, accented and emoji input survive untouched while empty, absurd, over-long and malformed input is refused with a localized message |
+| `src/tests/betweenLessons.test.tsx` | The week between two lessons as one journey: Student Home leads with one action, the set can be finished alone with the answer held back until it is attempted, what the learner did reaches the tutor as a count with a denominator, and no claim appears that the records do not support |
+| `src/tests/patternObjective.test.ts` | Both halves of the escape hatch: a habit seen in three lessons becomes a teachable objective with a complete step sequence, while a one-off slip, a compliment, a fluency note, anything the grammar library covers, and anything already fixed all stay out |
 
 Real-browser tests (`npm run test:e2e`, Playwright/Chromium) cover what jsdom
 cannot see. They run in two projects: `chromium` against the dev server for layout
@@ -375,9 +422,11 @@ src/
   lessons/       Lesson generator, activity content, completion logic, briefing
   locales/       en / he / ru / es / fr
   pages/         Public pages (landing, about, assessment, booking, 404)
+  practice/      Between-lesson practice: set builder, runner, persistence
   reports/       Report generator + report view
   seo/           Public URL map, head metadata, build-time prerenderer
-  students/      Learning model, longitudinal progress engine, service layer
+  student/       Student Home — the learner's own screen
+  students/      Learning model, longitudinal progress engine, evidence, service layer
   tutor/         Tutor pages (home, onboarding, dashboard, lesson runner, data)
   types/         Domain + content types
   tests/         Integration tests + setup

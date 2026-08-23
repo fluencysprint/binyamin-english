@@ -1,0 +1,201 @@
+/* Mobile first, and mostly mobile only: this is the screen a learner opens on
+   a phone on a Tuesday evening. One column, thumb-reachable actions, nothing
+   that needs a second hand. */
+
+.page {
+  padding-block: var(--sp-4) var(--sp-8);
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.back:hover {
+  color: var(--brand);
+}
+
+/* Position in the set — the only number on the screen, and deliberately
+   quiet. A progress bar that shouts is a progress bar the learner works for
+   instead of working on the English. */
+.progress {
+  block-size: 4px;
+  background: var(--bg-sunken);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progressBar {
+  block-size: 100%;
+  background: var(--brand);
+  transition: inline-size 200ms ease;
+}
+.position {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-soft);
+  text-align: end;
+}
+
+.card {
+  display: grid;
+  gap: var(--sp-5);
+  background: var(--bg-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+}
+
+.instruction {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+
+/* The meaning cue, in the learner's own language. */
+.cueText {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: var(--lh-snug);
+}
+
+/* The English cue — what they said, the topic, the question. */
+.cue {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: var(--bg-sunken);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+}
+.cueEnglish {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+  overflow-wrap: break-word;
+}
+
+/* The answer, once it has been earned. */
+.answer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: var(--brand-tint);
+  border: 2px solid var(--brand);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+}
+.answerText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+  overflow-wrap: break-word;
+}
+
+.speakBtn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+  color: var(--brand);
+  cursor: pointer;
+}
+.speakBtn:hover {
+  border-color: var(--brand);
+}
+
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.word {
+  font-size: var(--fs-md);
+  padding: var(--sp-2) var(--sp-4);
+  min-block-size: 44px;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  background: var(--bg-raised);
+  color: var(--text);
+  cursor: pointer;
+}
+.word:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.timer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.timerValue {
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.writeField {
+  display: grid;
+  gap: var(--sp-2);
+}
+.writeLabel {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.checkLabel {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* Stacked, full width, 48px tall. On a phone these are the only things the
+   learner touches, and a row of three side by side is a row of mis-taps. */
+.actions {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.finish {
+  display: grid;
+  gap: var(--sp-4);
+  justify-items: start;
+}
+.finishTitle {
+  margin: 0;
+  font-size: var(--fs-xl);
+}
+.finishCount {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: var(--sp-6);
+  }
+  .actions {
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+  }
+}

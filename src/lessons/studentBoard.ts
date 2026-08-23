@@ -26,7 +26,7 @@
    ========================================================================== */
 
 import type { MicroStep } from './microSteps'
-import { recurringFixes, retrievalMaterial } from './microSteps'
+import { patternPair, patternQuestions, recurringFixes, retrievalMaterial } from './microSteps'
 import {
   CEFR,
   LearningModel,
@@ -306,6 +306,45 @@ export function buildStudentBoard(
 
   if (activity.kind === 'writing') {
     return { ...EMPTY, prompt: activity.studentPrompt }
+  }
+
+  /* A pattern objective. The learner's own wrong version IS shown here, unlike
+     everywhere else in this file — a habit lesson is about replacing one
+     specific thing they say, and a learner who cannot see which sentence is
+     being replaced is watching a lesson about somebody else. It is shown the
+     way the fix drill shows it: struck through, beside the bold right one. */
+  const pair = patternPair(activity)
+  if (pair) {
+    switch (step.move) {
+      case 'notice':
+      case 'retrieval':
+      case 'feedback':
+        return { ...EMPTY, corrections: [pair] }
+      case 'guided':
+        // The frame is open here: the point of the turn is to produce the
+        // right version many times, not to remember what it was.
+        return { ...EMPTY, phrases: [pair.better], phrasesOpen: true }
+      default: {
+        /* Real use — an actual conversation, paged one question at a time.
+           The questions are the same ones the tutor's step is built from
+           (see microSteps.patternQuestions), so the two screens never drift.
+           The activity's own studentPrompt is deliberately NOT used: it is an
+           instruction about the activity ("use the new pattern in a few
+           sentences"), and putting an English instruction where the learner
+           expects a question to answer is how a shared screen goes quiet. */
+        const questions = patternQuestions(pair.said, pair.better, {
+          ageBand: ctx.student.ageBand,
+          level: ctx.level,
+        })
+        return {
+          ...EMPTY,
+          prompt: questions[0],
+          questions: questions.slice(1),
+          phrases: [pair.better],
+          phrasesOpen: depthOf(ctx) === 'simple',
+        }
+      }
+    }
   }
 
   if (activity.ref && (activity.kind === 'microLesson' || activity.kind === 'guidedPractice')) {

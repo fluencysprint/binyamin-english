@@ -10,6 +10,7 @@ import { Dict } from '../../i18n/dict'
 
 const guide: Dict = {
   title: {
+    patternFocus: 'Corrigiendo: «{{better}}»',
     plain: '{{title}}',
     focus: 'Foco: {{title}}',
     again: 'Otra vez: {{title}}',
@@ -27,6 +28,8 @@ const guide: Dict = {
   },
 
   objective: {
+    pattern:
+      'Ha dicho «{{example}}» en {{lessons}} clases distintas. No hay ningún concepto en la biblioteca de gramática que lo enseñe, así que se trabaja como un hábito: contraste, práctica, uso.',
     recurringGrammar: 'Error de gramática que se repite: {{times}} veces (por ejemplo, «{{example}}»).',
     noticedOnce: 'Error de gramática visto una sola vez hasta ahora (por ejemplo, «{{example}}»).',
     pronunciation: 'La pronunciación de «{{title}}» dificulta entenderle: merece práctica específica.',
@@ -94,6 +97,15 @@ const guide: Dict = {
   },
 
   card: {
+    pattern: {
+      goal: 'Sustituir un hábito: que le salga «{{better}}» sin pensarlo.',
+      explain:
+        'No expliques una regla. Ha dicho «{{said}}»: di las dos versiones, deja que elija la inglesa y luego haz que produzca «{{better}}» hasta que le salga solo.',
+      avoid: [
+        'No expliques la gramática si no te la piden. Es un hábito, no un vacío de conocimiento.',
+        'No corrijas cada vez durante la conversación: anótalo y vuelve a ello al final.',
+      ],
+    },
     grammar: {
       goal: 'Enseñar: {{title}}. {{explanation}}',
       stepBack: 'Baja un escalón a: {{title}}.',
@@ -457,6 +469,22 @@ const guide: Dict = {
   },
 
   step: {
+    pattern: {
+      notice: {
+        now: 'Dos versiones de la misma frase. Deja que descubra cuál es la inglesa.',
+        say: 'Escucha: «{{said}}» … «{{better}}». ¿Cuál te suena bien?',
+        do: [
+          'Di las dos a la misma velocidad y con el mismo volumen. No marques la correcta.',
+          'Luego espera. Deja que elija antes de decir nada más.',
+        ],
+        studentDoes: ['Escucha las dos, elige una y la dice en voz alta.'],
+        lookFor: '¿Oye alguna diferencia? De eso depende cuánto va a durar esto.',
+        help: ['Di la versión correcta dos veces sola y vuelve a preguntar.'],
+        challenge: ['Pregúntale qué ha cambiado exactamente entre las dos.'],
+        doneWhen: 'Elige la versión inglesa y la dice una vez.',
+        next: 'A practicar: que diga la versión correcta y la use en una frase suya.',
+      },
+    },
     grammar: {
       meaning: {
         now: 'Enseña QUÉ significa «{{title}}»: todavía sin regla ni terminología.',

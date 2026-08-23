@@ -113,15 +113,16 @@ const TUTOR_ONLY_ON_DASHBOARD = [
   /pronunciation targets/i, // per-sound ratings of their speech
 ]
 
-describe('student mode cannot expose tutor-only material on the dashboard', () => {
+describe('student mode gets its own screen, not the tutor’s with pieces removed', () => {
   let id: string
   beforeEach(async () => {
     id = await seedStudentWithHistory()
   })
 
-  it('renders none of the tutor-only sections', async () => {
+  it('renders the learner’s home, and none of the tutor-only sections', async () => {
     renderAt(`/tutor/student/${id}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    // The learner's screen leads with what to DO, not with their own name.
+    await screen.findByRole('heading', { name: /^today$/i })
 
     for (const label of TUTOR_ONLY_ON_DASHBOARD) {
       expect(screen.queryAllByText(label), String(label)).toHaveLength(0)
@@ -133,7 +134,7 @@ describe('student mode cannot expose tutor-only material on the dashboard', () =
     // A second learner exists on this device. Their name is private to them.
     await seedDemoStudent('taylor')
     renderAt(`/tutor/student/${id}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByRole('heading', { name: /^today$/i })
 
     expect(screen.queryByText('Taylor')).toBeNull()
     expect(document.querySelector('a[href="/tutor"]')).toBeNull()
@@ -141,29 +142,42 @@ describe('student mode cannot expose tutor-only material on the dashboard', () =
 
   it('offers no control that edits the learner’s record', async () => {
     renderAt(`/tutor/student/${id}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByRole('heading', { name: /^today$/i })
 
     for (const name of [/generate next lesson/i, /start this lesson/i, /start lesson/i, /resume/i]) {
       expect(screen.queryByRole('button', { name }), String(name)).toBeNull()
     }
   })
 
+  it('answers "what should I do now?" with exactly one action', async () => {
+    renderAt(`/tutor/student/${id}`, 'student')
+    const today = (await screen.findByRole('heading', { name: /^today$/i })).closest('section')!
+
+    // One primary control inside TODAY. Two would be a choice the learner has
+    // no basis to make, which is the failure this section exists to avoid.
+    const actions = [
+      ...within(today).queryAllByRole('button'),
+      ...within(today).queryAllByRole('link'),
+    ]
+    expect(actions).toHaveLength(1)
+  })
+
   it('still shows the learner their own work', async () => {
     renderAt(`/tutor/student/${id}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByRole('heading', { name: /^today$/i })
 
-    // Their words, their progress so far, their recordings — all encouraging,
-    // none of it a judgement written for somebody else.
-    expect(screen.getByText(/^vocabulary$/i)).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: /^progress$/i })).toBeInTheDocument()
-    expect(screen.getByText(/audio samples/i)).toBeInTheDocument()
-    expect(screen.getByText(/1 lesson so far/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /your progress/i })).toBeInTheDocument()
+    expect(screen.getByText(/lessons? so far/i)).toBeInTheDocument()
+    // Their words, behind progressive disclosure rather than absent.
+    expect(screen.getByText(/your words/i)).toBeInTheDocument()
   })
 
   it('keeps the report reachable — it is written for the learner', async () => {
     renderAt(`/tutor/student/${id}`, 'student')
-    const progress = await screen.findByRole('region', { name: /^progress$/i })
-    expect(within(progress).getByRole('link', { name: /view report/i })).toBeInTheDocument()
+    await screen.findByRole('heading', { name: /^today$/i })
+    const links = screen.getAllByRole('link', { name: /see your last lesson/i })
+    expect(links.length).toBeGreaterThan(0)
+    expect(links[0].getAttribute('href')).toMatch(/\/report$/)
   })
 })
 
@@ -288,7 +302,7 @@ describe('leaving student mode costs the access phrase', () => {
     const user = userEvent.setup()
     const id = await seedStudentWithHistory()
     renderAt(`/tutor/student/${id}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
 
     await user.click(screen.getByRole('radio', { name: /^tutor$/i }))
 
@@ -302,7 +316,7 @@ describe('leaving student mode costs the access phrase', () => {
     const user = userEvent.setup()
     const id = await seedStudentWithHistory()
     renderAt(`/tutor/student/${id}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
 
     await user.click(screen.getByRole('radio', { name: /^tutor$/i }))
     await user.type(screen.getByLabelText(/access phrase to leave student mode/i), 'guess')
@@ -317,7 +331,7 @@ describe('leaving student mode costs the access phrase', () => {
     const user = userEvent.setup()
     const id = await seedStudentWithHistory()
     renderAt(`/tutor/student/${id}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
 
     await user.click(screen.getByRole('radio', { name: /^tutor$/i }))
     await user.type(screen.getByLabelText(/access phrase to leave student mode/i), TUTOR_GATE_PHRASE)
@@ -346,7 +360,7 @@ describe('the mode survives a reload', () => {
   it('a page opened fresh in student mode is still student mode', async () => {
     const id = await seedStudentWithHistory()
     const { unmount } = renderAt(`/tutor/student/${id}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
     unmount()
 
     // Same localStorage, brand-new tree — exactly what a refresh does.
@@ -357,7 +371,7 @@ describe('the mode survives a reload', () => {
         </AppProviders>
       </MemoryRouter>,
     )
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
     expect(screen.queryByText(/approximate level/i)).toBeNull()
     expect(loadSettings().boundStudentId).toBe(id)
   })
@@ -375,7 +389,7 @@ describe('Student mode is bound to one student — the URL cannot pick another',
     // The address bar names Taylor; the device is bound to Jordan.
     renderAt(`/tutor/student/${idB}`, 'student', idA)
 
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
     expect(screen.queryByText('Taylor')).toBeNull()
   })
 
@@ -386,11 +400,11 @@ describe('Student mode is bound to one student — the URL cannot pick another',
     const lessonB = bundleB.lessons.find((l) => l.status === 'completed' && l.report)!
 
     const { unmount } = renderAt(`/tutor/student/${idB}/lesson/${lessonB.id}`, 'student', idA)
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
     unmount()
 
     renderAt(`/tutor/student/${idB}/lesson/${lessonB.id}/report`, 'student', idA)
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
   })
 
   it('Student mode with no binding shows a learner-safe notice and no student data', async () => {
@@ -416,7 +430,7 @@ describe('Student mode is bound to one student — the URL cannot pick another',
     const idB = await seedStudentWithHistory('taylor')
 
     const first = renderAt(`/tutor/student/${idA}`, 'student')
-    await screen.findByRole('heading', { name: 'Jordan' })
+    await screen.findByText(/Hi Jordan/)
 
     await user.click(screen.getByRole('radio', { name: /^tutor$/i }))
     await user.type(screen.getByLabelText(/access phrase to leave student mode/i), TUTOR_GATE_PHRASE)
@@ -450,7 +464,8 @@ describe('Student mode is bound to one student — the URL cannot pick another',
         </AppProviders>
       </MemoryRouter>,
     )
-    await screen.findByRole('heading', { name: 'Taylor' })
+    // Student mode, so this is the learner's home — bound to Taylor.
+    await screen.findByText(/Hi Taylor/)
     expect(screen.queryByText('Jordan')).toBeNull()
     third.unmount()
   })

@@ -29,6 +29,7 @@ import {
 } from '../types'
 import { LearningModel } from '../types'
 import { Explanation, ProgressIssue, ProgressSnapshot, VocabRecallItem } from '../students/progress'
+import { homeworkOutcome } from '../students/evidence'
 
 /** Hard caps. A tutor reads this standing up, holding a coffee. */
 const MAX_CORRECTIONS = 3
@@ -71,9 +72,22 @@ export interface LessonBriefing {
   improving: ProgressIssue[]
   /** What was set last time, and whether the tutor can check it. */
   homework: HomeworkTask[]
-  /** Whether that homework came back — undefined until the tutor has asked.
-   *  Distinct from 'notDone': "never asked" is not a verdict about a learner. */
+  /** Whether that homework came back — undefined until the tutor has asked
+   *  AND the learner has not run the set on their own device. Distinct from
+   *  'notDone': "never asked" is not a verdict about a learner. */
   homeworkReview?: HomeworkReview
+  /** What the learner actually did with it, when they used the app for it.
+   *  This is the difference between "they say they did it" and evidence: how
+   *  many items came back unaided, out of how many were set. */
+  homeworkPractice?: {
+    answered: number
+    total: number
+    independent: number
+    /** Set when the verdict above was inferred from this run rather than
+     *  recorded by the tutor — so the card can say which it is. */
+    inferred: boolean
+    responses: { label: string; response: string }[]
+  }
   /** Completed lessons whose homework was checked, and how many came back at
    *  least partly. Evidence, not a streak — it is a count with a denominator,
    *  which is the only form of it a tutor can act on. */
@@ -101,7 +115,7 @@ export function buildBriefing(
    *  plan exists to compare against. */
   nextPlan?: LessonPlan,
 ): LessonBriefing {
-  const { student, lessons, corrections, progress } = input
+  const { student, model, lessons, corrections, progress } = input
 
   const completed = lessons
     .filter((l) => l.status === 'completed')
@@ -122,6 +136,8 @@ export function buildBriefing(
 
   /* Corrections from the LAST lesson specifically. A tutor re-hearing what a
      learner got wrong two months ago is not continuity, it is a grudge. */
+  const lastHomework = last ? homeworkOutcome(last, model) : undefined
+
   const priority = { high: 0, medium: 1, low: 2 }
   const keyCorrections = last
     ? corrections
@@ -154,12 +170,28 @@ export function buildBriefing(
     recurringWeaknesses: progress.needsWork.slice(0, MAX_WEAKNESSES),
     improving: progress.improving.slice(0, MAX_WEAKNESSES),
     homework: last?.report?.homework ?? [],
-    homeworkReview: last?.homeworkReview,
-    homeworkHistory: {
-      checked: completed.filter((l) => l.homeworkReview).length,
-      done: completed.filter((l) => l.homeworkReview === 'done' || l.homeworkReview === 'partly')
-        .length,
-    },
+    homeworkReview: lastHomework?.review,
+    homeworkPractice:
+      lastHomework && lastHomework.total > 0
+        ? {
+            answered: lastHomework.answered,
+            total: lastHomework.total,
+            independent: lastHomework.independent,
+            inferred: lastHomework.fromPractice,
+            responses: lastHomework.responses,
+          }
+        : undefined,
+    /* Counted over every lesson that produced a verdict from either source —
+       the tutor asking, or the learner running the set. A denominator that
+       silently dropped the app's own evidence would understate the rate the
+       moment homework started coming back through the app. */
+    homeworkHistory: (() => {
+      const verdicts = completed.map((l) => homeworkOutcome(l, model).review).filter(Boolean)
+      return {
+        checked: verdicts.length,
+        done: verdicts.filter((r) => r === 'done' || r === 'partly').length,
+      }
+    })(),
     recommendedFocus,
     isFirstLesson: completed.length === 0,
   }

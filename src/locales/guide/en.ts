@@ -17,6 +17,7 @@ import { Dict } from '../../i18n/dict'
 const guide: Dict = {
   /* ---- Activity and phase names --------------------------------------- */
   title: {
+    patternFocus: 'Fixing: “{{better}}”',
     plain: '{{title}}',
     focus: 'Focus: {{title}}',
     again: 'Again: {{title}}',
@@ -35,6 +36,8 @@ const guide: Dict = {
 
   /* ---- Why this lesson teaches what it teaches ------------------------ */
   objective: {
+    pattern:
+      'Said “{{example}}” in {{lessons}} separate lessons. No concept in the grammar library teaches it, so it is taught as a habit: contrast, drill, use.',
     recurringGrammar: 'Recurring grammar issue — seen {{times}} times (e.g. “{{example}}”).',
     noticedOnce: 'Grammar issue noticed once so far (e.g. “{{example}}”).',
     pronunciation: 'Pronunciation of “{{title}}” is affecting clarity — worth focused practice.',
@@ -108,6 +111,15 @@ const guide: Dict = {
 
   /* ---- The deeper tutor card ------------------------------------------ */
   card: {
+    pattern: {
+      goal: 'Replace one habit: they should reach for “{{better}}” without thinking about it.',
+      explain:
+        'Do not teach a rule. They said “{{said}}” — say both versions, let them pick the English one, then have them produce “{{better}}” until it comes out on its own.',
+      avoid: [
+        'Do not explain the grammar unless they ask. This is a habit, not a gap in knowledge.',
+        'Do not correct every occurrence in the conversation block — note it and come back at the end.',
+      ],
+    },
     grammar: {
       goal: 'Teach: {{title}}. {{explanation}}',
       stepBack: 'Step back to: {{title}}.',
@@ -473,6 +485,22 @@ const guide: Dict = {
 
   /* ---- Micro-steps: the teaching sequence itself ----------------------- */
   step: {
+    pattern: {
+      notice: {
+        now: 'Two versions of the same sentence. Let them find which one is English.',
+        say: 'Listen: “{{said}}” … “{{better}}”. Which one sounds right to you?',
+        do: [
+          'Say both at the same speed and the same volume. Do not lean on the right one.',
+          'Then wait. Let them choose before you say anything else.',
+        ],
+        studentDoes: ['Listens to both, picks one, and says it out loud.'],
+        lookFor: 'Can they hear any difference at all? That decides how long this takes.',
+        help: ['Say the correct version twice on its own, then ask again.'],
+        challenge: ['Ask them what actually changed between the two.'],
+        doneWhen: 'They can pick the English version and say it once.',
+        next: 'Drill it — they say the right version, then use it in a sentence of their own.',
+      },
+    },
     grammar: {
       meaning: {
         now: 'Show what “{{title}}” MEANS — no rule, no terminology yet.',

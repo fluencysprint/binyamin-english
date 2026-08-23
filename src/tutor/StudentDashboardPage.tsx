@@ -170,6 +170,7 @@ export function StudentDashboardPage() {
             {access.diagnostics && (
               <LessonBriefingCard
                 briefing={briefing}
+                studentId={student.id}
                 /* The verdict is about the lesson that SET the homework, so
                    there is nothing to record until one exists. */
                 onReviewHomework={
@@ -184,7 +185,9 @@ export function StudentDashboardPage() {
             )}
 
             {/* What the learner was asked to practise: theirs to see. */}
-            {!access.diagnostics && <HomeworkCard tasks={briefing.homework} />}
+            {!access.diagnostics && (
+              <HomeworkCard tasks={briefing.homework} studentId={student.id} />
+            )}
 
             {/* A CEFR band is a verdict about a person, written for the tutor. */}
             {access.diagnostics && (

@@ -267,8 +267,19 @@ export interface LearningModel {
    *  Lets generation avoid repeating the same prompt week after week. */
   recentContentIds: string[]
   tutorNotes: string[]
+  /** Practice the learner did between lessons, most recent last, capped at
+   *  PRACTICE_SESSION_WINDOW. Kept on the model rather than in a store of its
+   *  own because it is exactly what the model is for — the accumulated record
+   *  of one learner — and because it then rides along in every backup, every
+   *  import and every deletion without a second code path.
+   *  Optional so models written before between-lesson practice existed load. */
+  practiceSessions?: PracticeSessionRecord[]
   updatedAt: number
 }
+
+/** How many practice sessions are kept. Six months of weekly lessons with a
+ *  homework set and a review set each is comfortably inside this. */
+export const PRACTICE_SESSION_WINDOW = 40
 
 /* -------------------------------------------------------------------------- */
 /* Assessment / adaptive engine                                               */
@@ -499,6 +510,9 @@ export interface ActivityGuide {
 export type GuideSource =
   | 'grammar'
   | 'pronunciation'
+  /** A habit of this learner's own, with no entry in any content bank. The
+   *  params carry the two sentences the whole activity is built from. */
+  | 'pattern'
   | 'warmup'
   | 'speaking'
   | 'reading'
@@ -659,6 +673,74 @@ export type HomeworkTask =
 
 /** Whether the homework a lesson set actually came back. */
 export type HomeworkReview = 'done' | 'partly' | 'notDone'
+
+/* --------------------------------------------------------------------------
+   Practice evidence — what the learner actually did, on their own.
+   --------------------------------------------------------------------------
+   A lesson already records what the tutor saw. Nothing recorded what happened
+   between lessons, which is where the honest answer to "am I getting better?"
+   has to come from: the same target, attempted again a week later, without a
+   tutor in the room.
+
+   The grain is deliberately coarse. Three outcomes, judged by the learner at
+   the moment of retrieval — which is the pedagogy (a judgement of learning is
+   part of retrieval practice), not instrumentation bolted onto it. Anything
+   finer would be precision the app never had.
+   -------------------------------------------------------------------------- */
+
+/** How one attempt went. */
+export type PracticeOutcome =
+  /** Produced it from memory, unaided. The only outcome that claims mastery. */
+  | 'independent'
+  /** Produced it, but had to look at the answer first. Real, partial evidence. */
+  | 'afterSupport'
+  /** Could not produce it. */
+  | 'incorrect'
+
+/** What an attempt was ABOUT, so evidence can be grouped across sessions. */
+export type PracticeTargetKind =
+  | 'correction'
+  | 'vocabulary'
+  | 'pronunciation'
+  | 'grammar'
+  | 'speaking'
+
+export interface PracticeItemResult {
+  /** Stable id of the item within its set — lets a set be resumed exactly. */
+  itemId: string
+  targetKind: PracticeTargetKind
+  /** Stable grouping key: an issue key, a normalized term, a sound, a
+   *  concept id. The same underlying target keeps the same key forever. */
+  targetKey: string
+  /** The English being practised, for evidence the learner can read back. */
+  label: string
+  outcome: PracticeOutcome
+  at: number
+  /** What the learner typed, for the tasks that ask for written production.
+   *  Local like everything else; it is the one thing a tutor can look at and
+   *  say "you wrote this" at the next lesson. */
+  response?: string
+}
+
+/** One run through a practice set, on the learner's own device. */
+export interface PracticeSessionRecord {
+  id: string
+  studentId: string
+  /** `homework` is the set a lesson produced; `review` is a spaced-recall set
+   *  built from what is due when there is no homework outstanding. */
+  source: 'homework' | 'review'
+  /** The lesson that SET the homework. Absent for a review set. */
+  lessonId?: string
+  startedAt: number
+  updatedAt: number
+  /** Set when every item has a result. A session without it is a partial run
+   *  the learner can come back to — never a failure to be punished for. */
+  completedAt?: number
+  /** How many items the set held when it was built, so a partial run has an
+   *  honest denominator. */
+  itemCount: number
+  results: PracticeItemResult[]
+}
 
 /** A "went well" bullet, resolved to localized text at render time (see
  *  ReportView.tsx) instead of being pre-rendered into English. */

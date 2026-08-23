@@ -10,6 +10,7 @@ import { Dict } from '../../i18n/dict'
 
 const guide: Dict = {
   title: {
+    patternFocus: 'On corrige : « {{better}} »',
     plain: '{{title}}',
     focus: 'Objectif : {{title}}',
     again: 'Encore une fois : {{title}}',
@@ -27,6 +28,8 @@ const guide: Dict = {
   },
 
   objective: {
+    pattern:
+      'A dit « {{example}} » dans {{lessons}} cours différents. Aucune notion de la bibliothèque de grammaire ne l’enseigne, donc on la traite comme une habitude : contraste, entraînement, emploi.',
     recurringGrammar: 'Erreur de grammaire récurrente — vue {{times}} fois (par exemple « {{example}} »).',
     noticedOnce: 'Erreur de grammaire repérée une seule fois pour l’instant (par exemple « {{example}} »).',
     pronunciation: 'La prononciation de « {{title}} » gêne la compréhension — elle mérite un travail ciblé.',
@@ -94,6 +97,15 @@ const guide: Dict = {
   },
 
   card: {
+    pattern: {
+      goal: 'Remplacer une habitude : que « {{better}} » vienne tout seul, sans y penser.',
+      explain:
+        'N’explique pas de règle. Il a dit « {{said}} » : dis les deux versions, laisse-le choisir l’anglaise, puis fais-lui produire « {{better}} » jusqu’à ce que ça sorte tout seul.',
+      avoid: [
+        'N’explique pas la grammaire tant qu’on ne te le demande pas. C’est une habitude, pas une lacune.',
+        'Ne corrige pas à chaque fois pendant la conversation : note-le et reviens dessus à la fin.',
+      ],
+    },
     grammar: {
       goal: 'Enseigner : {{title}}. {{explanation}}',
       stepBack: 'Redescends vers : {{title}}.',
@@ -457,6 +469,22 @@ const guide: Dict = {
   },
 
   step: {
+    pattern: {
+      notice: {
+        now: 'Deux versions de la même phrase. Laisse-le trouver laquelle est anglaise.',
+        say: 'Écoute : « {{said}} » … « {{better}} ». Laquelle sonne juste ?',
+        do: [
+          'Dis les deux à la même vitesse et au même volume. N’appuie pas sur la bonne.',
+          'Puis attends. Laisse-le choisir avant de dire autre chose.',
+        ],
+        studentDoes: ['Écoute les deux, en choisit une et la dit à voix haute.'],
+        lookFor: 'Entend-il la moindre différence ? C’est ça qui décide du temps que ça prendra.',
+        help: ['Dis la bonne version deux fois toute seule, puis redemande.'],
+        challenge: ['Demande-lui ce qui a changé exactement entre les deux.'],
+        doneWhen: 'Il choisit la version anglaise et la dit une fois.',
+        next: 'On entraîne : qu’il dise la bonne version, puis l’emploie dans une phrase à lui.',
+      },
+    },
     grammar: {
       meaning: {
         now: 'Montre ce que « {{title}} » VEUT DIRE — pas encore de règle, pas encore de terminologie.',

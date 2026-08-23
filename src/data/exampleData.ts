@@ -29,7 +29,12 @@ export interface DemoProfile {
    *  without this are left freshly onboarded (no lesson history yet), which
    *  is its own useful state to inspect. */
   lesson?: {
-    vocabulary: string[]
+    /** A word, and what it MEANS. The meaning is what lets a later recall —
+     *  in a lesson or in the learner's own homework — cue from the meaning
+     *  and ask for the English, instead of showing the word it is asking
+     *  them to remember. A demo without meanings quietly demonstrates the
+     *  weaker half of the app. */
+    vocabulary: { term: string; meaning: string }[]
     corrections: DemoCorrection[]
   }
 }
@@ -82,7 +87,11 @@ export const DEMO_PROFILES: DemoProfile[] = [
       englishReading: 'fewWords',
     },
     lesson: {
-      vocabulary: ['dinosaur', 'friendly', 'roar'],
+      vocabulary: [
+        { term: 'dinosaur', meaning: 'a very big animal from long ago' },
+        { term: 'friendly', meaning: 'kind, easy to be with' },
+        { term: 'roar', meaning: 'the loud sound a lion makes' },
+      ],
       corrections: [
         {
           category: 'grammar',
@@ -129,7 +138,11 @@ export const DEMO_PROFILES: DemoProfile[] = [
       englishReading: 'comfortable',
     },
     lesson: {
-      vocabulary: ['awkward', 'roommate', 'deadline'],
+      vocabulary: [
+        { term: 'awkward', meaning: 'uncomfortable, a bit embarrassing' },
+        { term: 'roommate', meaning: 'the person you share a room with' },
+        { term: 'deadline', meaning: 'the day something has to be finished' },
+      ],
       corrections: [
         {
           category: 'grammar',
@@ -175,7 +188,11 @@ export const DEMO_PROFILES: DemoProfile[] = [
       englishReading: 'fluent',
     },
     lesson: {
-      vocabulary: ['negotiate', 'deadline', 'stakeholder'],
+      vocabulary: [
+        { term: 'negotiate', meaning: 'to talk until both sides agree' },
+        { term: 'deadline', meaning: 'the day something has to be finished' },
+        { term: 'stakeholder', meaning: 'someone a project affects' },
+      ],
       corrections: [
         {
           category: 'grammar',
@@ -221,7 +238,11 @@ export const DEMO_PROFILES: DemoProfile[] = [
       startLevelOverride: 'C1',
     },
     lesson: {
-      vocabulary: ['nuance', 'candid', 'the elephant in the room'],
+      vocabulary: [
+        { term: 'nuance', meaning: 'a small difference in meaning' },
+        { term: 'candid', meaning: 'honest, even when it is uncomfortable' },
+        { term: 'the elephant in the room', meaning: 'the obvious thing nobody is saying' },
+      ],
       corrections: [
         {
           category: 'wordOrder',
@@ -315,7 +336,10 @@ export async function seedDemoStudent(profileId: string): Promise<string> {
     ],
     correctionIds: corrections.map((c) => c.id),
     audioIds: [],
-    vocabularyAdded: profile.lesson.vocabulary,
+    vocabularyAdded: profile.lesson.vocabulary.map((v) => v.term),
+    vocabularyMeanings: Object.fromEntries(
+      profile.lesson.vocabulary.map((v) => [v.term, v.meaning]),
+    ),
     objectiveOutcome: 'partial',
   }
 

@@ -27,6 +27,7 @@
    ========================================================================== */
 
 import {
+  AgeBand,
   CEFR,
   LearningModel,
   LessonActivity,
@@ -43,6 +44,7 @@ import { dueForReview } from '../students/learningModel'
 import { roundsFor } from './fluency'
 import { cefrIndex } from '../utils/cefr'
 import { AgeStage, PacingProfile, ageStageFor, pacingFor } from './pacing'
+import { followUpDepthFor, followUpsFor } from './activityContent'
 import { translate, translateList } from '../i18n/translate'
 import { ct } from '../i18n/contentText'
 import { grammarKey, pronKey } from '../data/contentStrings'
@@ -192,6 +194,165 @@ export function retrievalMaterial(model: LearningModel, now = Date.now()): {
       .slice(0, 2)
       .map((e) => e.description),
   }
+}
+
+/* ---- A learner's own habit: Notice → Drill → Guided → Real use → Feedback --
+   The sequence for an objective the content banks cannot supply. It is not a
+   grammar lesson with the rule missing: a fossilized habit like "I am agree"
+   is not a gap in what the learner knows, it is what their mouth does under
+   load, and explanation does not move it. Retrieval and production do.
+
+   Everything here is derived from the two sentences on the activity. Most of
+   the wording is the app's existing, already-translated step guidance — the
+   drill is the same fix drill, the guided turn is the same turn, the close is
+   the same one-correction close — because a habit lesson is those moves in
+   sequence, and inventing a parallel vocabulary for them would only mean five
+   more locales to keep in step. Only the opening contrast is new, because
+   nothing else in the app asks a learner to choose between two versions of
+   their own sentence.
+   -------------------------------------------------------------------------- */
+
+function patternSteps(
+  said: string,
+  better: string,
+  ctx: MicroStepContext,
+  profile: PacingProfile,
+): MicroStep[] {
+  const lang = ctx.lang
+  const t = (k: string, p?: Record<string, string | number>) => translate(lang, k, p)
+  const tl = (k: string) => translateList(lang, k)
+  const pair = { said, better }
+  const contrast = `${said} → ${better}`
+  /* Real questions for the real-use block. A habit lesson has no topic of its
+     own — the topic is the learner's life, and without actual questions the
+     block collapses into "use it in a sentence", which is the drill again.
+     Seeded from the pair, so the same pattern always gets the same questions
+     and two different patterns do not open identically. */
+  const questions = patternQuestions(said, better, {
+    ageBand: ctx.student.ageBand,
+    level: ctx.level,
+  })
+
+  const notice: MicroStep = {
+    id: stepId(ctx, 'notice', 0),
+    activityId: '',
+    move: 'notice',
+    minutes: stepMinutes(profile, 0.8),
+    now: t('guide.step.pattern.notice.now'),
+    say: [t('guide.step.pattern.notice.say', pair)],
+    do: tl('guide.step.pattern.notice.do'),
+    studentDoes: tl('guide.step.pattern.notice.studentDoes'),
+    lookFor: [t('guide.step.pattern.notice.lookFor'), contrast],
+    help: tl('guide.step.pattern.notice.help'),
+    challenge: tl('guide.step.pattern.notice.challenge'),
+    doneWhen: t('guide.step.pattern.notice.doneWhen'),
+    next: t('guide.step.pattern.notice.next'),
+    studentKey: 'student.listenForDifference',
+  }
+
+  const drill: MicroStep = {
+    id: stepId(ctx, 'retrieval', 1),
+    activityId: '',
+    move: 'retrieval',
+    minutes: stepMinutes(profile, 1),
+    now: t('guide.step.fix.now'),
+    say: [t('guide.step.fix.cue', pair)],
+    do: tl('guide.step.fix.do'),
+    studentDoes: tl('guide.step.fix.studentDoes'),
+    lookFor: [...translateList(lang, 'guide.step.fix.lookFor'), contrast],
+    help: tl('guide.step.fix.help'),
+    challenge: tl('guide.step.fix.challenge'),
+    doneWhen: t('guide.step.fix.doneWhen'),
+    next: t('guide.step.fix.next'),
+    studentKey: 'student.fixThese',
+  }
+
+  const guided: MicroStep = {
+    id: stepId(ctx, 'guided', 2),
+    activityId: '',
+    move: 'guided',
+    minutes: stepMinutes(profile, 1),
+    now: t('guide.step.generic.turn.now'),
+    say: [better],
+    do: tl('guide.step.generic.turn.do'),
+    studentDoes: tl('guide.step.generic.turn.studentDoes'),
+    lookFor: [...translateList(lang, 'guide.step.generic.turn.lookFor'), contrast],
+    help: [t('guide.defaults.help')],
+    challenge: [t('guide.defaults.challenge')],
+    doneWhen: t('guide.step.generic.turn.doneWhen'),
+    next: t('guide.step.generic.scoreAndMoveOn'),
+    studentKey: 'student.yourTurnPractice',
+  }
+
+  const realUse: MicroStep = {
+    id: stepId(ctx, 'realUse', 3),
+    activityId: '',
+    move: 'realUse',
+    minutes: stepMinutes(profile, 1.2),
+    now: t('guide.step.generic.deeper.now'),
+    /* What the tutor actually ASKS. Without these the realUse step told the
+       tutor to "go deeper on the same topic" when no topic had ever been
+       named. */
+    say: questions,
+    do: tl('guide.step.generic.deeper.do'),
+    studentDoes: tl('guide.step.generic.deeper.studentDoes'),
+    /* The whole point of the block: does it survive a real conversation, or
+       only the drill? That is the only observation that decides whether this
+       objective is finished. */
+    lookFor: [...translateList(lang, 'guide.step.generic.deeper.lookFor'), contrast],
+    help: tl('guide.step.generic.deeper.help'),
+    challenge: tl('guide.step.generic.deeper.challenge'),
+    doneWhen: t('guide.step.generic.deeper.doneWhen'),
+    next: t('guide.step.generic.deeper.next'),
+    studentKey: 'student.talkAboutYou',
+  }
+
+  const feedback: MicroStep = {
+    id: stepId(ctx, 'feedback', 4),
+    activityId: '',
+    move: 'feedback',
+    minutes: stepMinutes(profile, 0.6),
+    now: t('guide.step.grammar.feedback.now'),
+    say: [better],
+    do: [t('guide.step.grammar.feedback.do')],
+    studentDoes: tl('guide.step.grammar.feedback.studentDoes'),
+    lookFor: translateList(lang, 'guide.step.grammar.feedback.lookFor'),
+    help: [t('guide.step.grammar.feedback.help')],
+    challenge: tl('guide.step.grammar.feedback.challenge'),
+    doneWhen: t('guide.step.grammar.feedback.doneWhen'),
+    next: t('guide.step.grammar.feedback.next'),
+    studentKey: 'student.listenToFeedback',
+  }
+
+  return [notice, drill, guided, realUse, feedback]
+}
+
+/**
+ * The questions a pattern's real-use block is built on.
+ *
+ * Everyday questions rather than opinion ones: they are concrete, every
+ * learner has an answer, and they are long enough to make the target form
+ * come up more than once — which is the only thing that tests whether the fix
+ * survived leaving the drill.
+ */
+export function patternQuestions(
+  said: string,
+  better: string,
+  ctx: { ageBand: AgeBand; level: CEFR },
+): string[] {
+  const depth = followUpDepthFor(ctx.ageBand, cefrIndex(ctx.level))
+  const seed = [...`${said}|${better}`].reduce((n, c) => n + c.charCodeAt(0), 0)
+  return followUpsFor('everyday', depth, seed, 4)
+}
+
+/** The pair a pattern activity was built from, when it is one. */
+export function patternPair(
+  activity: LessonActivity,
+): { said: string; better: string } | undefined {
+  if (activity.guide?.src !== 'pattern') return undefined
+  const said = String(activity.guide.params?.said ?? '').trim()
+  const better = String(activity.guide.params?.better ?? '').trim()
+  return better ? { said, better } : undefined
 }
 
 /* ---- Grammar: Meaning → Model → Notice → Guided → Real use ---------------- */
@@ -651,6 +812,16 @@ export function buildMicroSteps(activity: LessonActivity, ctx: MicroStepContext)
   // micro-lesson phase carries Meaning -> Model -> Notice; the guided-practice
   // phase that follows carries Guided -> Real use -> Feedback, so the two
   // phases together are one coherent sequence rather than two overlapping ones.
+  /* A pattern objective, split across the same two phases: the micro-lesson
+     carries notice + drill, guided practice carries the turn, the real use and
+     the close. Five steps rather than six — there is no "meaning" move for a
+     habit, because the learner already knows what they were trying to say. */
+  const pair = patternPair(activity)
+  if (pair && (activity.kind === 'microLesson' || activity.kind === 'guidedPractice')) {
+    const steps = patternSteps(pair.said, pair.better, ctx, profile)
+    return tag(activity.kind === 'guidedPractice' ? steps.slice(2) : steps.slice(0, 2))
+  }
+
   if (activity.ref && (activity.kind === 'microLesson' || activity.kind === 'guidedPractice')) {
     const steps = grammarSteps(activity.ref, ctx, profile)
     if (steps.length) return tag(activity.kind === 'guidedPractice' ? steps.slice(3) : steps.slice(0, 3))

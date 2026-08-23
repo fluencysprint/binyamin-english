@@ -69,7 +69,11 @@ async function reopenIn(page: Page, lang: string, lesson: string, was?: string) 
   await page.goto(lesson)
   await settle(page)
   if (was !== undefined) {
-    await expect.poll(() => instructionText(page), { timeout: 10000 }).not.toBe(was)
+    /* The teaching prose for a language is a lazily-imported chunk. Under a
+       fully parallel run the dev server can take several seconds to serve it,
+       and until it lands the panel legitimately shows the English fallback —
+       so this waits generously rather than racing the network. */
+    await expect.poll(() => instructionText(page), { timeout: 25000 }).not.toBe(was)
   }
 }
 
@@ -115,7 +119,7 @@ test.describe('the tutor reads the lesson in their own language', () => {
     for (const lang of ['he', 'ru', 'es', 'fr']) {
       await reopenIn(page, lang, lesson)
       // The instructions around it change; these lines must not.
-      await expect.poll(say, { timeout: 10000 }).toBe(english)
+      await expect.poll(say, { timeout: 25000 }).toBe(english)
     }
   })
 

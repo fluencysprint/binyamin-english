@@ -388,6 +388,28 @@ function build(
         autopilot: guide.id ? pronAutopilot(lang, guide.id) : undefined,
         card: guide.id ? pronTutorCard(lang, guide.id) : undefined,
       }
+    /* A habit of this learner's own. There is no bank entry to look up, so
+       the card is built from the two sentences the activity carries — and
+       what to listen for is literally the pair, which needs no translation
+       because it is the learner's own English. */
+    case 'pattern': {
+      const said = String(p.said ?? '')
+      const better = String(p.better ?? '')
+      if (!better) return {}
+      const params: Params = { said, better }
+      return {
+        card: {
+          goal: translate(lang, 'guide.card.pattern.goal', params),
+          listenFor: [`${said} → ${better}`],
+          ifStruggle: translateList(lang, 'guide.step.fix.help')[0] ?? '',
+          ifSucceed: translateList(lang, 'guide.step.fix.challenge')[0] ?? '',
+          howToExplain: translate(lang, 'guide.card.pattern.explain', params),
+          model: [better],
+          practice: [better],
+          avoid: translateList(lang, 'guide.card.pattern.avoid'),
+        },
+      }
+    }
     case 'warmup': {
       const band = (p.band as AgeBand) ?? 'adult'
       const follows = warmupFollowUps[band] ?? warmupFollowUps.adult

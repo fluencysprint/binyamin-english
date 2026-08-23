@@ -99,9 +99,13 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
  */
 export function LessonBriefingCard({
   briefing,
+  studentId,
   onReviewHomework,
 }: {
   briefing: LessonBriefing
+  /** So the tutor can open the same set the learner sees, and run it on a
+   *  shared screen. Reading their own homework is not a tutor capability. */
+  studentId: string
   /** Records whether the last set of homework came back. Absent when there is
    *  nothing to record against — a first lesson, or a read-only surface. */
   onReviewHomework?: (review: HomeworkReview) => void
@@ -199,6 +203,38 @@ export function LessonBriefingCard({
                 here: a set of tasks the app hands out and never hears about
                 again, so it can neither shorten the next set nor tell the
                 learner what a term of practice actually did. */}
+            {/* What the app actually knows, before the tutor asks anything.
+                A count with its denominator — "5 of 7 came back unaided" —
+                is the one line here that changes how the first ten minutes
+                are spent, so it goes above the question, not below it. */}
+            {briefing.homeworkPractice && briefing.homeworkPractice.answered > 0 && (
+              <p className={styles.headline}>
+                <span className="badge badge-ok">
+                  {t('briefing.homeworkPractised', {
+                    answered: briefing.homeworkPractice.answered,
+                    total: briefing.homeworkPractice.total,
+                  })}
+                </span>
+                <span className={styles.why}>
+                  {t('briefing.homeworkUnaided', {
+                    correct: briefing.homeworkPractice.independent,
+                    answered: briefing.homeworkPractice.answered,
+                  })}
+                </span>
+              </p>
+            )}
+            <Link className="btn btn-sm" to={`/tutor/student/${studentId}/practice`}>
+              {t('briefing.openPractice')}
+            </Link>
+            {briefing.homeworkPractice?.responses.length ? (
+              <ul className={styles.list}>
+                {briefing.homeworkPractice.responses.map((r, i) => (
+                  <li key={i} className={styles.issueText} dir="ltr" lang="en">
+                    {r.response}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             {onReviewHomework ? (
               <>
                 <p className={styles.empty}>{t('briefing.homeworkCheck')}</p>
@@ -253,7 +289,7 @@ export function LessonBriefingCard({
  * is extracted here rather than gated inside the tutor's card: on a handed-over
  * device it is the whole point of the screen.
  */
-export function HomeworkCard({ tasks }: { tasks: HomeworkTask[] }) {
+export function HomeworkCard({ tasks, studentId }: { tasks: HomeworkTask[]; studentId: string }) {
   const { t, lang } = useI18n()
   if (tasks.length === 0) return null
   return (
@@ -266,6 +302,12 @@ export function HomeworkCard({ tasks }: { tasks: HomeworkTask[] }) {
           </li>
         ))}
       </ul>
+      {/* Reading the list is not doing it. On a shared screen this is the
+          control that turns "here is your homework" into five minutes of
+          retrieval practice done together before the lesson ends. */}
+      <Link className="btn" to={`/tutor/student/${studentId}/practice`}>
+        {t('briefing.openPractice')}
+      </Link>
     </section>
   )
 }

@@ -1,0 +1,113 @@
+/* One column at every width. This screen is read on a phone; on a laptop it
+   stays a narrow column rather than spreading into a dashboard, because the
+   thing that makes it work is that there is only ever one thing to look at. */
+
+.page {
+  padding-block: var(--sp-5) var(--sp-8);
+  display: grid;
+  gap: var(--sp-6);
+}
+
+.greeting {
+  margin: 0;
+  font-size: var(--fs-md);
+  color: var(--text-muted);
+}
+
+/* Every section is introduced by the same small quiet label, so the eye lands
+   on the content rather than on the headings. */
+.sectionLabel {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+/* TODAY is the only thing on the page with a surface of its own. */
+.today {
+  background: var(--brand-tint);
+  border: 1px solid var(--c-teal-200);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  display: grid;
+  gap: var(--sp-2);
+}
+.action {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+}
+.actionWhy {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-base);
+  color: var(--text-muted);
+}
+
+.block {
+  display: grid;
+  gap: var(--sp-2);
+}
+.when {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+
+.lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-3);
+}
+.line {
+  font-size: var(--fs-md);
+  line-height: var(--lh-snug);
+}
+
+/* A win and a next step are told apart by a rule down the side, not by a
+   colour block or an icon set — the difference should be legible without
+   being celebratory. */
+.win,
+.work {
+  padding-inline-start: var(--sp-3);
+  border-inline-start: 3px solid var(--surface-border);
+}
+.win {
+  border-inline-start-color: var(--ok);
+}
+.work {
+  border-inline-start-color: var(--warn);
+}
+
+.quietLink {
+  justify-self: start;
+  margin-top: var(--sp-1);
+  font-size: var(--fs-sm);
+  color: var(--brand);
+}
+
+.more {
+  margin-top: var(--sp-2);
+}
+.more > summary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  color: var(--brand);
+  padding-block: var(--sp-2);
+}
+.subLabel {
+  margin: var(--sp-4) 0 var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.lessonList {
+  margin: 0;
+  padding-inline-start: var(--sp-5);
+  display: grid;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+}

@@ -76,6 +76,19 @@ function warmupActivity(
 }
 
 /**
+ * An objective plus the two things the generator needs that a stored
+ * `LessonObjective` does not carry: what KIND of thing it teaches, and — for
+ * a learner's own recurring pattern — the pair of sentences that is the only
+ * content behind it.
+ */
+export type ObjectiveChoice = LessonObjective & {
+  kind: 'grammar' | 'pronunciation' | 'pattern'
+  /** Set only for `kind: 'pattern'`. */
+  said?: string
+  better?: string
+}
+
+/**
  * Choose the single high-value objective for the next lesson.
  *
  * When a `progress` snapshot is supplied it goes first, because it is the only
@@ -89,7 +102,7 @@ export function chooseObjective(
   level: CEFR,
   previousObjectiveRefs: string[],
   progress?: ProgressSnapshot,
-): LessonObjective & { kind: 'grammar' | 'pronunciation' } {
+): ObjectiveChoice {
   // Look back further than two lessons. With a library this size, a three-week
   // window is what stops a monthly cycle of the same four objectives.
   const recentlyUsed = new Set(previousObjectiveRefs.slice(-4))
@@ -107,6 +120,23 @@ export function chooseObjective(
   if (progress) {
     const candidate = progress.focus.find((f) => !recentlyUsed.has(f.ref) && !secure.has(f.ref))
     if (candidate) {
+      /* A pattern has no content id, so it cannot be titled by looking one up.
+         Its title IS the corrected sentence, which is also exactly what the
+         tutor needs to read at the top of the lesson. */
+      if (candidate.kind === 'pattern') {
+        return {
+          ref: candidate.ref,
+          title: candidate.better ?? candidate.title,
+          titleKey: 'guide.title.patternFocus',
+          titleParams: { better: candidate.better ?? candidate.title },
+          rationale: candidate.rationale,
+          rationaleKey: candidate.why.key,
+          rationaleParams: candidate.why.params,
+          kind: 'pattern',
+          said: candidate.said,
+          better: candidate.better,
+        }
+      }
       return {
         ref: candidate.ref,
         title: candidate.title,
@@ -298,26 +328,41 @@ function writingActivity(level: CEFR, band: AgeBand): LessonActivity {
   }
 }
 
-function objectiveActivities(objective: {
-  ref: string
-  title: string
-  kind: 'grammar' | 'pronunciation'
-}): LessonActivity[] {
-  const guide: ActivityGuide = {
-    src: objective.kind === 'grammar' ? 'grammar' : 'pronunciation',
-    id: objective.ref,
-  }
+function objectiveActivities(
+  objective: Pick<ObjectiveChoice, 'ref' | 'title' | 'kind' | 'said' | 'better'>,
+): LessonActivity[] {
+  /* A pattern lesson teaches the learner's own two sentences, so the pair
+     travels ON the activity rather than being looked up from a bank that has
+     no entry for it. Everything downstream — micro-steps, the learner's board,
+     the tutor card — is rebuilt from these two strings in whatever language
+     is on screen, exactly as a grammar activity is rebuilt from its id. */
+  const isPattern = objective.kind === 'pattern'
+  const guide: ActivityGuide = isPattern
+    ? {
+        src: 'pattern',
+        id: objective.ref,
+        params: { said: objective.said ?? '', better: objective.better ?? objective.title },
+      }
+    : {
+        src: objective.kind === 'grammar' ? 'grammar' : 'pronunciation',
+        id: objective.ref,
+      }
   const micro: LessonActivity = {
     id: uid('act'),
     kind: 'microLesson',
     title: `Focus: ${objective.title}`,
-    titleKey: 'guide.title.focus',
-    titleParams: { ref: objective.ref },
+    ...(isPattern
+      ? {
+          titleKey: 'guide.title.patternFocus',
+          titleParams: { better: objective.better ?? objective.title },
+        }
+      : { titleKey: 'guide.title.focus', titleParams: { ref: objective.ref } }),
     studentPrompt:
-      objective.kind === 'grammar'
-        ? 'Notice the pattern together, hear examples, then try a few.'
-        : 'Listen to the sound, watch how it’s made, then repeat and contrast.',
-    studentPromptKey: objective.kind === 'grammar' ? 'student.spotThePattern' : 'student.watchMyMouth',
+      objective.kind === 'pronunciation'
+        ? 'Listen to the sound, watch how it’s made, then repeat and contrast.'
+        : 'Notice the pattern together, hear examples, then try a few.',
+    studentPromptKey:
+      objective.kind === 'pronunciation' ? 'student.watchMyMouth' : 'student.spotThePattern',
     guide,
     ref: objective.ref,
   }
@@ -401,7 +446,7 @@ function standardPhases(
   student: StudentProfile,
   model: LearningModel,
   _level: CEFR,
-  objective: { ref: string; title: string; kind: 'grammar' | 'pronunciation' },
+  objective: Pick<ObjectiveChoice, 'ref' | 'title' | 'kind' | 'said' | 'better'>,
   seed: number,
   rng: () => number = Math.random,
 ): LessonPhase[] {
@@ -499,8 +544,12 @@ function standardPhases(
     {
       kind: 'microLesson',
       title: `Focus: ${objective.title}`,
-      titleKey: 'guide.title.focus',
-      titleParams: { ref: objective.ref },
+      ...(objective.kind === 'pattern'
+        ? {
+            titleKey: 'guide.title.patternFocus',
+            titleParams: { better: objective.better ?? objective.title },
+          }
+        : { titleKey: 'guide.title.focus', titleParams: { ref: objective.ref } }),
       startMin: 13,
       endMin: 20,
       activities: [micro],

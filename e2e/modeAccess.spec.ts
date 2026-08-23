@@ -68,8 +68,12 @@ test.describe('a handed-over device', () => {
     ]) {
       await expect(page.getByText(label), String(label)).toHaveCount(0)
     }
-    // Their own work is still there.
-    await expect(page.getByText(/^Vocabulary$/)).toBeVisible()
+    // …and in its place, the screen written for them: one thing to do.
+    await expect(page.getByRole('heading', { name: /^today$/i })).toBeVisible()
+    // Their own words are theirs — one tap away under progressive disclosure
+    // rather than spread across the screen.
+    await page.getByText(/see more/i).click()
+    await expect(page.getByText(/your words/i)).toBeVisible()
 
     // A reload is not a way back in.
     await page.goto(dashboard)
@@ -118,13 +122,13 @@ test.describe('a handed-over device', () => {
     // The address bar is edited to Casey's id — the device is still Morgan's.
     await page.goto(`/tutor/student/${caseyId}`)
     await expect(page).toHaveURL(new RegExp(`/tutor/student/${morganId}$`))
-    await expect(page.getByRole('heading', { name: 'Morgan' })).toBeVisible()
+    await expect(page.getByText(/Hi Morgan/)).toBeVisible()
     await expect(page.getByText('Casey')).toHaveCount(0)
 
     // A reload with Casey's id still in the bar resolves back the same way.
     await page.goto(`/tutor/student/${caseyId}`)
     await expect(page).toHaveURL(new RegExp(`/tutor/student/${morganId}$`))
-    await expect(page.getByRole('heading', { name: 'Morgan' })).toBeVisible()
+    await expect(page.getByText(/Hi Morgan/)).toBeVisible()
   })
 
   test('getting back out costs the access phrase', async ({ page }) => {

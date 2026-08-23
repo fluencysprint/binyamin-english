@@ -14,7 +14,9 @@ import {
   reviewVocabulary,
   setPronunciationFocus,
 } from '../students/learningModel'
-import { buildProgress, issueKeyFor, ProgressSnapshot } from '../students/progress'
+import { buildProgress, ProgressSnapshot } from '../students/progress'
+import { issueKeyFor } from '../students/issueKey'
+import { homeworkOutcome } from '../students/evidence'
 import { getGrammarById } from '../data/grammarLibrary'
 import { getPronunciationByArea } from '../data/pronunciationLibrary'
 import { generateReport } from '../reports/reportGenerator'
@@ -164,7 +166,11 @@ export function applyCompletedLesson(
   const previous = priorLessons
     .filter((l) => l.status === 'completed' && l.id !== lesson.id)
     .sort((a, b) => (a.completedAt ?? 0) - (b.completedAt ?? 0))
-  const lastReview = previous[previous.length - 1]?.homeworkReview
+  /* Not `homeworkReview` directly: a learner who ran the set on their phone
+     has answered the question more precisely than the tutor's tap ever could,
+     and the next set's length is decided from it (see lessons/homework.ts). */
+  const lastCompleted = previous[previous.length - 1]
+  const lastReview = lastCompleted ? homeworkOutcome(lastCompleted, model).review : undefined
   const report = generateReport(lesson, student, model, corrections, now, progress, lastReview)
   return { model, report, progress }
 }

@@ -38,9 +38,14 @@ import {
   StudentProfile,
   TrackedSkillItem,
 } from '../types'
-import { findGrammarByCorrection, findGrammarForError, getGrammarById } from '../data/grammarLibrary'
-import { editSignature } from '../utils/editSignature'
-import { findPronunciationForError, getPronunciationByArea } from '../data/pronunciationLibrary'
+import { getGrammarById } from '../data/grammarLibrary'
+import { getPronunciationByArea } from '../data/pronunciationLibrary'
+import { issueKeyFor } from './issueKey'
+import { buildAttempts, evidenceByTarget, TargetEvidence } from './evidence'
+
+/* Re-exported so every existing caller keeps one import site for "how are two
+   corrections the same problem?" — see students/issueKey.ts for why it moved. */
+export { issueKeyFor } from './issueKey'
 
 /* -------------------------------------------------------------------------- */
 /* Thresholds — deliberately few, deliberately named, deliberately small       */
@@ -57,6 +62,20 @@ export const HISTORY_WINDOW = 6
 /** How far back an objective counts as "just taught" — kept in step with the
  *  generator's own look-back so both agree on what to suggest next. */
 export const RECENT_OBJECTIVE_WINDOW = 4
+/** Distinct lessons a free-form pattern must appear in before it may become a
+ *  lesson objective in its own right. One more than an ordinary weakness: a
+ *  concept from the library is a known-good thing to teach, whereas a pattern
+ *  lesson is built entirely from the learner's own two sentences, so it has to
+ *  clear a higher bar before it displaces curriculum. */
+export const PATTERN_MIN_LESSONS = 3
+/** Occasions of unaided production that retire a pattern from teaching. Two,
+ *  on separate days, is the point at which drilling it further is repetition
+ *  of something the learner can already do. */
+export const PATTERN_FIXED_AFTER_SESSIONS = 2
+/** Categories where a free-form pattern is worth a lesson at all. A vocabulary
+ *  slip or a fluency note is real feedback and poor curriculum; a structural
+ *  habit is what actually blocks a listener. */
+const PATTERN_CATEGORIES: CorrectionCategory[] = ['grammar', 'wordOrder', 'wordChoice']
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -93,6 +112,12 @@ export interface ProgressIssue {
   grammarRef?: string
   /** Pronunciation area when the error is a sound. */
   pronunciationRef?: PronunciationArea
+  /** Separate occasions the learner has produced the RIGHT version unaided —
+   *  in a lesson's recall step, or alone in homework. Counting only failures
+   *  is what made "still a weakness" impossible to ever stop saying. */
+  practicedIndependently: number
+  /** How the most recent attempt at it went, wherever it happened. */
+  lastPracticeOutcome?: TargetEvidence['lastOutcome']
   why: Explanation
 }
 
@@ -134,6 +159,7 @@ export interface ProgressLessonSummary {
 
 export type FocusSource =
   | 'recurringIssue'
+  | 'recurringPattern'
   | 'pronunciation'
   | 'spacedReview'
   | 'goal'
@@ -142,12 +168,26 @@ export type FocusSource =
 export interface FocusCandidate {
   ref: string
   title: string
-  kind: 'grammar' | 'pronunciation'
+  /**
+   * What kind of thing a lesson would teach.
+   *
+   * `pattern` is the escape hatch from the content taxonomy: a habit the
+   * learner keeps repeating that no grammar concept in the library actually
+   * teaches — "I am agree" being the case that forced it. It is deliberately
+   * harder to earn than the other two (see PATTERN_MIN_LESSONS) because the
+   * app has no curriculum entry behind it: everything the lesson will do has
+   * to be derived from the learner's own pair of sentences.
+   */
+  kind: 'grammar' | 'pronunciation' | 'pattern'
   source: FocusSource
   /** Localizable explanation for the UI. */
   why: Explanation
   /** English one-liner for the lesson plan's tutor-facing rationale. */
   rationale: string
+  /** For a `pattern`: the learner's own wrong version and the right one.
+   *  There is no content bank behind this focus, so the pair IS the content. */
+  said?: string
+  better?: string
 }
 
 export interface ProgressSnapshot {
@@ -177,53 +217,8 @@ export interface ProgressSnapshot {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Grouping                                                                    */
+/* Status                                                                      */
 /* -------------------------------------------------------------------------- */
-
-function normalize(text: string): string {
-  return text
-    .toLocaleLowerCase()
-    .replace(/[^\p{L}\p{N}\s'’]/gu, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-/** Categories where the underlying weakness is a STRUCTURE, so two different
- *  sentences with the same broken structure are the same issue. */
-const STRUCTURAL: CorrectionCategory[] = ['grammar', 'wordOrder']
-
-/**
- * The key that decides whether two corrections are the same weakness.
- *
- * Grammar and word order group by the concept the error belongs to, because
- * "she go to school" and "he don't like it" are both third-person -s and both
- * teachable as one thing; grouping them by their literal text would file every
- * sentence a learner ever said as its own separate, permanently-new issue.
- * Everything else groups by the normalized text, because a vocabulary or word-
- * choice slip really is about that specific word.
- */
-export function issueKeyFor(c: Pick<Correction, 'category' | 'said' | 'better'>): {
-  key: string
-  grammarRef?: string
-  pronunciationRef?: PronunciationArea
-} {
-  if (STRUCTURAL.includes(c.category)) {
-    const concept =
-      findGrammarByCorrection(c.said, c.better ?? '') ??
-      findGrammarForError(`${c.said} ${c.better ?? ''}`)
-    if (concept) return { key: `g:${concept.id}`, grammarRef: concept.id }
-    /* No concept in the library teaches this. Group on the edit anyway, so a
-       learner who keeps making the same correction is still seen to be making
-       ONE mistake repeatedly rather than a new one every week. */
-    const sig = editSignature(c.said, c.better ?? '')
-    if (sig.length) return { key: `${c.category}#${sig.join('|')}` }
-  }
-  if (c.category === 'pronunciation') {
-    const concept = findPronunciationForError(`${c.said} ${c.better ?? ''}`)
-    if (concept) return { key: `p:${concept.area}`, pronunciationRef: concept.area }
-  }
-  return { key: `${c.category}:${normalize(c.said)}` }
-}
 
 export function statusFor(lessonsSeen: number, lessonsSinceLastSeen: number): IssueStatus {
   if (lessonsSinceLastSeen >= MASTERED_AFTER_LESSONS) return 'mastered'
@@ -269,6 +264,12 @@ export interface ProgressInput {
 export function buildProgress(input: ProgressInput): ProgressSnapshot {
   const now = input.now ?? Date.now()
   const { model, corrections, student } = input
+
+  /* What the learner has actually PRODUCED, as opposed to what they got
+     wrong. Corrections alone can only ever make an issue look worse; this is
+     the other half of the ledger, and it is what lets a weakness be retired
+     on evidence instead of on silence. */
+  const practice = evidenceByTarget(buildAttempts(input.lessons, corrections, model))
 
   const completed = input.lessons
     .filter((l) => l.status === 'completed')
@@ -374,6 +375,7 @@ export function buildProgress(input: ProgressInput): ProgressSnapshot {
       const since = Math.max(0, lastIndex - maxOrd)
       const status = statusFor(lessonsSeen, since)
       const grammar = b.grammarRef ? getGrammarById(b.grammarRef) : undefined
+      const evidence = practice.get(b.key)
       return {
         key: b.key,
         category: b.category,
@@ -388,6 +390,8 @@ export function buildProgress(input: ProgressInput): ProgressSnapshot {
         lastSeen: b.lastSeen,
         grammarRef: b.grammarRef,
         pronunciationRef: b.pronunciationRef,
+        practicedIndependently: evidence?.independentSessions ?? 0,
+        lastPracticeOutcome: evidence?.lastOutcome,
         why: explain(status, lessonsSeen, since),
       } satisfies ProgressIssue
     })
@@ -483,6 +487,7 @@ export function buildProgress(input: ProgressInput): ProgressSnapshot {
          a dashboard that recommends a lesson the app then refuses to build is
          worse than no recommendation. */
       recentObjectiveRefs: completed.slice(-RECENT_OBJECTIVE_WINDOW).map((l) => l.plan.objective.ref),
+      practice,
     }),
   }
 }
@@ -510,6 +515,7 @@ function rankFocus(args: {
   pronunciationTargets: PronunciationTarget[]
   now: number
   recentObjectiveRefs: string[]
+  practice: Map<string, TargetEvidence>
 }): FocusCandidate[] {
   const { student, model, needsWork, pronunciationTargets, now } = args
   const out: FocusCandidate[] = []
@@ -522,8 +528,18 @@ function rankFocus(args: {
     out.push(c)
   }
 
+  /* Something the learner has now produced unaided on two separate occasions
+     is not what the next lesson is for, whatever the correction history says.
+     Without this the ledger only ever ran one way: a weakness could be added
+     by a mistake but never retired by a success, so the fifty minutes kept
+     going to the thing they had already fixed. */
+  const alreadyFixed = (issue: ProgressIssue): boolean =>
+    issue.practicedIndependently >= PATTERN_FIXED_AFTER_SESSIONS &&
+    issue.lastPracticeOutcome === 'independent'
+
   // 1. Recurring weaknesses that map onto something teachable.
   for (const issue of needsWork) {
+    if (alreadyFixed(issue)) continue
     if (issue.grammarRef) {
       const g = getGrammarById(issue.grammarRef)
       if (!g) continue
@@ -545,6 +561,26 @@ function rankFocus(args: {
         source: 'recurringIssue',
         why: { key: 'progress.focusRecurring', params: { lessons: issue.lessonsSeen, example: issue.said ?? '' } },
         rationale: `Recurring across ${issue.lessonsSeen} lessons (e.g. “${issue.said}”).`,
+      })
+    } else if (patternWorthTeaching(issue)) {
+      /* No entry in the grammar library teaches this, and the learner keeps
+         saying it anyway. Their evidence outranks the taxonomy: the pair of
+         sentences becomes the objective, and the lesson is built from it.
+         See lessons/lessonGenerator.ts (patternActivities) for what that
+         lesson actually contains — this is not a screen that displays the
+         corrected sentence repeatedly. */
+      push({
+        ref: patternRef(issue.key),
+        title: issue.better!,
+        kind: 'pattern',
+        source: 'recurringPattern',
+        said: issue.said,
+        better: issue.better,
+        why: {
+          key: 'progress.focusPattern',
+          params: { lessons: issue.lessonsSeen, example: issue.said ?? '' },
+        },
+        rationale: `Said “${issue.said}” in ${issue.lessonsSeen} separate lessons; no grammar concept covers it.`,
       })
     }
   }
@@ -601,6 +637,48 @@ function rankFocus(args: {
   }
 
   return out
+}
+
+/**
+ * Is this free-form slip a habit worth a whole lesson?
+ *
+ * The bar is deliberately high, because the alternative — every typo becoming
+ * curriculum — is worse than the gap it fixes. Four conditions, all of them
+ * countable:
+ *
+ *   • it is structural. A wrong word is feedback; a wrong structure is a
+ *     habit that keeps getting in a listener's way.
+ *   • the library genuinely cannot teach it. Anything that maps to a concept
+ *     goes down the ordinary route, which has better material.
+ *   • there is a corrected version to teach TOWARDS.
+ *   • it has survived being corrected across PATTERN_MIN_LESSONS separate
+ *     lessons. That is the "failed after previous correction" test: the tutor
+ *     has already fixed it in the room, more than once, and it came back.
+ *
+ * `alreadyFixed` handles the other side — a pattern the learner has since
+ * produced unaided twice is retired by the caller before it reaches here.
+ */
+function patternWorthTeaching(issue: ProgressIssue): boolean {
+  return (
+    issue.status === 'recurring' &&
+    !issue.grammarRef &&
+    !issue.pronunciationRef &&
+    PATTERN_CATEGORIES.includes(issue.category) &&
+    Boolean(issue.better?.trim()) &&
+    Boolean(issue.said?.trim()) &&
+    issue.lessonsSeen >= PATTERN_MIN_LESSONS
+  )
+}
+
+/** The objective ref for a pattern. Namespaced so every other surface can tell
+ *  at a glance that this focus has no content-bank entry behind it. */
+export function patternRef(issueKey: string): string {
+  return `pattern:${issueKey}`
+}
+
+/** Whether a ref names a learner's own pattern rather than a library concept. */
+export function isPatternRef(ref: string | undefined): boolean {
+  return Boolean(ref?.startsWith('pattern:'))
 }
 
 /** Convenience for surfaces that only need the headline. */
