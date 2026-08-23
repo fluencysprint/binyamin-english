@@ -520,6 +520,10 @@ function genericSteps(activity: LessonActivity, ctx: MicroStepContext, profile: 
     // card of every lesson "Guided practice", directly under a header that
     // said "Warm-up".
     if (activity.kind === 'communication' || activity.kind === 'warmup') return 'realUse'
+    // The opening speaking block is free talk on a real topic once it carries
+    // one — labelling it "Guided practice" told the tutor to correct through
+    // the one part of the lesson that exists to get the learner talking.
+    if (activity.kind === 'speakingListening' && followUpQuestions(activity).length) return 'realUse'
     if (activity.kind === 'feedback') return 'feedback'
     if (activity.kind === 'listening') return 'meaning'
     if (activity.kind === 'vocabulary') {
@@ -581,9 +585,13 @@ function genericSteps(activity: LessonActivity, ctx: MicroStepContext, profile: 
     ]
   }
 
-  // A long communication block for an adult splits into "get going" and "go
-  // deeper" so the tutor has a second move ready when the first runs dry.
-  if (activity.kind === 'communication' && profile.allowsSustainedConversation) {
+  // A long talking block for an adult splits into "get going" and "go deeper"
+  // so the tutor has a second move ready when the first runs dry. The opening
+  // speaking block carries a real task too, so it splits on the same rule.
+  if (
+    (activity.kind === 'communication' || (activity.kind === 'speakingListening' && followUps.length)) &&
+    profile.allowsSustainedConversation
+  ) {
     return [
       base,
       {
@@ -715,6 +723,74 @@ export function buildRetrievalStep(
     studentKey: 'student.rememberThese',
     studentParams: { items: items.slice(0, 4).join(', ') },
   }
+}
+
+/**
+ * The learner's own recurring slips, as production practice.
+ *
+ * Corrections were already stored, counted across lessons and handed back as
+ * homework — but inside the lesson they only ever appeared as a line telling
+ * the tutor what to LISTEN for. Nothing ever asked the learner to say the
+ * right version out loud, which is the one thing that actually shifts a
+ * fossilized error like "I am agree".
+ *
+ * This is deliberately a drill and not a grammar lesson. An error the grammar
+ * library can teach becomes the lesson objective through the normal route; an
+ * error it cannot — and "I am agree" is one — is not a gap in the learner's
+ * knowledge of a rule, it is a habit. Habits are fixed by retrieval and
+ * production, not by explanation.
+ *
+ * Returns null rather than inventing content when the learner has no recurring
+ * slips: a fix drill with nothing to fix wastes three minutes.
+ */
+export function buildFixStep(ctx: MicroStepContext, activityId: string): MicroStep | null {
+  const pairs = recurringFixes(ctx.model)
+  if (pairs.length === 0) return null
+  const profile = pacingFor(ctx.student.age)
+  const lang = ctx.lang
+  const t = (k: string, p?: Record<string, string | number>) => translate(lang, `guide.step.fix.${k}`, p)
+  const tl = (k: string) => translateList(lang, `guide.step.fix.${k}`)
+  return {
+    id: stepId(ctx, 'retrieval', 90),
+    activityId,
+    move: 'retrieval',
+    minutes: stepMinutes(profile, 0.6),
+    now: t('now'),
+    /* The cue is spoken to the learner, so it is built in the language they
+       are being taught in — but the two versions inside it are their own
+       English, quoted back unchanged. */
+    say: pairs.map((p) => t('cue', { said: p.said, better: p.better })),
+    do: tl('do'),
+    studentDoes: tl('studentDoes'),
+    lookFor: pairs.map((p) => `${p.said} → ${p.better}`),
+    help: tl('help'),
+    challenge: tl('challenge'),
+    doneWhen: t('doneWhen'),
+    next: t('next'),
+    studentKey: 'student.fixThese',
+  }
+}
+
+/**
+ * The slips worth drilling: unresolved, captured with a corrected version, and
+ * seen more than once. A single slip is a slip; drilling it is an overreaction
+ * that costs three minutes of a fifty-minute lesson.
+ */
+export function recurringFixes(
+  model: LearningModel,
+  max = 3,
+): { said: string; better: string }[] {
+  return model.recurringErrors
+    .filter(
+      (e) =>
+        !e.resolved &&
+        e.category !== 'greatExpression' &&
+        e.occurrences >= 2 &&
+        Boolean(e.example?.trim()),
+    )
+    .sort((a, b) => b.occurrences - a.occurrences || b.lastSeen - a.lastSeen)
+    .slice(0, max)
+    .map((e) => ({ said: e.description, better: e.example! }))
 }
 
 /** Is this step a conversation the clock must not interrupt? */

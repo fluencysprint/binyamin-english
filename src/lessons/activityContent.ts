@@ -205,7 +205,7 @@ export const communicationTasks: Record<AgeBand, ConversationTask[]> = {
     ['hypotheticals', 'If you could restart one part of your life, which and why?'],
     ['roleplay', 'Role-play: you need to reschedule an important meeting. Call me.'],
     ['travel', 'Tell me about the best trip you’ve taken. What made it good?'],
-    ['work', 'Describe a person you’ve learned a lot from.'],
+    ['describe', 'Describe a person you’ve learned a lot from.'],
     ['opinions', 'Is remote work better or worse? Argue the side you don’t hold.'],
     ['future', 'What would you like to be different about your life in five years?'],
     ['explaining', 'Explain your job to a ten-year-old, then to an expert.'],
@@ -407,13 +407,13 @@ const followUpsByCategory: Record<string, FollowUpSet> = {
   },
   everyday: {
     simple: ['And then what?', 'Every day?', 'Who does it with you?'],
-    standard: ['What do you do first, and what comes after?', 'How long does that take?', 'What happens if you are late?', 'Would you change any part of it?'],
+    standard: ['What do you do first, and what comes after?', 'How long does that take?', 'What made you settle on doing it that way?', 'Would you change any part of it?'],
     advanced: ['Which part of that is habit and which is a real choice?', 'How has that routine changed over the years?', 'What would you cut if you had half the time?'],
   },
   social: {
     simple: ['What do you say?', 'Are they nice?', 'What do you do together?'],
-    standard: ['What would you say first?', 'How would you know they were comfortable?', 'What if they said no?', 'Has that happened to you?'],
-    advanced: ['Where is the line between polite and dishonest there?', 'How would you handle it if it went badly?', 'What does that say about how you deal with people?'],
+    standard: ['How long have you known them?', 'What do you usually talk about?', 'What makes that work?', 'Has it changed over time?'],
+    advanced: ['What do you actually do to keep that going?', 'Where does it get difficult?', 'What has that taught you about people?'],
   },
   planning: {
     simple: ['What do we need?', 'Who comes with us?', 'What do we do first?'],
@@ -507,4 +507,200 @@ export const warmupFollowUps: Record<AgeBand, string[]> = {
   '9-12': ['Tell me more about that.', 'Why that one?', 'What was the best part?', 'What happened after?'],
   '13-17': ['What made that stand out?', 'Would you do it again?', 'What did you think of it?', 'How come?'],
   adult: ['How did that go?', 'What made you pick that?', 'Was that a good week or a hard one?', 'Tell me more about that part.'],
+}
+
+/* -------------------------------------------------------------------------- */
+/* Target language — what the LEARNER is given to say                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Sentence frames the learner can actually put in their mouth.
+ *
+ * The follow-ups above are the tutor's half of the conversation. This is the
+ * learner's: three short chunks per topic that turn "tell me about your
+ * weekend" into a task with language attached to it. Without them, a speaking
+ * activity gives a nervous B1 nothing but an open question and the pressure to
+ * fill six minutes from scratch — which is exactly when a learner falls back
+ * on the four structures they already own and learns nothing.
+ *
+ * The frames are deliberately spoken English, not textbook English, and they
+ * climb with depth: at `simple` they are whole sentences to copy, at
+ * `standard` they are useful structures, at `advanced` they are the hedging
+ * and framing that separates fluent from merely correct.
+ */
+const framesByCategory: Record<string, FollowUpSet> = {
+  describe: {
+    simple: ['It is a ___.', 'It is big / small / old / new.', 'I like it because ___.'],
+    standard: ['It looks like ___.', 'It’s made of ___.', 'The best thing about it is ___.'],
+    advanced: [
+      'What stands out about it is ___.',
+      'It’s somewhere between ___ and ___.',
+      'If you’ve never seen one, imagine ___.',
+    ],
+  },
+  storytelling: {
+    simple: ['First, ___.', 'Then ___.', 'At the end, ___.'],
+    standard: ['It started when ___.', 'What happened next was ___.', 'In the end, ___.'],
+    advanced: [
+      'The turning point was when ___.',
+      'Looking back, I think ___.',
+      'What I didn’t realise at the time was ___.',
+    ],
+  },
+  everyday: {
+    simple: ['Every day I ___.', 'First I ___, then I ___.', 'I usually ___.'],
+    standard: ['I normally ___ before I ___.', 'It takes me about ___.', 'If I’m running late, I ___.'],
+    advanced: [
+      'More often than not, I ___.',
+      'That part is pure habit — I don’t even ___.',
+      'The one thing I’d change is ___.',
+    ],
+  },
+  social: {
+    simple: ['Hello, my name is ___.', 'Nice to meet you.', 'We play ___ together.'],
+    standard: ['I’ve known them since ___.', 'We usually ___.', 'What I like about them is ___.'],
+    advanced: [
+      'What keeps it going is ___.',
+      'We don’t ___ as often as we used to, but ___.',
+      'If I’m honest, ___.',
+    ],
+  },
+  planning: {
+    simple: ['We need ___.', 'First we ___.', 'Then we can ___.'],
+    standard: ['The plan is to ___.', 'We’d need to sort out ___ first.', 'If that doesn’t work, we could ___.'],
+    advanced: [
+      'The main risk is ___.',
+      'I’d rather over-plan ___ than ___.',
+      'That only works if ___ holds up.',
+    ],
+  },
+  opinions: {
+    simple: ['I think ___.', 'I like ___ because ___.', 'I don’t agree.'],
+    standard: ['In my opinion, ___.', 'The reason I say that is ___.', 'I see your point, but ___.'],
+    advanced: [
+      'I’d go further than that — ___.',
+      'That’s true up to a point, but ___.',
+      'I used to think ___; now I’d say ___.',
+    ],
+  },
+  hypotheticals: {
+    simple: ['I would ___.', 'I would go to ___.', 'It would be fun / hard.'],
+    standard: ['If I could, I’d ___.', 'The first thing I’d do is ___.', 'I probably wouldn’t ___.'],
+    advanced: [
+      'I’d like to say I’d ___, but honestly ___.',
+      'It would depend entirely on ___.',
+      'A year later I’d probably regret ___.',
+    ],
+  },
+  explaining: {
+    simple: ['First, ___.', 'Next, ___.', 'Be careful with ___.'],
+    standard: ['The first step is to ___.', 'Once you’ve done that, ___.', 'People usually get ___ wrong.'],
+    advanced: [
+      'The simplest way to think about it is ___.',
+      'Where it gets complicated is ___.',
+      'A good analogy would be ___.',
+    ],
+  },
+  future: {
+    simple: ['I want to ___.', 'Next year I will ___.', 'I hope ___.'],
+    standard: ['I’m planning to ___.', 'The first step would be ___.', 'Hopefully by then I’ll have ___.'],
+    advanced: [
+      'I’m working toward ___, though realistically ___.',
+      'What would have to change is ___.',
+      'That’s the plan, but I’m holding it loosely.',
+    ],
+  },
+  roleplay: {
+    simple: ['Excuse me, ___?', 'Yes, please. / No, thank you.', 'How much is it?'],
+    standard: ['I was hoping we could ___.', 'Would it be possible to ___?', 'I understand — could we ___ instead?'],
+    advanced: [
+      'I appreciate the position you’re in, but ___.',
+      'Let me be straight with you: ___.',
+      'Where does that leave us on ___?',
+    ],
+  },
+  work: {
+    simple: ['I work at ___.', 'My job is ___.', 'I start work at ___.'],
+    standard: ['A typical day involves ___.', 'The part I enjoy most is ___.', 'What I find difficult is ___.'],
+    advanced: [
+      'A big part of the role is ___.',
+      'What people outside the field don’t see is ___.',
+      'With the same budget I’d have ___ instead.',
+    ],
+  },
+  travel: {
+    simple: ['I went to ___.', 'It was very ___.', 'I went with ___.'],
+    standard: ['We spent about ___ there.', 'What surprised me was ___.', 'I’d definitely go back to ___.'],
+    advanced: [
+      'The version tourists see is ___; what stayed with me was ___.',
+      'It changed how I think about ___.',
+      'I’d tell a first-timer to skip ___ and do ___ instead.',
+    ],
+  },
+  precision: {
+    simple: ['The word is ___.', 'I mean ___.', 'Not ___ — ___.'],
+    standard: ['To put it simply, ___.', 'The key point is ___.', 'A better word would be ___.'],
+    advanced: [
+      'More precisely, ___.',
+      'The distinction that matters is between ___ and ___.',
+      'Strip that back and it’s just ___.',
+    ],
+  },
+  argument: {
+    simple: ['I think ___ because ___.', 'One reason is ___.', 'But ___.'],
+    standard: ['My main reason is ___.', 'Some people would say ___, but ___.', 'For example, ___.'],
+    advanced: [
+      'The strongest case against me is ___.',
+      'I’d concede ___, but that doesn’t touch ___.',
+      'What would change my mind is ___.',
+    ],
+  },
+  constraint: {
+    simple: ['It is ___.', 'I ___ every day.', 'Yes. / No. / Sometimes.'],
+    standard: ['Put simply, ___.', 'In short, ___.', 'The one thing to know is ___.'],
+    advanced: ['In a word: ___.', 'Cut to it — ___.', 'Everything else follows from ___.'],
+  },
+  abstract: {
+    simple: ['I think it is good / bad.', 'For me, ___.', 'Because ___.'],
+    standard: ['For me it comes down to ___.', 'It depends on ___.', 'A real example would be ___.'],
+    advanced: [
+      'It depends what we mean by ___.',
+      'That definition breaks down when ___.',
+      'My answer to that has changed since ___.',
+    ],
+  },
+  /* Warm-ups and anything personal — the frames that get a lesson moving. */
+  personal: {
+    simple: ['I am ___.', 'Today I ___.', 'I like ___.'],
+    standard: ['This week I’ve mostly been ___.', 'The best part was ___.', 'One thing I want to ___.'],
+    advanced: [
+      'It’s been a ___ sort of week, mainly because ___.',
+      'The thing that took most of my time was ___.',
+      'If I’m honest, ___.',
+    ],
+  },
+}
+
+const framesDefault: FollowUpSet = {
+  simple: ['I think ___.', 'I like ___.', 'Because ___.'],
+  standard: ['For me, ___.', 'The main thing is ___.', 'For example, ___.'],
+  advanced: ['What matters most here is ___.', 'I’d put it this way: ___.', 'That said, ___.'],
+}
+
+/** The learner's target language for a topic, at their depth. */
+export function speakingFramesFor(category: string, depth: FollowUpDepth): string[] {
+  const set = framesByCategory[category] ?? framesDefault
+  return set[depth].length ? set[depth] : framesDefault[depth]
+}
+
+/** The topic category behind a stored task id, so a plan saved months ago —
+ *  which carries the id and not the category — still gets topic-specific
+ *  language rather than the generic fallback. */
+export function taskCategoryById(id: string | undefined): string | undefined {
+  if (!id) return undefined
+  for (const band of Object.keys(communicationTasks) as AgeBand[]) {
+    const hit = communicationTasks[band].find((task) => task.id === id)
+    if (hit) return hit.category
+  }
+  return c1Tasks.find((task) => task.id === id)?.category
 }

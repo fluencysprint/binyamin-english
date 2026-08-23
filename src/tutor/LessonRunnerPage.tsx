@@ -37,6 +37,7 @@ import {
 } from '../students/studentService'
 import { getLesson } from '../data/db'
 import {
+  buildFixStep,
   buildMicroSteps,
   buildRetrievalStep,
   isConversationStep,
@@ -103,7 +104,7 @@ export function LessonRunnerPage() {
      translation, so the screen must not render that output while status is
      anything but 'ready'. */
   const teachingStatus = teachingStringsStatus(lang)
-  const { mode, showTimer, setShowTimer } = useSettings()
+  const { showTimer, setShowTimer } = useSettings()
   const access = useModeAccess()
   const { toast } = useToast()
 
@@ -185,6 +186,18 @@ export function LessonRunnerPage() {
     return () => window.clearInterval(iv)
   }, [running])
 
+  /* Corrections worth showing back at the end of the lesson. Praise
+     ("great expression") is not a fix, and a correction with no better version
+     is half-captured — neither belongs on a screen that says "here is what to
+     say instead". */
+  const correctionPairs = useMemo(
+    () =>
+      corrections
+        .filter((c) => c.category !== 'greatExpression' && c.better.trim())
+        .map((c) => ({ said: c.said, better: c.better })),
+    [corrections],
+  )
+
   const persist = useCallback(
     (patch: Partial<LessonRecord>) => {
       setLesson((cur) => {
@@ -257,6 +270,13 @@ export function LessonRunnerPage() {
     if (phaseForSteps.kind === 'warmup' && phaseForSteps.activities[0]) {
       const retrieval = buildRetrievalStep(ctx, phaseForSteps.activities[0].id)
       if (retrieval) return [built[0], retrieval, ...built.slice(1)].filter(Boolean)
+    }
+    /* The learner's own recurring slips, drilled where production practice
+       belongs: after the objective has been taught, before free conversation.
+       Only fires when there is something that has actually recurred. */
+    if (phaseForSteps.kind === 'guidedPractice' && phaseForSteps.activities[0]) {
+      const fix = buildFixStep(ctx, phaseForSteps.activities[0].id)
+      if (fix) return [fix, ...built]
     }
     return built
     /* `lang` is a dependency on purpose: switching the interface language
@@ -451,9 +471,14 @@ export function LessonRunnerPage() {
       </header>
 
       {/* Phase body */}
-      <main className={styles.body}>
+      <main className={`${styles.body} ${access.tutorGuidance ? '' : styles.studentBody}`}>
         <div className="container container-narrow">
-          {mode === 'together' && <p className={styles.togetherNote}>{t('lesson.together')}</p>}
+          {/* No "Together mode hides private tutor notes" banner here. It was
+              reassurance for the tutor, printed at the top of the one screen
+              the learner is looking at — the definition of tutor chrome on a
+              shared screen. The tutor chose the mode; they do not need the
+              app to tell them what it does, and the learner should never be
+              reading about the app's modes at all. */}
 
           {/* The objective title is written for the tutor ("First words and
               everyday chunks"). It belongs above the guidance, not above the
@@ -530,7 +555,23 @@ export function LessonRunnerPage() {
                   )}
                 </>
               ) : (
-                <StudentTaskView step={step} activity={stepActivity} />
+                <StudentTaskView
+                  step={step}
+                  activity={stepActivity}
+                  /* The learner's board is derived from the same banks the
+                     tutor guidance uses, so it needs the same three inputs:
+                     who they are, what they have met before, and where they
+                     are. Passing them is what lets a recall step cue from a
+                     meaning THIS learner was taught. */
+                  student={student}
+                  model={model}
+                  level={level}
+                  /* Captured in this session. The closing steps are about what
+                     just happened, so they show the learner's own words rather
+                     than another generic instruction. */
+                  todayVocabulary={vocab}
+                  todayCorrections={correctionPairs}
+                />
               )}
 
               {/* Every control that acts on this step — score it, capture

@@ -22,6 +22,7 @@
 
 import {
   Correction,
+  HomeworkReview,
   HomeworkTask,
   LearningModel,
   LessonRecord,
@@ -40,11 +41,17 @@ function canWriteEnglish(student: StudentProfile, model: LearningModel): boolean
   return model.skillEstimates.writing.level !== 'preA1'
 }
 
-/** How many tasks this learner should actually receive. */
-function taskCap(student: StudentProfile): number {
-  if (student.age <= 8) return 1
-  if (student.age <= 12) return 2
-  return 3
+/** How many tasks this learner should actually receive.
+ *
+ *  A learner who did not do last week's homework does not need more of it.
+ *  Cutting the set to its single highest-value task is the only lever this
+ *  module has that actually raises the chance of it being done — and one task
+ *  that comes back is worth three that do not. */
+function taskCap(student: StudentProfile, lastReview?: HomeworkReview): number {
+  const base = student.age <= 8 ? 1 : student.age <= 12 ? 2 : 3
+  if (lastReview === 'notDone') return 1
+  if (lastReview === 'partly') return Math.max(1, base - 1)
+  return base
 }
 
 /** The prompt worth rehearsing before next time.
@@ -80,8 +87,10 @@ export function generateHomework(
   student: StudentProfile,
   model: LearningModel,
   corrections: Correction[],
+  /** How the PREVIOUS homework came back. Absent when it was never checked. */
+  lastReview?: HomeworkReview,
 ): HomeworkTask[] {
-  const cap = taskCap(student)
+  const cap = taskCap(student, lastReview)
   const writes = canWriteEnglish(student, model)
   const level = overallCefr(model.skillEstimates)
   const isBeginner = level === 'preA1'

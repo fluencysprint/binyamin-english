@@ -635,6 +635,24 @@ const guide: Dict = {
         next: 'Retenir un mot ou une expression utile de ce qu’il a dit.',
       },
     },
+    fix: {
+      now: 'Correction ciblée — les erreurs qui reviennent, dites correctement.',
+      cue: 'Tu as dit « {{said}} ». En anglais, on dit « {{better}} ». Dis-le avec moi.',
+      do: [
+        'Une paire à la fois. Ils disent la bonne version à voix haute, deux fois.',
+        'Ensuite demande une phrase à eux avec ça : la correction doit sortir de l’exercice.',
+        'N’explique pas la règle sauf s’ils la demandent. C’est une habitude, pas de la théorie.',
+      ],
+      studentDoes: ['Dit la bonne version à voix haute, puis l’utilise dans une phrase à lui.'],
+      lookFor: [
+        'Se corrigent-ils avant que tu dises quoi que ce soit ? C’est ça, la victoire.',
+        'Est-ce que ça tient dans leur propre phrase, ou seulement dans la répétition ?',
+      ],
+      help: ['Dis la bonne version et fais-la répéter. Répéter aujourd’hui, c’est produire la semaine prochaine.'],
+      challenge: ['Demande la même forme trois fois dans une seule réponse longue.'],
+      doneWhen: 'Chacune a été dite correctement au moins une fois, dans une phrase à eux.',
+      next: 'Note ce qu’ils ont corrigé sans aide : ça va dans le rapport.',
+    },
     retrieval: {
       now: 'Rappel rapide de ce qui doit être revu depuis les cours précédents.',
       cueMeaning: 'Comment dit-on en anglais : {{meaning}} ?',

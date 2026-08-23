@@ -236,3 +236,36 @@ describe('follow-up questions are about the topic, not about conversation in gen
     expect(guidance?.next?.join(' ').match(/\?/g)?.length ?? 0).toBeGreaterThanOrEqual(2)
   })
 })
+
+/* ==========================================================================
+   The loop back — homework that is never heard about again is not homework.
+   ========================================================================== */
+describe('homework adapts to whether the last set came back', () => {
+  const adult = student()
+  const adultLesson = () =>
+    lessonFor(adult, 'B1', { vocabularyAdded: ['reluctant', 'blunt', 'ease off'] })
+
+  it('cuts an adult to a single task after a set that was not done', () => {
+    const { record, model } = adultLesson()
+    const full = generateHomework(record, adult, model, [correction()])
+    const after = generateHomework(record, adult, model, [correction()], 'notDone')
+    expect(full.length).toBeGreaterThan(1)
+    expect(after).toHaveLength(1)
+    // And it is the highest-value task, not whatever happened to be first.
+    expect(after[0].kind).toBe('sayCorrected')
+  })
+
+  it('trims by one after a set that came back half-finished', () => {
+    const { record, model } = adultLesson()
+    const full = generateHomework(record, adult, model, [correction()])
+    const after = generateHomework(record, adult, model, [correction()], 'partly')
+    expect(after.length).toBe(full.length - 1)
+  })
+
+  it('leaves a learner who does their homework with the full set', () => {
+    const { record, model } = adultLesson()
+    expect(generateHomework(record, adult, model, [correction()], 'done')).toEqual(
+      generateHomework(record, adult, model, [correction()]),
+    )
+  })
+})

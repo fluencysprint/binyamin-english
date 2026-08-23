@@ -7,6 +7,7 @@ import {
   AssessmentSnapshot,
   CEFR,
   Correction,
+  HomeworkReview,
   LearningModel,
   LessonPlan,
   LessonRecord,
@@ -20,6 +21,7 @@ import {
   getAllStudents,
   getCorrectionsForStudent,
   getLearningModel,
+  getLesson,
   getLessonsForStudent,
   getStudent,
   putCorrection,
@@ -236,6 +238,20 @@ export function previewNextLesson(
 
 export async function saveLessonProgress(lesson: LessonRecord): Promise<void> {
   await putLesson(lesson)
+}
+
+/**
+ * Record whether a completed lesson's homework came back.
+ *
+ * It is stored on the lesson that SET the homework, not on the one being
+ * taught now — that is the only place a verdict about "last week's tasks" is
+ * unambiguous, and it means the next report can read it without knowing which
+ * lesson happens to be running.
+ */
+export async function reviewHomework(lessonId: string, review: HomeworkReview): Promise<void> {
+  const lesson = await getLesson(lessonId)
+  if (!lesson) return
+  await putLesson({ ...lesson, homeworkReview: review })
 }
 
 export async function saveCorrection(correction: Correction): Promise<void> {

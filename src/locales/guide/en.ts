@@ -651,6 +651,24 @@ const guide: Dict = {
         next: 'Capture one useful word or phrase from what they said.',
       },
     },
+    fix: {
+      now: 'Fix drill — the slips this learner keeps making, said the right way.',
+      cue: 'You said “{{said}}”. The English is “{{better}}”. Say it with me.',
+      do: [
+        'One pair at a time. They say the RIGHT version out loud, twice.',
+        'Then ask for a sentence of their own with it — the fix has to leave the drill.',
+        'Do not explain the rule unless they ask. This is about the habit, not the theory.',
+      ],
+      studentDoes: ['Says the correct version out loud, then uses it in a sentence of their own.'],
+      lookFor: [
+        'Do they self-correct before you say anything? That is the win.',
+        'Does it survive the sentence of their own, or only the repetition?',
+      ],
+      help: ['Say the correct version and have them echo it. Echoing today is producing next week.'],
+      challenge: ['Ask for the same form three times inside one longer answer.'],
+      doneWhen: 'Each one has been said correctly at least once, in their own sentence.',
+      next: 'Note anything they fixed without help — it belongs in the report.',
+    },
     retrieval: {
       now: 'Quick recall of things from earlier lessons that are due.',
       cueMeaning: 'What’s the English for: {{meaning}}?',

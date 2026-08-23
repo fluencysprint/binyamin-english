@@ -20,6 +20,7 @@
 
 import {
   Correction,
+  HomeworkReview,
   HomeworkTask,
   LessonPlan,
   LessonRecord,
@@ -70,6 +71,13 @@ export interface LessonBriefing {
   improving: ProgressIssue[]
   /** What was set last time, and whether the tutor can check it. */
   homework: HomeworkTask[]
+  /** Whether that homework came back — undefined until the tutor has asked.
+   *  Distinct from 'notDone': "never asked" is not a verdict about a learner. */
+  homeworkReview?: HomeworkReview
+  /** Completed lessons whose homework was checked, and how many came back at
+   *  least partly. Evidence, not a streak — it is a count with a denominator,
+   *  which is the only form of it a tutor can act on. */
+  homeworkHistory: { checked: number; done: number }
   /** What today's lesson is actually going to teach, and why.
    *  Taken from the plan the app will build, never from a separate ranking —
    *  a briefing that recommends one thing while the lesson teaches another is
@@ -146,6 +154,12 @@ export function buildBriefing(
     recurringWeaknesses: progress.needsWork.slice(0, MAX_WEAKNESSES),
     improving: progress.improving.slice(0, MAX_WEAKNESSES),
     homework: last?.report?.homework ?? [],
+    homeworkReview: last?.homeworkReview,
+    homeworkHistory: {
+      checked: completed.filter((l) => l.homeworkReview).length,
+      done: completed.filter((l) => l.homeworkReview === 'done' || l.homeworkReview === 'partly')
+        .length,
+    },
     recommendedFocus,
     isFirstLesson: completed.length === 0,
   }

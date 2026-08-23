@@ -102,14 +102,18 @@
   flex: 1;
   padding-block: var(--sp-5);
 }
-.togetherNote {
-  background: var(--info-tint);
-  color: var(--info);
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-md);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  margin-bottom: var(--sp-4);
+/* The learner's screen holds one task, which on a laptop being screen-shared
+   left two-thirds of the window empty above the action bar. Auto margins
+   centre it when it is short and collapse to nothing when it is not, so tall
+   content still starts at the top and scrolls normally instead of being
+   clipped at both ends the way `justify-content: center` would. */
+.studentBody {
+  display: flex;
+  flex-direction: column;
+}
+.studentBody > * {
+  margin-block: auto;
+  width: 100%;
 }
 .objective {
   display: flex;

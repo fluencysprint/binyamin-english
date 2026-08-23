@@ -61,7 +61,17 @@ The public experience gives real value without exposing the full teaching system
   live listener and the one that moves hesitation and speech rate
 - **Contextual follow-up questions** written for the topic on the table, not a
   generic "Why do you think that is?" pool, and scaled to the learner's age and level
+- **A learner-facing lesson screen with the lesson actually on it.** In Student and
+  Together mode the shared screen carries the task, the follow-up questions one at a
+  time, the target language behind a single disclosure, model sentences, minimal pairs
+  and word banks — all derived from the same content banks the tutor guidance is built
+  from, in the language selected right now. Support is present but closed, so nothing
+  is on screen before the attempt.
 - **Fast correction capture** and a **persistent learning model** with spaced review
+- **A fix drill built from the learner's own recurring slips.** Once the same mistake
+  has been captured in two lessons, "I am agree" → "I agree" becomes production
+  practice inside the lesson, not just a line telling the tutor what to listen for —
+  which is what actually shifts a habit the grammar library has no rule for.
 - **Longitudinal progress that the tutor can actually act on.** Evidence is counted in
   *lessons*, not occurrences, so the system tells apart a slip from a weakness: an
   error seen in one lesson stays **new**, one seen across two or more is **recurring**,
@@ -82,6 +92,10 @@ The public experience gives real value without exposing the full teaching system
   homework tasks built from what actually happened** — their own corrected sentences,
   the words captured today, the sound practised, the sprint to repeat at home. A
   learner who cannot write yet is never asked to write.
+- **Homework that comes back.** One tap on the briefing records whether last week's
+  set was done, half-done or missed; a learner who did not do it gets a shorter set
+  next time rather than a longer one, and the tutor sees the rate with its
+  denominator ("came back 4 of the last 6 times") instead of a streak.
 - **Backups**: export / import all data (including audio) as a single JSON file
 
 > The tutor gate is a light deterrent, not security. This is a static site whose

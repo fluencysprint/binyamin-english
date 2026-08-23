@@ -1,5 +1,6 @@
 /* Deliberately large and sparse. The learner may be five years old, may be
-   nervous, and may be reading at arm's length on a shared phone. */
+   nervous, and may be reading it over a screen share at the far end of a
+   video call. Nothing here is smaller than it has to be. */
 
 .task {
   display: grid;
@@ -15,7 +16,44 @@
   text-align: start;
 }
 
-/* The English target, clearly a different thing from the instruction. */
+/* The current prompt — the single biggest thing on the screen, because it is
+   the thing being answered. */
+.promptCard {
+  display: grid;
+  gap: var(--sp-4);
+  background: var(--brand-tint);
+  border: 2px solid var(--brand);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+}
+.promptText {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+  overflow-wrap: break-word;
+}
+.promptFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.pagerCount {
+  margin-inline-start: auto;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.clock {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* A single English target — one word or chunk for a beginner step. */
 .target {
   display: flex;
   flex-wrap: wrap;
@@ -35,12 +73,153 @@
   overflow-wrap: break-word;
 }
 
+.group {
+  display: grid;
+  gap: var(--sp-3);
+}
+.groupLabel {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Sound contrasts. Tapping one speaks the pair. */
+.pairs,
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.pair,
+.word {
+  font: inherit;
+  cursor: pointer;
+  background: var(--bg-sunken);
+  border: 2px solid var(--surface-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: inherit;
+}
+.pair {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.pairVs {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.pair:hover,
+.word:hover,
+.pair:focus-visible,
+.word:focus-visible {
+  border-color: var(--brand);
+}
+
+.examples {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-3);
+}
+.examples li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+}
+.speakBtn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  padding: var(--sp-2);
+}
+.speakBtn:hover,
+.speakBtn:focus-visible {
+  color: var(--brand);
+  border-color: var(--brand);
+}
+
+/* Meaning cues for spaced recall. The English answer is a button, not text:
+   it does not exist on screen until it has been asked for. */
+.cues {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-3);
+}
+.cue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-lg);
+}
+.cueText {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.cueAnswer {
+  font: inherit;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-tint);
+  border: 2px solid var(--brand);
+  border-radius: var(--r-md);
+  padding: var(--sp-2) var(--sp-4);
+}
+
+/* Support the learner may open. One level, never nested. */
+.support {
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+}
+.support > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--fs-md);
+}
+.phrases {
+  margin: var(--sp-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-3);
+}
+.phrases li {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  padding-inline-start: var(--sp-4);
+  border-inline-start: 3px solid var(--brand);
+}
+.helpText {
+  margin: var(--sp-3) 0 0;
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+}
+
 .passage {
   margin: 0;
   background: var(--bg-sunken);
   border-radius: var(--r-md);
   padding: var(--sp-4);
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   line-height: var(--lh-normal);
 }
 
@@ -48,7 +227,41 @@
   .instruction {
     font-size: var(--fs-lg);
   }
+  .promptText,
   .targetText {
     font-size: var(--fs-xl);
   }
+  .examples li,
+  .phrases li,
+  .cue,
+  .pair,
+  .word {
+    font-size: var(--fs-md);
+  }
+}
+
+/* The learner's own sentences at the close of the lesson: what they said,
+   and what to say instead. */
+.fixes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-4);
+}
+.fixes li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-3);
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+}
+.said {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+.better {
+  font-weight: 700;
+  color: var(--brand);
 }

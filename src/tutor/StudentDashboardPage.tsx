@@ -7,7 +7,13 @@ import { ModeSwitcher, LockButton } from './ModeSwitcher'
 import { AudioList } from '../audio/AudioList'
 import { SkillLevels } from './SkillLevels'
 import { AudioRecordingMeta, LessonPlan } from '../types'
-import { StudentBundle, createLesson, loadStudentBundle, previewNextLesson } from '../students/studentService'
+import {
+  StudentBundle,
+  createLesson,
+  loadStudentBundle,
+  previewNextLesson,
+  reviewHomework,
+} from '../students/studentService'
 import { buildBriefing } from '../lessons/briefing'
 import { objectiveRationale, objectiveTitle } from '../lessons/guidance'
 import { teachingStringsStatus, useTeachingStrings } from '../i18n/teachingStrings'
@@ -161,7 +167,21 @@ export function StudentDashboardPage() {
                 the densest concentration of private material on the page —
                 recurring weaknesses, corrections worth re-hearing, and the
                 reasoning behind today's focus. */}
-            {access.diagnostics && <LessonBriefingCard briefing={briefing} />}
+            {access.diagnostics && (
+              <LessonBriefingCard
+                briefing={briefing}
+                /* The verdict is about the lesson that SET the homework, so
+                   there is nothing to record until one exists. */
+                onReviewHomework={
+                  briefing.lastLesson
+                    ? async (review) => {
+                        await reviewHomework(briefing.lastLesson!.id, review)
+                        load()
+                      }
+                    : undefined
+                }
+              />
+            )}
 
             {/* What the learner was asked to practise: theirs to see. */}
             {!access.diagnostics && <HomeworkCard tasks={briefing.homework} />}

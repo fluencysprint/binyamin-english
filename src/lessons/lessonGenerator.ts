@@ -341,6 +341,10 @@ function communicationActivity(
   level: CEFR,
   recentIds: readonly string[] = [],
   rng: () => number = Math.random,
+  /* The opening speaking block and the closing conversation are both real
+     tasks from the same bank, so the second one has to know what the first
+     took — otherwise a lesson can ask the same question twice. */
+  kind: 'communication' | 'speakingListening' = 'communication',
 ): LessonActivity {
   const task = pickVaried(communicationTasks[band], (x) => x.id, recentIds, rng)
   /* Follow-ups are chosen for THIS task's category, not from a generic pool.
@@ -351,9 +355,9 @@ function communicationActivity(
   const [generic] = followUpSample(seed, 1)
   return {
     id: uid('act'),
-    kind: 'communication',
-    title: 'Real conversation',
-    titleKey: 'phases.communication',
+    kind,
+    title: kind === 'communication' ? 'Real conversation' : 'Speaking & listening',
+    titleKey: kind === 'communication' ? 'phases.communication' : 'phases.speakingListening',
     studentPrompt: task.prompt,
     ref: task.id,
     /* The follow-up questions are stored because they were CHOSEN here (a
@@ -363,6 +367,7 @@ function communicationActivity(
       src: 'communication',
       id: task.id,
       params: {
+        category: task.category,
         follow1,
         follow2,
         follow3,
@@ -403,15 +408,6 @@ function standardPhases(
   const band = student.ageBand
   const [micro, guided] = objectiveActivities(objective)
 
-  const speaking: LessonActivity = {
-    id: uid('act'),
-    kind: 'speakingListening',
-    title: 'Speaking & listening',
-    titleKey: 'phases.speakingListening',
-    studentPrompt: 'Let’s talk. Answer out loud, in whole sentences where you can.',
-    studentPromptKey: 'student.answerOutLoud',
-    guide: { src: 'speaking' },
-  }
 
   /* A short pronunciation moment in EVERY lesson, not only once a problem has
      already been noticed. Clear American pronunciation is the thing these
@@ -463,6 +459,21 @@ function standardPhases(
     _level,
     model.recentContentIds,
     rng,
+  )
+
+  /* The eight minutes after the warm-up used to hold an activity with no topic
+     at all — "Let's talk. Answer out loud" — which meant the tutor invented
+     the first third of every lesson live and the learner's screen was blank
+     for it. It is now a real task from the same bank, chosen away from the
+     closing conversation so a lesson never asks the same question twice. */
+  const speaking = communicationActivity(
+    band,
+    student.interests,
+    seed + 5,
+    _level,
+    [...model.recentContentIds, conversation.ref ?? ''],
+    rng,
+    'speakingListening',
   )
 
   /* Timing follows the brief's arc: warm up → retrieval (rides at the front of

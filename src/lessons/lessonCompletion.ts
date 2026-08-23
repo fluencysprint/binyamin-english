@@ -158,6 +158,13 @@ export function applyCompletedLesson(
     now,
   })
 
-  const report = generateReport(lesson, student, model, corrections, now, progress)
+  /* The homework verdict lives on the lesson that SET the homework, so the
+     one that matters here is the previous completed lesson's — that is the
+     set the learner has just been through a week with. */
+  const previous = priorLessons
+    .filter((l) => l.status === 'completed' && l.id !== lesson.id)
+    .sort((a, b) => (a.completedAt ?? 0) - (b.completedAt ?? 0))
+  const lastReview = previous[previous.length - 1]?.homeworkReview
+  const report = generateReport(lesson, student, model, corrections, now, progress, lastReview)
   return { model, report, progress }
 }

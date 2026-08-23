@@ -8,6 +8,7 @@
 
 import {
   Correction,
+  HomeworkReview,
   ImprovementItem,
   LearningModel,
   LessonPhaseKind,
@@ -84,6 +85,9 @@ export function generateReport(
   now = Date.now(),
   /** The longitudinal picture after this lesson, when the caller has it. */
   progress?: ProgressSnapshot,
+  /** How the PREVIOUS lesson's homework came back. A learner who did not do
+   *  last week's set gets a shorter one this week, not a longer one. */
+  lastHomeworkReview?: HomeworkReview,
 ): LessonReport {
   const objectiveTitle = lesson.plan.objective.title
 
@@ -192,7 +196,7 @@ export function generateReport(
     nextFocusTitle,
     nextFocusRef,
     reviewed,
-    homework: generateHomework(lesson, student, model, corrections),
+    homework: generateHomework(lesson, student, model, corrections, lastHomeworkReview),
   }
 
   // Parent section for minors.

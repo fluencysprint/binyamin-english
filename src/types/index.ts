@@ -614,6 +614,17 @@ export interface LessonRecord {
   vocabularyReview?: Record<string, VocabRecallOutcome>
   /** Objective outcome after teaching. */
   objectiveOutcome?: ScoreOutcome
+  /**
+   * Whether the homework THIS lesson set was actually done, recorded at the
+   * start of the following lesson.
+   *
+   * Deliberately one verdict for the whole set rather than one per task: a
+   * tutor asks "did you do it?" once and gets one answer, and inventing a
+   * per-task grade from that would be precision the app never had. Optional
+   * so lessons recorded before homework was checked still load — absent means
+   * "never asked", which is not the same as "not done".
+   */
+  homeworkReview?: HomeworkReview
   tutorNotes?: string
   report?: LessonReport
 }
@@ -645,6 +656,9 @@ export type HomeworkTask =
   | { kind: 'noticeLanguage'; target: string }
   /** Come to the next lesson with an answer ready. */
   | { kind: 'prepareAnswer'; question: string }
+
+/** Whether the homework a lesson set actually came back. */
+export type HomeworkReview = 'done' | 'partly' | 'notDone'
 
 /** A "went well" bullet, resolved to localized text at render time (see
  *  ReportView.tsx) instead of being pre-rendered into English. */

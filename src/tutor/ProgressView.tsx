@@ -18,7 +18,7 @@ import { homeworkText } from '../reports/ReportView'
 import { BriefingFocus, LessonBriefing } from '../lessons/briefing'
 import { Explanation, ProgressIssue, ProgressSnapshot } from '../students/progress'
 import { conceptTitle } from '../lessons/guidance'
-import { HomeworkTask, ScoreOutcome } from '../types'
+import { HomeworkReview, HomeworkTask, ScoreOutcome } from '../types'
 import styles from './ProgressView.module.css'
 
 type T = (key: string, params?: Record<string, string | number>) => string
@@ -97,7 +97,15 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
  * five empty sections — an empty briefing is worse than no briefing, because
  * it teaches the tutor that this card is never worth reading.
  */
-export function LessonBriefingCard({ briefing }: { briefing: LessonBriefing }) {
+export function LessonBriefingCard({
+  briefing,
+  onReviewHomework,
+}: {
+  briefing: LessonBriefing
+  /** Records whether the last set of homework came back. Absent when there is
+   *  nothing to record against — a first lesson, or a read-only surface. */
+  onReviewHomework?: (review: HomeworkReview) => void
+}) {
   const { t, lang } = useI18n()
 
   if (briefing.isFirstLesson) {
@@ -186,7 +194,38 @@ export function LessonBriefingCard({ briefing }: { briefing: LessonBriefing }) {
                 </li>
               ))}
             </ul>
-            <p className={styles.empty}>{t('briefing.homeworkCheck')}</p>
+            {/* One question, asked once, at the moment the tutor is already
+                looking at what was set. Without it the homework loop ends
+                here: a set of tasks the app hands out and never hears about
+                again, so it can neither shorten the next set nor tell the
+                learner what a term of practice actually did. */}
+            {onReviewHomework ? (
+              <>
+                <p className={styles.empty}>{t('briefing.homeworkCheck')}</p>
+                <div className="cluster">
+                  {(['done', 'partly', 'notDone'] as HomeworkReview[]).map((r) => (
+                    <button
+                      key={r}
+                      className="chip"
+                      aria-pressed={briefing.homeworkReview === r}
+                      onClick={() => onReviewHomework(r)}
+                    >
+                      {t(`briefing.homework${r === 'notDone' ? 'NotDone' : r === 'partly' ? 'Partly' : 'Done'}`)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className={styles.empty}>{t('briefing.homeworkCheck')}</p>
+            )}
+            {briefing.homeworkHistory.checked >= 2 && (
+              <p className={styles.why}>
+                {t('briefing.homeworkRate', {
+                  done: briefing.homeworkHistory.done,
+                  total: briefing.homeworkHistory.checked,
+                })}
+              </p>
+            )}
           </Block>
         )}
       </div>
