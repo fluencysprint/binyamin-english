@@ -20,7 +20,7 @@
                        "How do you do?" does not.
      3. GENERATIVITY.  A frame with a slot ("I want ___") is worth more than
                        ten memorized sentences, because the learner leaves
-                       with a machine rather than a souvenir. 62 of the 100
+                       with a machine rather than a souvenir. 45 of the 100
                        carry a slot on purpose.
      4. TEACHABILITY.  It has to be showable without translation — a gesture,
                        an object, a situation. `show` names which.
@@ -1315,7 +1315,7 @@ const UNITS: Draft[][] = [
       unit: 9,
       stage: 'P3',
       fn: 'practical',
-      slots: ['the station', 'the airport', 'the city centre', 'this address'],
+      slots: ['the station', 'the airport', 'the city center', 'this address'],
       examples: ['How do I get to the station?', 'How do I get to the airport?'],
       requires: ['whereIs'],
       show: 'picture',
