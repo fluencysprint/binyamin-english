@@ -1,11 +1,11 @@
 .panel {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--sp-4);
 }
 
 .head {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--sp-1);
 }
 
 .head p {
@@ -13,24 +13,27 @@
   font-size: var(--fs-sm);
 }
 
+/* Generous gap between rows: each row is its own boxed group below, so this
+   gap is the only thing separating one phrase's evidence from the next. A
+   tired tutor scanning fast should never have to check which buttons go
+   with which phrase. */
 .rows {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-3);
+  gap: var(--sp-4);
 }
 
+/* A bordered box, not a hairline rule: the phrase and its four verdict
+   buttons live inside one visible boundary, so the group reads as a single
+   unit at a glance instead of a run-on list. */
 .row {
   display: grid;
-  gap: var(--space-2);
-  padding-block-end: var(--space-3);
-  border-block-end: 1px solid var(--border);
-}
-
-.row:last-child {
-  border-block-end: 0;
-  padding-block-end: 0;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-md);
 }
 
 .chunk {
@@ -40,14 +43,15 @@
   font-size: var(--fs-md);
 }
 
-/* Two columns, then four when there is genuinely room for four.
-   A flex row wrapped 3 + 1 at the width the tutor actually reads this at,
-   which puts the one rung that matters — "said it alone" — on a line of its
-   own, half-width, looking like an afterthought. */
+/* Always a 2x2 grid. This panel lives inside .container-narrow (max 720px),
+   so it never has enough real width for a single-row, 4-across layout —
+   forcing one at a wide viewport only starves each chip down to a sliver
+   that wraps its label onto two lines, which is harder to read than the
+   2x2 grid it replaced. */
 .chips {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
+  gap: var(--sp-2);
 }
 
 .chip {
@@ -58,9 +62,17 @@
   min-height: 2.5rem;
 }
 
-@media (min-width: 1100px) {
-  .chips {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+/* Below this width the label column would force the longest phrases
+   ("Can you say that again, please?") to wrap next to a single-line chip
+   grid — exactly the misalignment that makes a row hard to parse at a
+   glance. Below 700px we stay fully stacked (label above, chips below),
+   unambiguous at any label length. Above it — the container's practical
+   ceiling, since .container-narrow tops out at 720px regardless of
+   viewport — label and chips sit side by side with room to spare. */
+@media (min-width: 700px) {
+  .row {
+    grid-template-columns: minmax(14ch, 24ch) 1fr;
+    align-items: start;
   }
 }
 
@@ -69,11 +81,4 @@
 .unaided[aria-pressed='true'] {
   background: var(--ok-tint);
   border-color: var(--ok);
-}
-
-@media (min-width: 640px) {
-  .row {
-    grid-template-columns: minmax(12ch, 20ch) 1fr;
-    align-items: center;
-  }
 }
