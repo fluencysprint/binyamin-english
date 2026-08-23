@@ -92,6 +92,15 @@
 }
 .phaseName {
   font-weight: 700;
+  /* A phrase block's name is the English it teaches, so it can be long. The
+     sticky header has a height budget it must not eat into — the whole list
+     is one line down on the step card anyway, so this truncates rather than
+     wrapping to three lines and pushing the lesson off a 320px screen. */
+  min-width: 0;
+  flex: 1 1 12ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* The action area that used to live here — a beige full-bleed tray of five

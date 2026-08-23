@@ -79,6 +79,10 @@ async function reopenIn(page: Page, lang: string, lesson: string, was?: string) 
 
 test.describe('the tutor reads the lesson in their own language', () => {
   test('the same saved lesson reads in whichever language is selected', async ({ page }) => {
+    /* Five full round-trips, each fetching a language's teaching chunk from a
+       dev server that is also serving every other worker. The default
+       thirty-second budget is for a single interaction, not for this. */
+    test.slow()
     await page.setViewportSize({ width: 390, height: 844 })
     const lesson = await startLesson(page)
 
@@ -96,12 +100,17 @@ test.describe('the tutor reads the lesson in their own language', () => {
       await reopenIn(page, lang, lesson, english)
     }
 
-    // Back to English: the same lesson, the same words it started with.
+    /* Back to English: the same lesson, the same words it started with.
+       Polled like the legs above rather than read once — four language chunks
+       have been fetched by now, and under a fully parallel run the re-render
+       that follows the switch can land a frame or two after the navigation. */
     await reopenIn(page, 'en', lesson)
-    expect(await instructionText(page)).toBe(english)
+    await expect.poll(() => instructionText(page), { timeout: 25000 }).toBe(english)
   })
 
   test('keeps the English the learner has to hear in English', async ({ page }) => {
+    // Four language chunks, same reasoning as the test above.
+    test.slow()
     await page.setViewportSize({ width: 390, height: 844 })
     const lesson = await startLesson(page)
     /* Quotation MARKS follow the locale's typography — French sets « » — so

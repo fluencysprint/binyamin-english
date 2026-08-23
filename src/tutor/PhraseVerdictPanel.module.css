@@ -40,16 +40,28 @@
   font-size: var(--fs-md);
 }
 
+/* Two columns, then four when there is genuinely room for four.
+   A flex row wrapped 3 + 1 at the width the tutor actually reads this at,
+   which puts the one rung that matters — "said it alone" — on a line of its
+   own, half-width, looking like an afterthought. */
 .chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
 }
 
 .chip {
-  flex: 1 1 auto;
-  min-width: 8ch;
   text-align: center;
+  justify-content: center;
+  /* Four different labels of four different lengths; a fixed row height stops
+     the grid from stepping every time one of them wraps. */
+  min-height: 2.5rem;
+}
+
+@media (min-width: 1100px) {
+  .chips {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 /* Only the rung that claims memory is coloured. Four coloured chips would be
@@ -61,7 +73,7 @@
 
 @media (min-width: 640px) {
   .row {
-    grid-template-columns: minmax(12ch, 22ch) 1fr;
+    grid-template-columns: minmax(12ch, 20ch) 1fr;
     align-items: center;
   }
 }

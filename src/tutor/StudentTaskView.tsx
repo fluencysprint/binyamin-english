@@ -178,7 +178,12 @@ export function StudentTaskView({
 
       {board.words.length > 0 && (
         <Group label={t('board.words')}>
-          <div className={styles.words}>
+          {/* The bank flows left-to-right even in an RTL interface. These are
+              English words in an English order — "morning, afternoon, evening,
+              night" reversed itself under the Hebrew container and arrived as
+              a list that reads backwards. Each chip was already isolated; the
+              row around them was not. */}
+          <div className={styles.words} dir="ltr">
             {board.words.map((w) => (
               <button
                 key={w}

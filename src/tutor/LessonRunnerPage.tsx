@@ -49,7 +49,7 @@ import {
 } from '../lessons/microSteps'
 import { lessonPhraseIds } from '../curriculum/phraseProgress'
 import { getPhrase, PhraseTarget } from '../curriculum/phrases'
-import { activityGuidance, objectiveTitle } from '../lessons/guidance'
+import { activityGuidance, localizedTitle, objectiveTitle } from '../lessons/guidance'
 import { loadTeachingStrings, teachingStringsStatus, useTeachingStrings } from '../i18n/teachingStrings'
 import { pacingAdvice, pacingFor } from '../lessons/pacing'
 import { overallCefr } from '../utils/cefr'
@@ -533,8 +533,14 @@ export function LessonRunnerPage() {
         {access.tutorGuidance && (
           <>
             <div className={styles.phaseBar}>
-              <span className={styles.phaseName}>
-                {t(`phases.${phase.kind}`)} · {phase.startMin}–{phase.endMin} {t('common.minutes')}
+              {/* A phrase lesson's ten phases are three kinds repeated, so
+                  "Speaking & listening" says nothing about where the tutor is.
+                  Its own title names the English being taught, which does. */}
+              <span className={styles.phaseName} dir="auto">
+                {phase.activities[0]?.guide?.src === 'phrase'
+                  ? localizedTitle(lang, phase)
+                  : t(`phases.${phase.kind}`)}{' '}
+                · {phase.startMin}–{phase.endMin} {t('common.minutes')}
               </span>
               <span className="muted">
                 {t('lesson.phaseProgress', { current: phaseIndex + 1, total: phases.length })}
