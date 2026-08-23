@@ -56,6 +56,8 @@ import {
   grammarTitle,
   localizedTitle,
 } from './guidance'
+import { PhraseTarget, fillSlot, getPhrase, isFrame } from '../curriculum/phrases'
+import type { PhraseBlock } from '../curriculum/phraseLesson'
 
 /** The teaching move a step performs. Names the pedagogy, so the UI can label
  *  it and a test can assert the sequence is sound. */
@@ -663,6 +665,184 @@ function fluencySteps(activity: LessonActivity, ctx: MicroStepContext): MicroSte
 
 /* ---- Generic activity: from whatever guidance the content supplies -------- */
 
+
+/* -------------------------------------------------------------------------- */
+/* The phrase curriculum                                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The teaching sequence for a block of chunks.
+ *
+ * Every SAY line here is built in code from the phrase bank, so it is the same
+ * English in all five languages — the tutor reads their own language in the
+ * eight instruction sections and English in the one section they say out loud.
+ *
+ * The one rule the sequence exists to protect: on the two `retrieval` steps
+ * nothing English is on the learner's screen and nothing is modelled first.
+ * They are the only steps that can produce unaided evidence, and they are
+ * placed cold (the recall block, before anything new) and after a gap (the
+ * second half of each use block) for exactly that reason.
+ */
+export function phrasePhrases(activity: LessonActivity): PhraseTarget[] {
+  return (activity.phraseIds ?? [])
+    .map(getPhrase)
+    .filter((p): p is PhraseTarget => Boolean(p))
+}
+
+/** English exchange lines for a set of phrases: ask, then the natural answer. */
+function exchangeLines(phrases: PhraseTarget[]): string[] {
+  const out: string[] = []
+  for (const p of phrases) {
+    out.push(p.say)
+    if (p.reply) out.push(p.reply)
+  }
+  return out.slice(0, 8)
+}
+
+/** Substitution examples — the same frame with different words in the slot. */
+function substitutions(phrases: PhraseTarget[]): string[] {
+  const out: string[] = []
+  for (const p of phrases) {
+    if (isFrame(p) && p.slots.length) {
+      out.push(...p.slots.slice(0, 3).map((slot) => fillSlot(p, slot)))
+    } else {
+      out.push(...p.examples.slice(0, 2))
+    }
+  }
+  return out.slice(0, 9)
+}
+
+/** The tutor's openers for a real-use minute: today's questions first. */
+function realUseOpeners(phrases: PhraseTarget[]): string[] {
+  const questions = phrases.filter((p) => p.chunk.trim().endsWith('?')).map((p) => p.say)
+  const replies = phrases.map((p) => p.reply).filter((r): r is string => Boolean(r))
+  const out = [...questions, ...replies]
+  return (out.length ? out : phrases.map((p) => p.say)).slice(0, 6)
+}
+
+const PHRASE_MOVES: Record<PhraseBlock, TeachingMove[]> = {
+  recall: ['retrieval'],
+  meet: ['meaning', 'model', 'guided'],
+  use: ['guided', 'retrieval'],
+  exchange: ['guided'],
+  realUse: ['realUse'],
+  close: ['recap'],
+}
+
+/** Which learner-facing instruction each step of each block shows. */
+const PHRASE_STUDENT_KEY: Record<string, string> = {
+  'recall.retrieval': 'student.phraseRecall',
+  'meet.meaning': 'student.phraseMeaning',
+  'meet.model': 'student.phraseListenTo',
+  'meet.guided': 'student.phraseRepeat',
+  'use.guided': 'student.phraseSwap',
+  'use.retrieval': 'student.phraseFromMeaning',
+  'exchange.guided': 'student.phraseExchange',
+  'realUse.realUse': 'student.phraseRealUse',
+  'close.recap': 'student.phraseClose',
+}
+
+/** The English the tutor says aloud, per block and move. */
+function phraseSay(block: PhraseBlock, move: TeachingMove, phrases: PhraseTarget[]): string[] {
+  const chunks = phrases.map((p) => p.say)
+  switch (`${block}.${move}`) {
+    case 'recall.retrieval':
+      // The cue is the meaning, on the learner's screen in their own language.
+      // The English comes out of the tutor's mouth only AFTER the attempt.
+      return ['In English?', ...chunks]
+    case 'meet.meaning':
+      return chunks
+    case 'meet.model':
+      return exchangeLines(phrases)
+    case 'meet.guided':
+      return ['Now you.', ...chunks]
+    case 'use.guided':
+      return substitutions(phrases)
+    case 'use.retrieval':
+      return ['In English?', ...chunks]
+    case 'exchange.guided':
+      return exchangeLines(phrases)
+    case 'realUse.realUse':
+      return realUseOpeners(phrases)
+    default:
+      return chunks.slice(0, 6)
+  }
+}
+
+function phraseSteps(
+  activity: LessonActivity,
+  ctx: MicroStepContext,
+  profile: PacingProfile,
+): MicroStep[] {
+  const block = String(activity.guide?.params?.block ?? 'meet') as PhraseBlock
+  const moves = PHRASE_MOVES[block] ?? PHRASE_MOVES.meet
+  const phrases = phrasePhrases(activity)
+  if (phrases.length === 0) return []
+
+  const lang = ctx.lang
+  const list = phrases.map((p) => p.chunk).join(' · ')
+  const first = phrases[0]
+  const params = {
+    chunk: first.chunk,
+    phrases: list,
+    count: phrases.length,
+    slot: isFrame(first) ? (first.slots[0] ?? '') : '',
+    reply: first.reply ?? '',
+  }
+  const k = (move: TeachingMove, field: string) => `guide.step.phrase.${block}.${move}.${field}`
+  const t = (move: TeachingMove, field: string) => translate(lang, k(move, field), params)
+  const tl = (move: TeachingMove, field: string) => translateList(lang, k(move, field), params)
+
+  /* Weight the retrieval steps a little longer than the modelling ones: the
+     silence while a learner reaches for a phrase is the work, and a tutor who
+     fills it has taken the lesson back. */
+  const weight: Partial<Record<TeachingMove, number>> = {
+    meaning: 0.7,
+    model: 0.8,
+    guided: 1,
+    retrieval: 1.2,
+    realUse: 1.4,
+    recap: 1,
+  }
+
+  return moves.map((move, i) => ({
+    id: stepId(ctx, move, i),
+    activityId: '',
+    move,
+    minutes: stepMinutes(profile, weight[move] ?? 1),
+    now: t(move, 'now'),
+    say: phraseSay(block, move, phrases),
+    do: tl(move, 'do'),
+    studentDoes: tl(move, 'studentDoes'),
+    lookFor: tl(move, 'lookFor'),
+    help: tl(move, 'help'),
+    challenge: tl(move, 'challenge'),
+    doneWhen: t(move, 'doneWhen'),
+    next: t(move, 'next'),
+    /* Nothing to play on a retrieval step. A speak button that reads the
+       answer aloud is the fastest way to turn recall back into repetition. */
+    speak: move === 'retrieval' ? undefined : first.say,
+    studentKey: PHRASE_STUDENT_KEY[`${block}.${move}`] ?? 'student.yourTurnPractice',
+    /* The English the learner's own instruction may name. Only the modelling
+       step uses it: on a shared screen "listen" with nothing named leaves a
+       beginner unsure which of three phrases is coming, and it is the one
+       step where naming the target cannot turn retrieval into reading. */
+    studentParams: { chunk: first.chunk },
+  }))
+}
+
+/** True when this activity is part of the phrase curriculum. */
+export function isPhraseActivity(activity: LessonActivity): boolean {
+  return activity.guide?.src === 'phrase'
+}
+
+/** The block an activity belongs to, for screens that branch on it. */
+export function phraseBlockOf(activity: LessonActivity): PhraseBlock | undefined {
+  return isPhraseActivity(activity)
+    ? ((activity.guide?.params?.block as PhraseBlock | undefined) ?? 'meet')
+    : undefined
+}
+
 function genericSteps(activity: LessonActivity, ctx: MicroStepContext, profile: PacingProfile): MicroStep[] {
   const lang = ctx.lang
   const { autopilot: a, card } = activityGuidance(activity, {
@@ -816,6 +996,14 @@ export function buildMicroSteps(activity: LessonActivity, ctx: MicroStepContext)
      carries notice + drill, guided practice carries the turn, the real use and
      the close. Five steps rather than six — there is no "meaning" move for a
      habit, because the learner already knows what they were trying to say. */
+  /* The phrase curriculum owns its own sequence — meaning, model, repeat,
+     swap, and two cold retrievals — so it is dispatched before every other
+     rule, including the kind-based ones below. */
+  if (isPhraseActivity(activity)) {
+    const steps = phraseSteps(activity, ctx, profile)
+    if (steps.length) return tag(steps)
+  }
+
   const pair = patternPair(activity)
   if (pair && (activity.kind === 'microLesson' || activity.kind === 'guidedPractice')) {
     const steps = patternSteps(pair.said, pair.better, ctx, profile)

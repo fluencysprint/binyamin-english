@@ -201,6 +201,9 @@ export async function createLesson(
       previousObjectiveRefs,
       seed: completed.length * 13 + student.name.length,
       progress,
+      /* The beginner pathway plans from phrase evidence, which lives in the
+         lesson history rather than the model — see curriculum/phraseProgress.ts. */
+      lessons,
     })
   }
   const record: LessonRecord = {
@@ -233,6 +236,7 @@ export function previewNextLesson(
     previousObjectiveRefs: completed.map((l) => l.plan.objective.ref),
     seed: completed.length * 13 + student.name.length,
     progress,
+    lessons,
   })
 }
 

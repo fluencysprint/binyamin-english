@@ -3,7 +3,14 @@
    Pure and deterministic; persistence is handled by the service layer.
    ========================================================================== */
 
-import { Correction, LearningModel, LessonRecord, LessonReport, StudentProfile } from '../types'
+import {
+  Correction,
+  LearningModel,
+  LessonRecord,
+  LessonReport,
+  ScoreOutcome,
+  StudentProfile,
+} from '../types'
 import {
   addTopics,
   addVocabulary,
@@ -23,12 +30,42 @@ import { generateReport } from '../reports/reportGenerator'
 import { overallCefr } from '../utils/cefr'
 import { nextStageFromLesson } from '../students/beginnerModel'
 import { pushRecentContentIds } from './selection'
+import { newPhraseIdsOf } from '../curriculum/phraseProgress'
 
 export interface CompletionResult {
   model: LearningModel
   report: LessonReport
   /** The longitudinal picture as it stands AFTER this lesson. */
   progress: ProgressSnapshot
+}
+
+/**
+ * How a PHRASE lesson went, read off the evidence rather than off a tap.
+ *
+ * A grammar lesson has one objective and one score for it. A phrase lesson has
+ * eight to ten targets, each separately marked, and the tutor may never touch
+ * the objective chips at all — so inferring the lesson's outcome from what was
+ * actually produced is both more honest and more likely to exist.
+ *
+ * The bar is production WITH support, not unaided: advancing a stage is a
+ * statement about what the learner can now be taught, and a learner who said
+ * two thirds of today's phrases with a model in front of them is ready for the
+ * next set. Unaided production is a claim about memory, and it is what the
+ * mastery rule in curriculum/phraseProgress.ts is for.
+ */
+function phraseLessonOutcome(lesson: LessonRecord): ScoreOutcome | undefined {
+  const ids = newPhraseIdsOf(lesson)
+  if (ids.length === 0) return undefined
+  const verdicts = lesson.phraseVerdicts ?? {}
+  const marked = ids.filter((id) => verdicts[id] !== undefined)
+  if (marked.length === 0) return undefined
+  const produced = marked.filter(
+    (id) => verdicts[id] === 'guided' || verdicts[id] === 'unaided',
+  ).length
+  const ratio = produced / ids.length
+  if (ratio >= 2 / 3) return 'correct'
+  if (ratio >= 1 / 3) return 'partial'
+  return 'needsWork'
 }
 
 export function applyCompletedLesson(
@@ -55,7 +92,12 @@ export function applyCompletedLesson(
   if (wasBeginner) {
     model = {
       ...model,
-      preA1Stage: nextStageFromLesson(model.preA1Stage, lesson.objectiveOutcome),
+      preA1Stage: nextStageFromLesson(
+        model.preA1Stage,
+        /* The tutor's own verdict wins where there is one; otherwise the
+           phrase evidence answers the same question from what was produced. */
+        lesson.objectiveOutcome ?? phraseLessonOutcome(lesson),
+      ),
     }
   }
 
@@ -143,6 +185,10 @@ export function applyCompletedLesson(
     .flatMap((p) => p.activities)
     .map((a) => a.ref)
     .filter((ref): ref is string => Boolean(ref))
+    /* Phrase blocks are chosen by evidence and review dates, not by recency —
+       letting them into the window would fill forty slots with `phrase:…` refs
+       and starve the warm-up and conversation banks the window exists for. */
+    .filter((ref) => !ref.startsWith('phrase:'))
   model = {
     ...model,
     recentContentIds: pushRecentContentIds(model.recentContentIds ?? [], usedContent),

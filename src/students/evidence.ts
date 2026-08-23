@@ -43,6 +43,12 @@ import {
 } from '../types'
 import { issueKeyFor } from './issueKey'
 import type { Explanation, ProgressSnapshot } from './progress'
+import { getPhrase } from '../curriculum/phrases'
+import {
+  outcomeFromVerdict,
+  phraseEvidence,
+  phraseKey,
+} from '../curriculum/phraseProgress'
 
 /* -------------------------------------------------------------------------- */
 /* The unified timeline                                                        */
@@ -115,6 +121,24 @@ export function buildAttempts(
         targetKey: vocabKey(term),
         label: term.trim(),
         outcome: outcomeOfRecall(verdict),
+      })
+    }
+
+    /* Every phrase the tutor marked. A phrase lesson produces eight to ten of
+       these where a grammar lesson produces one objective score, which is
+       exactly the point: the evidence is per-target, so "you can say this
+       one" and "this one still isn't there" are separate answers. */
+    for (const [id, verdict] of Object.entries(lesson.phraseVerdicts ?? {})) {
+      const phrase = getPhrase(id)
+      if (!phrase) continue
+      out.push({
+        at,
+        sessionId: lesson.id,
+        where: 'lesson',
+        targetKind: 'phrase',
+        targetKey: phraseKey(id),
+        label: phrase.chunk,
+        outcome: outcomeFromVerdict(verdict),
       })
     }
 
@@ -289,6 +313,11 @@ export interface LearnerEvidence {
   keepWorking: EvidenceStatement[]
   /** Words produced from memory, unaided, on three separate occasions. */
   knownWords: string[]
+  /** Curriculum phrases the learner has produced unaided on two separate
+   *  days, one of them after the day they were taught. The strongest claim
+   *  this app makes about anyone, and the only one that survives the question
+   *  "yes, but could they say it a week later?". */
+  knownPhrases: string[]
   /** Total occasions of practice done alone, with its denominator. */
   practice: { sessions: number; itemsAttempted: number; independent: number }
 }
@@ -410,6 +439,43 @@ export function learnerEvidence(
     })
   }
 
+  /* --- The phrase curriculum. --------------------------------------------
+     Its own module already answers "which of these can they say, and how do
+     we know?" under a stricter rule than anything else here (separate days,
+     and at least one retrieval after the day it was taught), so this reads
+     that answer rather than recomputing a weaker one. */
+  const phrases = phraseEvidence(input.lessons, input.model)
+  const knownPhrases = [...phrases.values()]
+    .filter((e) => e.state === 'secure')
+    .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+    .map((e) => getPhrase(e.id)?.chunk)
+    .filter((c): c is string => Boolean(c))
+  if (knownPhrases.length) {
+    wins.push({
+      id: 'knownPhrases',
+      tone: 'win',
+      key: 'studentHome.evidence.knownPhrases',
+      params: { phrases: knownPhrases.slice(0, 3).join(' · ') },
+    })
+  }
+
+  /* A phrase that has stopped coming back. Named, not counted: "you're
+     struggling with three phrases" is a grade, and “I don’t understand” is
+     a thing to go and practise. */
+  const shakyPhrases = [...phrases.values()]
+    .filter((e) => e.state === 'shaky')
+    .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+    .map((e) => getPhrase(e.id)?.chunk)
+    .filter((c): c is string => Boolean(c))
+  if (shakyPhrases.length && keepWorking.length < MAX_WORK) {
+    keepWorking.push({
+      id: 'shakyPhrases',
+      tone: 'work',
+      key: 'studentHome.evidence.phrasesToRevisit',
+      params: { phrases: shakyPhrases.slice(0, 3).join(' · ') },
+    })
+  }
+
   /* 7. Fallbacks, for the learner who has had one lesson and has not opened a
         practice set yet. Without them the screen tells a paying student
         "nothing to report" the day after their first lesson, which is both
@@ -451,6 +517,7 @@ export function learnerEvidence(
     wins: dedupe(wins).slice(0, MAX_WINS),
     keepWorking: dedupe(keepWorking).slice(0, MAX_WORK),
     knownWords,
+    knownPhrases,
     practice: {
       sessions: sessions.filter((s) => s.results.length > 0).length,
       itemsAttempted: results.length,

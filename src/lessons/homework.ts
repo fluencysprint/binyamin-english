@@ -29,6 +29,8 @@ import {
   StudentProfile,
 } from '../types'
 import { getPronunciationByArea } from '../data/pronunciationLibrary'
+import { getPhrase, isFrame } from '../curriculum/phrases'
+import { PhraseVerdict, lessonPhraseIds } from '../curriculum/phraseProgress'
 import { getGrammarById } from '../data/grammarLibrary'
 import { overallCefr } from '../utils/cefr'
 import { roundsForStudent } from './fluency'
@@ -79,6 +81,40 @@ function fluencyTopicOf(lesson: LessonRecord): string | undefined {
 }
 
 /**
+ * Today's phrase targets, ordered by how much a night's delay would be worth.
+ *
+ * `guided` first: they said it with the model in front of them, so retrieving
+ * it cold tomorrow is exactly the gap that turns support into memory. Then
+ * `unaided` — the delayed half of the mastery rule lives here, and it is the
+ * only way a phrase ever becomes secure. Then `recognised`.
+ *
+ * A phrase the learner could not produce at all is deliberately LAST, and
+ * only included when nothing else is: sending someone home to retrieve
+ * something they never once said is not homework, it is a reminder that they
+ * failed. It comes back in the next lesson's recall block instead, where a
+ * tutor can re-teach it.
+ */
+const VERDICT_PRIORITY: Record<PhraseVerdict, number> = {
+  guided: 0,
+  unaided: 1,
+  recognised: 2,
+  notYet: 3,
+}
+
+function phraseHomeworkIds(lesson: LessonRecord, cap: number): string[] {
+  const verdicts = lesson.phraseVerdicts ?? {}
+  const ids = lessonPhraseIds(lesson).filter((id) => getPhrase(id))
+  if (ids.length === 0) return []
+  const ranked = [...ids].sort(
+    (a, b) =>
+      VERDICT_PRIORITY[verdicts[a] ?? 'notYet'] - VERDICT_PRIORITY[verdicts[b] ?? 'notYet'] ||
+      (getPhrase(a)!.order - getPhrase(b)!.order),
+  )
+  const worthRetrieving = ranked.filter((id) => (verdicts[id] ?? 'notYet') !== 'notYet')
+  return (worthRetrieving.length ? worthRetrieving : ranked).slice(0, cap)
+}
+
+/**
  * Build 1–3 homework tasks from what the lesson actually produced.
  * Pure and deterministic — the same lesson always yields the same homework.
  */
@@ -95,6 +131,26 @@ export function generateHomework(
   const level = overallCefr(model.skillEstimates)
   const isBeginner = level === 'preA1'
   const candidates: HomeworkTask[] = []
+
+  /* 0. Today's phrases, retrieved from meaning.
+        This leads the set for a phrase lesson and is the whole reason the
+        curriculum exists: the homework asks for exactly what the lesson
+        taught, a day later, with the English off the screen. Nothing new is
+        introduced here — a beginner who is handed a second lesson's worth of
+        material at home does neither. */
+  const phraseIds = phraseHomeworkIds(lesson, student.age <= 8 ? 4 : 6)
+  if (phraseIds.length) {
+    candidates.push({ kind: 'sayPhrases', ids: phraseIds })
+
+    /* And one frame to actually USE. A frame the learner can only recite is
+       a sentence; a frame they can fill with their own words is language. */
+    const frame = phraseIds
+      .map(getPhrase)
+      .find((p) => p && isFrame(p) && p.slots.length >= 2)
+    if (frame) {
+      candidates.push({ kind: 'usePhraseFrame', id: frame.id, slots: frame.slots.slice(0, 4) })
+    }
+  }
 
   /* 1. Their own sentences, said the better way. The single highest-value
         thing a learner can do alone: it is their language, their error, and
@@ -157,8 +213,13 @@ export function generateHomework(
   }
 
   /* 6. Come back with something ready to say. Always available, so this is
-        also the fallback when a lesson produced nothing else to work on. */
-  const prompt = speakingPrompt(lesson)
+        also the fallback when a lesson produced nothing else to work on.
+        NOT offered after a phrase lesson: its speaking blocks carry an
+        instruction ("Now we talk. Use today's phrases."), not a question, so
+        handing it back as homework asks the learner to prepare an answer to
+        something that was never asked — and the phrase tasks above are already
+        the retrieval this lesson is supposed to send home. */
+  const prompt = phraseIds.length ? undefined : speakingPrompt(lesson)
   if (prompt) candidates.push({ kind: 'prepareAnswer', question: prompt })
 
   const chosen = candidates.slice(0, cap)

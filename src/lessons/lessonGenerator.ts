@@ -18,6 +18,7 @@ import {
   LessonObjective,
   LessonPhase,
   LessonPlan,
+  LessonRecord,
   PreA1Stage,
   StudentProfile,
 } from '../types'
@@ -47,6 +48,9 @@ import {
   movementActivity,
   selectBeginnerActivities,
 } from './beginnerContent'
+import { phraseEvidence, selectLessonPhrases } from '../curriculum/phraseProgress'
+import { buildPhraseLesson } from '../curriculum/phraseLesson'
+import { PHRASE_UNITS } from '../curriculum/phrases'
 import { pickVaried } from './selection'
 
 export function ageToBand(age: number): AgeBand {
@@ -906,15 +910,62 @@ function beginnerPhases(
 function buildBeginnerLesson(
   student: StudentProfile,
   model: LearningModel,
-  opts: { label: string; seed: number; source: LessonPlan['source'] },
+  opts: {
+    label: string
+    seed: number
+    source: LessonPlan['source']
+    lessons?: LessonRecord[]
+    now?: number
+  },
 ): LessonPlan {
   const stage = model.preA1Stage ?? 'P1'
+  const now = opts.now ?? Date.now()
+
+  /* The phrase curriculum is the beginner pathway. It is tried first and
+     falls back to the themed activity bank only when there is genuinely
+     nothing left to teach or review — a learner who has met all one hundred
+     targets is out of Pre-A1 and the estimates will say so shortly. */
+  const evidence = phraseEvidence(opts.lessons ?? [], model)
+  const selection = selectLessonPhrases({
+    evidence,
+    stage,
+    ageBand: student.ageBand,
+    now,
+  })
+
+  if (selection.fresh.length + selection.review.length >= 2) {
+    const shape = buildPhraseLesson({
+      selection,
+      ageBand: student.ageBand,
+      stage,
+      seed: opts.seed,
+    })
+    const unit = PHRASE_UNITS.find((u) => u.unit === selection.unit) ?? PHRASE_UNITS[0]
+    return {
+      id: uid('lesson'),
+      studentId: student.id,
+      createdAt: now,
+      label: opts.label,
+      objective: {
+        ref: `phrase:u${unit.unit}`,
+        title: unit.title,
+        titleKey: `guide.unit.${unit.unit}.title`,
+        rationale: `Usable spoken English for one job: ${unit.title.toLowerCase()}.`,
+        rationaleKey: `guide.unit.${unit.unit}.can`,
+      },
+      phases: shape.phases,
+      totalMinutes: shape.totalMinutes,
+      newPhraseIds: shape.newPhraseIds,
+      source: opts.source,
+    }
+  }
+
   const { phases, totalMinutes } = beginnerPhases(student, stage, opts.seed, model.recentContentIds)
   const obj = STAGE_OBJECTIVE[stage]
   return {
     id: uid('lesson'),
     studentId: student.id,
-    createdAt: Date.now(),
+    createdAt: now,
     label: opts.label,
     objective: {
       ref: `beginner:${stage}`,
@@ -940,6 +991,12 @@ export interface GenerateOptions {
   /** Injectable RNG for content selection — defaults to Math.random. Tests
    *  can pass a fixed function for reproducibility; production never does. */
   rng?: () => number
+  /** This learner's completed lessons. The beginner pathway needs them to
+   *  know which phrases are due and which have already been produced unaided;
+   *  every other pathway ignores them. */
+  lessons?: LessonRecord[]
+  /** Injectable clock, so a test can place a review a week later. */
+  now?: number
 }
 
 export function generateLesson(
@@ -957,6 +1014,8 @@ export function generateLesson(
       label: opts.label,
       seed,
       source: opts.source ?? 'generated',
+      lessons: opts.lessons,
+      now: opts.now,
     })
   }
 
@@ -1000,6 +1059,7 @@ export function generateFirstLesson(
   student: StudentProfile,
   model: LearningModel,
   rng: () => number = Math.random,
+  now?: number,
 ): LessonPlan {
   const level = overallCefr(model.skillEstimates)
   const seed0 = student.name.length + student.age
@@ -1011,6 +1071,7 @@ export function generateFirstLesson(
       label: 'First lesson',
       seed: seed0,
       source: 'firstLesson',
+      now,
     })
   }
 

@@ -35,6 +35,8 @@ import {
   startSession,
 } from './practiceService'
 import { initLearningModel } from '../students/learningModel'
+import { ct } from '../i18n/contentText'
+import { useTeachingStrings } from '../i18n/teachingStrings'
 import styles from './PracticePage.module.css'
 
 type Phase = 'loading' | 'attempt' | 'reveal' | 'done' | 'empty'
@@ -262,10 +264,18 @@ function PracticeCard({
   onWrite: (v: string) => void
   dir: 'ltr' | 'rtl'
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const say = useSpeak()
   const canListen = useSpeechAvailable()
   const [seconds, setSeconds] = useState<number | null>(null)
+  /* The phrase meanings this screen cues from ship in the on-demand teaching
+     chunk, not the initial bundle. Asking for them here is what makes a
+     Russian learner's cue Russian rather than the English fallback. */
+  useTeachingStrings(lang)
+
+  const cueText = item.cueTextKey
+    ? ct(lang, item.cueTextKey, item.cueText ?? '')
+    : item.cueText
 
   const params = useMemo(() => {
     const resolved: Record<string, string | number> = { ...item.instructionParams }
@@ -291,10 +301,14 @@ function PracticeCard({
         <BidiText text={t(item.instructionKey, params)} />
       </p>
 
-      {/* Their own language cue — a meaning, in the language they think in. */}
-      {item.cueText && (
+      {/* Their own language cue — a meaning, in the language they think in.
+          A phrase's meaning lives in the content bank rather than the UI
+          dictionary, so it resolves through `ct` with the English kept on the
+          item as the fallback: the cue is never blank, even if the language
+          chunk has not landed. */}
+      {cueText && (
         <p className={styles.cueText} dir="auto">
-          <BidiText text={item.cueText} />
+          <BidiText text={cueText} />
         </p>
       )}
 

@@ -28,6 +28,7 @@ import {
   PRONUNCIATION_AREAS,
   UILanguage,
   VocabRecallOutcome,
+  PhraseVerdictValue,
 } from '../types'
 import {
   loadStudentBundle,
@@ -42,8 +43,12 @@ import {
   buildRetrievalStep,
   isConversationStep,
   MicroStep,
+  phraseBlockOf,
+  phrasePhrases,
   retrievalMaterial,
 } from '../lessons/microSteps'
+import { lessonPhraseIds } from '../curriculum/phraseProgress'
+import { getPhrase, PhraseTarget } from '../curriculum/phrases'
 import { activityGuidance, objectiveTitle } from '../lessons/guidance'
 import { loadTeachingStrings, teachingStringsStatus, useTeachingStrings } from '../i18n/teachingStrings'
 import { pacingAdvice, pacingFor } from '../lessons/pacing'
@@ -54,6 +59,7 @@ import { uid } from '../utils/id'
 import { Bdi } from '../components/Bdi'
 import { ArrowLeftIcon, FamilyIcon, PauseIcon, PlayIcon, TimerIcon } from '../components/icons'
 import { StepActionBar } from './StepActionBar'
+import { PhraseVerdictPanel } from './PhraseVerdictPanel'
 import styles from './LessonRunnerPage.module.css'
 
 /* The correction a tutor is most likely to be capturing, given where they are
@@ -129,6 +135,10 @@ export function LessonRunnerPage() {
    *  refresh with everything else. */
   const [vocabReview, setVocabReview] = useState<Record<string, VocabRecallOutcome>>({})
   const [notes, setNotes] = useState('')
+  /** Per-phrase verdicts for a beginner lesson. Written the moment a chip is
+   *  tapped, like every other capture here — a tutor who closes the tab
+   *  mid-lesson keeps what they already saw. */
+  const [phraseVerdicts, setPhraseVerdicts] = useState<Record<string, PhraseVerdictValue>>({})
   const [objectiveOutcome, setObjectiveOutcome] = useState<ScoreOutcome | undefined>()
   const [modal, setModal] = useState<null | 'correction' | 'record' | 'notes' | 'vocab' | 'finish'>(null)
   const [showOrientation, setShowOrientation] = useState(!getHideLessonOrientation())
@@ -159,6 +169,7 @@ export function LessonRunnerPage() {
       setVocab(rec.vocabularyAdded)
       setVocabMeanings(rec.vocabularyMeanings ?? {})
       setVocabReview(rec.vocabularyReview ?? {})
+      setPhraseVerdicts(rec.phraseVerdicts ?? {})
       setNotes(rec.tutorNotes ?? '')
       setObjectiveOutcome(rec.objectiveOutcome)
       // Only the tutor needs to know the session was recovered; on the
@@ -198,21 +209,65 @@ export function LessonRunnerPage() {
     [corrections],
   )
 
+  /**
+   * Everything the runner captures, in a ref that is always current.
+   *
+   * `persist` used to close over these as ordinary values, which made it a new
+   * function on every capture — and the autosave effect below depends on it,
+   * so React tore the old effect down and ran its cleanup, `persist({})`,
+   * through the PREVIOUS closure. That write rebuilt the record from the state
+   * as it stood a moment before the capture and put it straight back to disk.
+   *
+   * Nothing on screen showed it: every field here is React state of its own,
+   * and `finish()` builds the final record from that state, so a lesson taught
+   * end to end came out right. What was silently lost was the one thing the
+   * saving exists for — a word captured, a phrase marked or a note written was
+   * gone the moment the tutor refreshed the tab.
+   *
+   * A ref fixes it at the root: `persist` no longer depends on any of it, so
+   * it is created once, the autosave effect is never torn down, and there is
+   * no earlier closure left to overwrite anything.
+   */
+  const captureRef = useRef({
+    phaseIndex,
+    stepIndex,
+    responses,
+    vocab,
+    vocabMeanings,
+    vocabReview,
+    phraseVerdicts,
+    notes,
+    objectiveOutcome,
+  })
+  captureRef.current = {
+    phaseIndex,
+    stepIndex,
+    responses,
+    vocab,
+    vocabMeanings,
+    vocabReview,
+    phraseVerdicts,
+    notes,
+    objectiveOutcome,
+  }
+
   const persist = useCallback(
     (patch: Partial<LessonRecord>) => {
       setLesson((cur) => {
         if (!cur) return cur
+        const c = captureRef.current
         const next: LessonRecord = {
           ...cur,
-          currentPhaseIndex: phaseIndex,
-          currentStepIndex: stepIndex,
+          currentPhaseIndex: c.phaseIndex,
+          currentStepIndex: c.stepIndex,
           elapsedSeconds: elapsedRef.current,
-          responses,
-          vocabularyAdded: vocab,
-          vocabularyMeanings: vocabMeanings,
-          vocabularyReview: vocabReview,
-          tutorNotes: notes,
-          objectiveOutcome,
+          responses: c.responses,
+          vocabularyAdded: c.vocab,
+          vocabularyMeanings: c.vocabMeanings,
+          vocabularyReview: c.vocabReview,
+          phraseVerdicts: c.phraseVerdicts,
+          tutorNotes: c.notes,
+          objectiveOutcome: c.objectiveOutcome,
           status: 'inProgress',
           ...patch,
         }
@@ -223,7 +278,7 @@ export function LessonRunnerPage() {
         return next
       })
     },
-    [phaseIndex, stepIndex, responses, vocab, vocabMeanings, vocabReview, notes, objectiveOutcome, t, toast],
+    [t, toast],
   )
 
   // Autosave every 5s and on unmount.
@@ -233,7 +288,6 @@ export function LessonRunnerPage() {
       window.clearInterval(iv)
       persist({})
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persist])
 
   /* Micro-steps for the current phase.
@@ -315,6 +369,26 @@ export function LessonRunnerPage() {
   const pacingProfile = pacingFor(student.age)
   const stepElapsed = Math.max(0, elapsed - stepStartedAt)
 
+  /* Which phrases the tutor should be marking RIGHT NOW.
+     Not every phrase step: on `meaning` and `model` the learner has been asked
+     for nothing, so a verdict there would be a guess, and a screen that asks
+     for one teaches the tutor that guessing is expected. The closing block is
+     the exception in the other direction — it carries every phrase the lesson
+     touched, so anything missed in the moment can still be recorded honestly
+     while the tutor can still remember it. */
+  const stepPhrases: PhraseTarget[] = (() => {
+    if (!stepActivity || !step) return []
+    const block = phraseBlockOf(stepActivity)
+    if (!block) return []
+    if (block === 'close') {
+      return lessonPhraseIds(lesson)
+        .map(getPhrase)
+        .filter((p): p is PhraseTarget => Boolean(p))
+    }
+    if (step.move === 'meaning' || step.move === 'model') return []
+    return phrasePhrases(stepActivity)
+  })()
+
   /* How many steps are left in the WHOLE lesson, not just this phase — the
      pacing advice needs to know whether there is room to linger. Phases other
      than the current one are approximated by their activity count, which is
@@ -395,6 +469,7 @@ export function LessonRunnerPage() {
       vocabularyAdded: vocab,
       vocabularyMeanings: vocabMeanings,
       vocabularyReview: vocabReview,
+      phraseVerdicts,
       tutorNotes: notes,
       // Leave unset rather than defaulting to 'partial' when the tutor never
       // scored it — the report should say "not assessed", not fake progress.
@@ -603,6 +678,23 @@ export function LessonRunnerPage() {
                 </details>
               )}
             </>
+          )}
+
+          {/* Per-phrase evidence, at the moment production was asked for.
+              This is the beginner pathway's equivalent of the objective score
+              below — except there are eight to ten of them, which is the
+              difference between "we did greetings" and knowing which four
+              greetings this learner can produce without help. */}
+          {stepPhrases.length > 0 && access.scoring && teachingStatus !== 'loading' && (
+            <PhraseVerdictPanel
+              phrases={stepPhrases}
+              verdicts={phraseVerdicts}
+              onSet={(phraseId, verdict) => {
+                const next = { ...phraseVerdicts, [phraseId]: verdict }
+                setPhraseVerdicts(next)
+                persist({ phraseVerdicts: next })
+              }}
+            />
           )}
 
           {/* On the last phase, capture the objective outcome. No "Finish"

@@ -32,6 +32,14 @@ const guide: Dict = {
     vocabPronConsolidation: 'Vocabulary & pronunciation consolidation',
     successRecap: 'Success recap',
     recapOneWin: 'Recap & one win',
+    phrase: {
+      recall: 'Come back to it',
+      meet: 'New: {{phrases}}',
+      use: 'Swap the words: {{phrases}}',
+      exchange: 'Put it together',
+      realUse: 'Real use',
+      close: 'What you can say now',
+    },
   },
 
   /* ---- Why this lesson teaches what it teaches ------------------------ */
@@ -76,6 +84,50 @@ const guide: Dict = {
   },
 
   /* ---- Defaults for anything a content bank leaves out ----------------- */
+  /* The ten phrase-curriculum units, and what each one buys the learner. */
+  unit: {
+    1: {
+      title: 'Meeting people',
+      can: 'By the end: they can greet someone, say thank you and say goodbye without help.',
+    },
+    2: {
+      title: 'When you don’t understand',
+      can: 'By the end: they can stop a conversation and ask for help instead of nodding through it.',
+    },
+    3: {
+      title: 'Introducing yourself',
+      can: 'By the end: they can give their name, where they are from, and ask the same back.',
+    },
+    4: {
+      title: 'Talking about yourself',
+      can: 'By the end: they can say what they like, what they have and what they do.',
+    },
+    5: {
+      title: 'Asking for what you need',
+      can: 'By the end: they can ask for something politely, and turn something down politely.',
+    },
+    6: {
+      title: 'Asking questions',
+      can: 'By the end: they can ask what, where, who, how much and what time.',
+    },
+    7: {
+      title: 'Everyday actions',
+      can: 'By the end: they can say what they are doing, what they can do and what they cannot.',
+    },
+    8: {
+      title: 'Keeping a conversation going',
+      can: 'By the end: they can react, agree, disagree and hand the question back.',
+    },
+    9: {
+      title: 'Out in the world',
+      can: 'By the end: they can buy something, ask the way and say something is wrong.',
+    },
+    10: {
+      title: 'Making plans',
+      can: 'By the end: they can suggest a time, accept a plan and turn one down kindly.',
+    },
+  },
+
   defaults: {
     help: 'Model it once yourself, then hand it straight back to them.',
     challenge: 'Ask for one more, about something personal to them.',
@@ -226,6 +278,37 @@ const guide: Dict = {
       ifSucceed: 'Ask them to teach one word back to you.',
       howToExplain: 'Keep it warm, short, and specific.',
       avoid: ['Vague praise — name the actual win.'],
+    },
+    phrase: {
+      avoid: [
+        'Explaining grammar. The phrase is one piece until the learner is well past this stage.',
+        'Correcting during the real-use minute — it is the one part of the lesson where fluency outranks accuracy.',
+        'Marking “said it alone” for something you said first. That one habit would make every claim on the learner’s screen untrue.',
+      ],
+      recall: {
+        goal: 'Find out what survived the week, before you add anything to it.',
+        howToExplain: '“Let’s see what you still have. I will give you the meaning; you give me the English.”',
+      },
+      meet: {
+        goal: 'First contact: they understand the phrase and hear it said properly.',
+        howToExplain: 'Show the moment it is used in. The phrase is one piece — never explain its parts.',
+      },
+      use: {
+        goal: 'Turn a sentence into a frame they can fill with their own words.',
+        howToExplain: '“The start stays the same. Only the end changes.” Show it, do not name it.',
+      },
+      exchange: {
+        goal: 'Make today’s phrases work as a conversation, not as a list.',
+        howToExplain: '“I say this, you say that.” Then swap, so they hold both halves.',
+      },
+      realUse: {
+        goal: 'See which phrases they reach for when nobody tells them to.',
+        howToExplain: 'Explain nothing here. Ask a real question and let the silence do the teaching.',
+      },
+      close: {
+        goal: 'Leave them with one true thing they can now say, and record what you saw.',
+        howToExplain: '“Last week you had none of this. Today you said these.” Say the phrases back to them.',
+      },
     },
   },
 
@@ -713,6 +796,226 @@ const guide: Dict = {
       challenge: ['Ask for two items in the same sentence.'],
       doneWhen: 'Each item has been recalled or re-taught once.',
       next: 'Move into the main focus of the lesson.',
+    },
+    phrase: {
+      recall: {
+        retrieval: {
+          now: 'Ask for the phrases they already met — before you teach anything new.',
+          do: [
+            'Give the meaning in their language, or point at the card on their screen.',
+            'Then wait. Count to five in your head before you help.',
+            'Only after they try, say the English.',
+          ],
+          studentDoes: [
+            'Tries to produce each phrase from the meaning alone.',
+          ],
+          lookFor: [
+            'Which ones arrive on their own, and which need you to start them.',
+            'A slow right answer is still shaky — note it as such.',
+          ],
+          help: [
+            'Say the first word only, then stop.',
+            'If it still does not come, say the whole phrase and have them repeat it — that is “said it with help”.',
+          ],
+          challenge: [
+            'Ask them to use one of them in a sentence about today.',
+          ],
+          doneWhen: 'Every phrase on the card has been asked for once.',
+          next: 'Mark what you saw, then start the new set.',
+        },
+      },
+      meet: {
+        meaning: {
+          now: 'Make the meaning obvious before you say the English.',
+          do: [
+            'Build the situation first — a gesture, an object, a moment they recognise.',
+            'Say the phrase inside that situation, not as a word to learn.',
+            'Do not translate unless they are lost, and do not explain grammar at all.',
+          ],
+          studentDoes: [
+            'Watches you. Nothing to produce yet.',
+          ],
+          lookFor: [
+            'A nod, a smile, an answer in their own language — any sign the meaning landed.',
+          ],
+          help: [
+            'Make it more concrete: a real object, a drawing, act it out bigger.',
+            'One word in their language is fine. Then go straight back to the English.',
+          ],
+          challenge: [
+            'Ask where they would use it — a shop, a phone call, at work.',
+          ],
+          doneWhen: 'They show they understand what it is for, in any language.',
+          next: 'Say it twice, and let them just listen.',
+        },
+        model: {
+          now: 'Say it. Do not explain it.',
+          do: [
+            'Say each phrase twice: once at normal speed, once slowly.',
+            'If it has an answer, say both halves so they hear the whole exchange.',
+            'Do not ask them to repeat yet.',
+          ],
+          studentDoes: [
+            'Listens. Repeats only if it comes out by itself.',
+          ],
+          lookFor: [
+            'Are they listening, or already trying to say it? Either is fine.',
+          ],
+          help: [
+            'Drop to one phrase and say it four times.',
+          ],
+          challenge: [
+            'Say it once at real conversational speed and ask if they still caught it.',
+          ],
+          doneWhen: 'They have heard each phrase at least twice.',
+          next: 'Hand it over — now they say it.',
+        },
+        guided: {
+          now: 'Their turn. The whole phrase, not word by word.',
+          do: [
+            'Say it, then open your hand toward them and wait.',
+            'Keep the phrase as one piece. Do not break it into words.',
+            'Three tries each is plenty — more turns it into a drill.',
+          ],
+          studentDoes: [
+            'Says each phrase out loud, copying the rhythm.',
+          ],
+          lookFor: [
+            'Is it one flowing piece, or separate words?',
+            'Can you understand it? That is the bar here, not perfection.',
+          ],
+          help: [
+            'Say the last two words, then the whole thing. Let them join in with you.',
+          ],
+          challenge: [
+            'Say it back to them faster and see if they can match it.',
+          ],
+          doneWhen: 'Each phrase has come out of their mouth at least once.',
+          next: 'Now change the words inside it.',
+        },
+      },
+      use: {
+        guided: {
+          now: 'Same phrase, different words in the gap.',
+          do: [
+            'Say one version, then offer a new word and let them build the next.',
+            'Keep the frame identical. Only the gap changes.',
+            'Use words about THEIR life — their job, their family, their street.',
+          ],
+          studentDoes: [
+            'Makes new sentences from the same frame.',
+          ],
+          lookFor: [
+            'Do they keep the frame steady while the word changes?',
+            'That is the whole point: they are learning a machine, not a sentence.',
+          ],
+          help: [
+            'Go back to one fixed version and repeat it twice before swapping again.',
+          ],
+          challenge: [
+            'Ask for a word you did not offer — something from their own life.',
+          ],
+          doneWhen: 'They have made at least three different sentences from one frame.',
+          next: 'Now ask for it cold, with nothing on the screen.',
+        },
+        retrieval: {
+          now: 'Ask for it with nothing shown. This is the part that counts.',
+          do: [
+            'Give the meaning only — in their language, or by acting it out.',
+            'Say nothing in English first. If you say it, they are copying, not remembering.',
+            'Wait. The silence is the work.',
+          ],
+          studentDoes: [
+            'Produces the phrase from meaning alone.',
+          ],
+          lookFor: [
+            'Did it come without you starting it? That is the only thing that counts as “said it alone”.',
+          ],
+          help: [
+            'Give the first sound, not the first word.',
+            'If it still does not come, say it and have them repeat — that is “said it with help”, and it is honest.',
+          ],
+          challenge: [
+            'Ask for it inside a question instead of on its own.',
+          ],
+          doneWhen: 'Every phrase in this set has been asked for once, cold.',
+          next: 'Mark each one, then keep going.',
+        },
+      },
+      exchange: {
+        guided: {
+          now: 'Two lines, back and forth. You start.',
+          do: [
+            'You say the first line, they answer. Then swap roles.',
+            'Run it three or four times so the answer stops needing thought.',
+            'Keep your own line exactly the same each time.',
+          ],
+          studentDoes: [
+            'Takes both sides of a short exchange.',
+          ],
+          lookFor: [
+            'Does the answer come without a pause?',
+            'Are they still with you when you swap roles?',
+          ],
+          help: [
+            'Take the harder side yourself and let them keep the easy one.',
+          ],
+          challenge: [
+            'Change one word in your line without warning and see if they adjust.',
+          ],
+          doneWhen: 'They can take either side of the exchange without help.',
+          next: 'Drop the script and just talk.',
+        },
+      },
+      realUse: {
+        realUse: {
+          now: 'Just talk. Nothing scripted, nothing on the screen.',
+          do: [
+            'Ask a real question and mean it.',
+            'Let them reach. If they get stuck, wait longer than feels comfortable.',
+            'Correct nothing here unless you genuinely did not understand.',
+          ],
+          studentDoes: [
+            'Talks with you, reaching for whatever English they have.',
+          ],
+          lookFor: [
+            'Which phrases they reach for on their own — the strongest evidence in the lesson.',
+            'Where the conversation dies. That is the next lesson.',
+          ],
+          help: [
+            'Ask something easier and closer to them, then come back.',
+          ],
+          challenge: [
+            'Give a short answer of your own and wait for them to ask you something.',
+          ],
+          doneWhen: 'They have used at least one of today’s phrases without being asked to.',
+          next: 'Close the lesson and mark what you saw.',
+        },
+      },
+      close: {
+        recap: {
+          now: 'Say back what they managed today, then mark it honestly.',
+          do: [
+            'Read out the phrases they used and let them say a favourite once more.',
+            'Name one specific thing that got better. Not “good job”.',
+            'Then go down the list and mark what you actually saw.',
+          ],
+          studentDoes: [
+            'Hears what they achieved, and says one phrase one last time.',
+          ],
+          lookFor: [
+            'Which ones they still light up at, and which they have gone quiet about.',
+          ],
+          help: [
+            'If the list feels long, name the three that went best and stop there.',
+          ],
+          challenge: [
+            'Ask which one they will use before the next lesson, and where.',
+          ],
+          doneWhen: 'Every phrase has a mark, and the learner has heard one real thing they did well.',
+          next: 'Finish the lesson — the homework builds itself from these marks.',
+        },
+      },
     },
   },
 }

@@ -180,7 +180,10 @@ export function StudentHomePage() {
       )}
 
       {/* ---- PROGRESS ------------------------------------------------- */}
-      {(evidence.practice.itemsAttempted > 0 || evidence.knownWords.length > 0 || completed.length > 0) && (
+      {(evidence.practice.itemsAttempted > 0 ||
+        evidence.knownWords.length > 0 ||
+        evidence.knownPhrases.length > 0 ||
+        completed.length > 0) && (
         <section className={styles.block} aria-labelledby="progress-heading">
           <h2 id="progress-heading" className={styles.sectionLabel}>
             {t('studentHome.progress')}
@@ -208,12 +211,35 @@ export function StudentHomePage() {
                 {t('studentHome.wordsFromMemory', { count: evidence.knownWords.length })}
               </li>
             )}
+            {/* The strongest true statement this screen can make. It is a
+                count of phrases produced from memory on two different days,
+                one of them after the day they were taught — not a count of
+                phrases that have been shown. */}
+            {evidence.knownPhrases.length > 0 && (
+              <li className={styles.line}>
+                {t('studentHome.phrasesYouCanSay', { count: evidence.knownPhrases.length })}
+              </li>
+            )}
           </ul>
 
           {/* Everything else is one tap away and nothing above depends on it. */}
-          {(model.vocabulary.length > 0 || completed.length > 0) && (
+          {(model.vocabulary.length > 0 ||
+            evidence.knownPhrases.length > 0 ||
+            completed.length > 0) && (
             <details className={styles.more}>
               <summary>{t('studentHome.seeMore')}</summary>
+              {evidence.knownPhrases.length > 0 && (
+                <>
+                  <h3 className={styles.subLabel}>{t('studentHome.yourPhrases')}</h3>
+                  <div className="cluster">
+                    {evidence.knownPhrases.slice(0, 20).map((phrase) => (
+                      <span key={phrase} className="chip is-selected" dir="ltr" lang="en">
+                        <Bdi>{phrase}</Bdi>
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
               {model.vocabulary.length > 0 && (
                 <>
                   <h3 className={styles.subLabel}>{t('studentHome.yourWords')}</h3>

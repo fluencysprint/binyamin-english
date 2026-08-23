@@ -738,6 +738,10 @@ const es: Dict = {
     openPractice: 'Abrir la ronda de práctica',
     focus: 'Foco de hoy',
     none: 'No queda nada pendiente.',
+    phrases: 'Frases',
+    phrasesCanSay: 'Estas las dice sin ayuda: empieza por una de ellas.',
+    phrasesShaky: 'Estas han dejado de salir.',
+    phrasesDue: '{{count}} tocan repaso al empezar la clase de hoy.',
   },
   report: {
     title: 'Informe de la clase',
@@ -789,6 +793,8 @@ const es: Dict = {
       writeSentences: 'Escribe {{count}} frases usando {{target}}.',
       noticeLanguage: 'Esta semana fíjate en {{target}} y busca tres ejemplos reales.',
       prepareAnswer: 'Ven a la próxima clase con una respuesta preparada: {{question}}',
+      sayPhrases: 'Di esto en voz alta de memoria, una vez al día: {{phrases}}',
+      usePhraseFrame: 'Forma tres frases tuyas con {{frame}} (prueba con: {{words}}).',
     },
   },
   sampleReport: {
@@ -898,6 +904,18 @@ const es: Dict = {
     howToSay: 'Cómo se hace este sonido',
   },
 
+  /* ---- Marking phrase evidence in a lesson ---------------------------- */
+  phrase: {
+    verdictTitle: '¿Qué has visto realmente?',
+    verdictRule: '«Lo dijo solo» significa que no había nada en la pantalla y que tú no lo dijiste antes. Lo demás también es avance real: marca lo que pasó, no lo que esperabas.',
+    verdict: {
+      notYet: 'Todavía no',
+      recognised: 'Lo entendió',
+      guided: 'Lo dijo con ayuda',
+      unaided: 'Lo dijo solo',
+    },
+  },
+
   student: {
     watchAndListen: 'Mira y escucha.',
     listenToTutor: 'Escucha. Todavía no hace falta hablar.',
@@ -923,6 +941,16 @@ const es: Dict = {
     fluencySprint: 'Habla {{seconds}} segundos. No pares.',
     fluencyAgain: 'Lo mismo otra vez, ahora en {{seconds}} segundos.',
     fluencyRecap: 'Escucha: esto es lo que ha mejorado.',
+    phraseRecall: 'Di esto en inglés. Inténtalo primero y luego mira.',
+    phraseMeaning: 'Mira. ¿Qué significa esto?',
+    phraseListen: 'Escucha. Todavía no hace falta decirlo.',
+    phraseListenTo: 'Escucha: «{{chunk}}». Todavía no hace falta decirlo.',
+    phraseRepeat: 'Ahora tú. Dilo en voz alta.',
+    phraseSwap: 'Dilo otra vez, cambiando la última parte.',
+    phraseFromMeaning: 'Dilo en inglés. Esta vez no hay nada en la pantalla.',
+    phraseExchange: 'Ahora hablamos. Usa las frases de hoy.',
+    phraseRealUse: 'Habla conmigo sin más. Usa el inglés que ya tienes.',
+    phraseClose: 'Este es el inglés que has usado hoy.',
   },
   /* ---- Las pantallas del propio alumno --------------------------------- */
   studentHome: {
@@ -957,7 +985,11 @@ const es: Dict = {
       notComingBack: '«{{phrase}}» ya no vuelve a aparecer.',
       stillWorkingOn: 'Todavía vale la pena trabajar «{{phrase}}».',
       wordsToRevisit: '{{count}} palabras para volver a mirar: {{words}}.',
+      knownPhrases: 'Dijiste estas por tu cuenta, en dos días distintos: {{phrases}}.',
+      phrasesToRevisit: 'Estas han dejado de salir — merecen diez minutos: {{phrases}}.',
     },
+    phrasesYouCanSay: '{{count}} frases que dices sin ayuda.',
+    yourPhrases: 'Frases que ya dices',
   },
 
   practice: {
@@ -987,6 +1019,8 @@ const es: Dict = {
       write: 'Escribe {{count}} frases con {{target}}.',
       notice: 'Busca {{target}} en algo real esta semana: un vídeo, una canción, un mensaje.',
       prepare: 'Prepara una respuesta. Te la van a pedir en la próxima clase.',
+      sayPhrase: 'Di esto en inglés. Inténtalo antes de mirar.',
+      usePhraseFrame: 'Forma {{count}} frases con {{frame}} en voz alta, cambiando las palabras cada vez.',
     },
   },
 

@@ -41,6 +41,9 @@ import { issueKeyFor } from '../students/issueKey'
 import { recurringFixes } from '../lessons/microSteps'
 import { getPronunciationByArea } from '../data/pronunciationLibrary'
 import { vocabKey } from '../students/evidence'
+import { getPhrase } from '../curriculum/phrases'
+import { phraseEvidence, phraseKey, phrasesDue } from '../curriculum/phraseProgress'
+import { phraseTextKey } from '../data/contentStrings'
 
 /**
  * How the learner tells the app what happened.
@@ -76,6 +79,10 @@ export interface PracticeItem {
   cue?: string
   /** A cue in the learner's own language (a word's meaning). */
   cueText?: string
+  /** A content key for `cueText`, so a phrase's meaning is read in the
+   *  learner's language rather than the English kept here as a fallback.
+   *  Resolved by the renderer, which keeps this module free of a dictionary. */
+  cueTextKey?: string
   /** Held back until the learner has attempted it. */
   answer?: string
   /** Extra English revealed alongside the answer — a sound's practice words. */
@@ -252,6 +259,56 @@ function itemsForTask(
         },
       ]
 
+    /* The phrase, asked for from its MEANING, with the English held back.
+       This is the item type the whole curriculum turns on: it is the only
+       place outside a lesson where a learner can produce a target with
+       nothing on the screen, which is the only evidence that counts as
+       knowing it. `answer` is revealed after the attempt, never with it. */
+    case 'sayPhrases':
+      return task.ids
+        .map((id) => getPhrase(id))
+        .filter((p): p is NonNullable<typeof p> => Boolean(p))
+        .map((p, i) => ({
+          id: `${at(i)}-${slug(p.id)}`,
+          targetKind: 'phrase' as const,
+          targetKey: phraseKey(p.id),
+          label: p.chunk,
+          check: 'recall' as const,
+          instructionKey: 'practice.item.sayPhrase',
+          cueText: p.meaning,
+          cueTextKey: phraseTextKey(p.id, 'meaning'),
+          /* A frame's answer is a whole utterance, not the frame. "Good ___."
+             is how the curriculum stores the target; it is not something a
+             learner can say, and showing it as the answer to "say this in
+             English" teaches them to read a gap out loud. */
+          answer: p.say,
+          answerWords: p.examples.slice(0, 3),
+          estimatedSeconds: 35,
+        }))
+
+    case 'usePhraseFrame': {
+      const p = getPhrase(task.id)
+      if (!p) return []
+      return [
+        {
+          id: `${at(0)}-frame-${slug(p.id)}`,
+          targetKind: 'phrase' as const,
+          targetKey: phraseKey(p.id),
+          label: p.chunk,
+          /* Three sentences of their own have no single right answer, so this
+             records only that it was done. Claiming recall evidence from it
+             would be inventing the one thing the set is careful about. */
+          check: 'doIt' as const,
+          instructionKey: 'practice.item.usePhraseFrame',
+          instructionParams: { count: 3, frame: p.chunk },
+          cue: task.slots.join(' · '),
+          answerWords: p.examples.slice(0, 3),
+          writing: canType(student) && p.slots.length > 0,
+          estimatedSeconds: 90,
+        },
+      ]
+    }
+
     case 'prepareAnswer':
       return [
         {
@@ -306,11 +363,34 @@ const REVIEW_CAP = 6
 export function buildReviewSet(
   model: LearningModel,
   now = Date.now(),
+  /** Completed lessons, for the phrase curriculum's own review schedule.
+   *  Optional: callers holding only a model still get words and slips. */
+  lessons: LessonRecord[] = [],
 ): PracticeSet | null {
   const items: PracticeItem[] = []
 
+  /* 0. Phrases the curriculum says are due. These come first because they are
+        the spine of a beginner's English and because their schedule is the
+        one thing that makes "weak phrases recur until produced unaided" true
+        between lessons rather than only inside them. */
+  for (const p of phrasesDue(phraseEvidence(lessons, model), now, 4)) {
+    items.push({
+      id: `rv-ph-${slug(p.id)}`,
+      targetKind: 'phrase',
+      targetKey: phraseKey(p.id),
+      label: p.chunk,
+      check: 'recall',
+      instructionKey: 'practice.item.sayPhrase',
+      cueText: p.meaning,
+      cueTextKey: phraseTextKey(p.id, 'meaning'),
+      answer: p.say,
+      answerWords: p.examples.slice(0, 3),
+      estimatedSeconds: 35,
+    })
+  }
+
   // 1. Their own recurring slips first — the highest-value thing to retrieve.
-  for (const fix of recurringFixes(model, 2)) {
+  for (const fix of recurringFixes(model, Math.max(0, Math.min(2, REVIEW_CAP - items.length)))) {
     items.push({
       id: `rv-fix-${slug(fix.better)}`,
       targetKind: 'correction',

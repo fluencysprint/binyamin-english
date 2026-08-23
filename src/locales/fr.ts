@@ -738,6 +738,10 @@ const fr: Dict = {
     openPractice: 'Ouvrir la série d’entraînement',
     focus: 'Point du jour',
     none: 'Rien en suspens.',
+    phrases: 'Phrases',
+    phrasesCanSay: 'Il les dit sans aide — commencez par l’une d’elles.',
+    phrasesShaky: 'Celles-ci ne reviennent plus.',
+    phrasesDue: '{{count}} à retrouver au début du cours d’aujourd’hui.',
   },
   report: {
     title: 'Bilan du cours',
@@ -789,6 +793,8 @@ const fr: Dict = {
       writeSentences: 'Écrivez {{count}} phrases avec {{target}}.',
       noticeLanguage: 'Cette semaine, repérez {{target}} et trouvez trois exemples réels.',
       prepareAnswer: 'Venez au prochain cours avec une réponse prête : {{question}}',
+      sayPhrases: 'Dites-les à voix haute de mémoire, une fois par jour : {{phrases}}',
+      usePhraseFrame: 'Faites trois phrases à vous avec {{frame}} (essayez : {{words}}).',
     },
   },
   sampleReport: {
@@ -898,6 +904,18 @@ const fr: Dict = {
     howToSay: 'Comment faire ce son',
   },
 
+  /* ---- Marking phrase evidence in a lesson ---------------------------- */
+  phrase: {
+    verdictTitle: 'Qu’avez-vous vraiment vu ?',
+    verdictRule: '« Dit seul » veut dire que rien n’était à l’écran et que vous ne l’avez pas dit avant. Le reste est aussi un vrai progrès : cochez ce qui s’est passé, pas ce que vous espériez.',
+    verdict: {
+      notYet: 'Pas encore',
+      recognised: 'A compris',
+      guided: 'L’a dit avec aide',
+      unaided: 'L’a dit seul',
+    },
+  },
+
   student: {
     watchAndListen: 'Regardez et écoutez.',
     listenToTutor: 'Écoutez. Vous n’avez pas encore besoin de parler.',
@@ -923,6 +941,16 @@ const fr: Dict = {
     fluencySprint: 'Parlez pendant {{seconds}} secondes. Ne vous arrêtez pas.',
     fluencyAgain: 'La même chose encore une fois — cette fois en {{seconds}} secondes.',
     fluencyRecap: 'Écoutez : voilà ce qui s’est amélioré.',
+    phraseRecall: 'Dites-le en anglais. Essayez d’abord, regardez ensuite.',
+    phraseMeaning: 'Regardez. Qu’est-ce que ça veut dire ?',
+    phraseListen: 'Écoutez. Vous n’avez pas encore besoin de le dire.',
+    phraseListenTo: 'Écoutez : « {{chunk}} » — vous n’avez pas encore besoin de le dire.',
+    phraseRepeat: 'À vous. Dites-le à voix haute.',
+    phraseSwap: 'Redites-le en changeant la fin.',
+    phraseFromMeaning: 'Dites-le en anglais. Cette fois, rien à l’écran.',
+    phraseExchange: 'Maintenant, on discute. Utilisez les phrases d’aujourd’hui.',
+    phraseRealUse: 'Parlez avec moi, tout simplement. Utilisez l’anglais que vous avez déjà.',
+    phraseClose: 'Voici l’anglais que vous avez utilisé aujourd’hui.',
   },
   /* ---- Les écrans de l’élève lui-même ---------------------------------- */
   studentHome: {
@@ -957,7 +985,11 @@ const fr: Dict = {
       notComingBack: '« {{phrase}} » ne revient plus.',
       stillWorkingOn: 'Ça vaut encore le coup de travailler « {{phrase}} ».',
       wordsToRevisit: '{{count}} mots à revoir : {{words}}.',
+      knownPhrases: 'Vous les avez dites tout seul, deux jours différents : {{phrases}}.',
+      phrasesToRevisit: 'Celles-ci ne reviennent plus — dix minutes bien placées : {{phrases}}.',
     },
+    phrasesYouCanSay: '{{count}} phrases que vous dites sans aide.',
+    yourPhrases: 'Phrases que vous savez dire',
   },
 
   practice: {
@@ -987,6 +1019,8 @@ const fr: Dict = {
       write: 'Écris {{count}} phrases avec {{target}}.',
       notice: 'Trouve {{target}} quelque part de réel cette semaine : une vidéo, une chanson, un message.',
       prepare: 'Prépare une réponse. On te la demandera au prochain cours.',
+      sayPhrase: 'Dites-le en anglais. Essayez avant de regarder.',
+      usePhraseFrame: 'Faites {{count}} phrases avec {{frame}} à voix haute, avec des mots différents à chaque fois.',
     },
   },
 

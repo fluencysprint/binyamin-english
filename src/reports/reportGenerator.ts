@@ -112,7 +112,14 @@ export function generateReport(
             title: a.title,
             titleKey: a.titleKey,
             titleParams: a.titleParams,
-            prompt: TOPIC_PHASE_KINDS.includes(a.kind) ? a.studentPrompt : undefined,
+            /* A phrase block's `studentPrompt` is an instruction to the room
+               ("Now we talk. Use today's phrases."), and its title already
+               names the English that was worked on — so it is excluded here
+               for the same reason the comment above gives. */
+            prompt:
+              TOPIC_PHASE_KINDS.includes(a.kind) && a.guide?.src !== 'phrase'
+                ? a.studentPrompt
+                : undefined,
           })),
         ),
     ].filter((item) => item.title?.trim()),

@@ -26,7 +26,16 @@
    ========================================================================== */
 
 import type { MicroStep } from './microSteps'
-import { patternPair, patternQuestions, recurringFixes, retrievalMaterial } from './microSteps'
+import {
+  patternPair,
+  patternQuestions,
+  phraseBlockOf,
+  phrasePhrases,
+  recurringFixes,
+  retrievalMaterial,
+} from './microSteps'
+import { PhraseTarget, fillSlot, isFrame } from '../curriculum/phrases'
+import { phraseTextKey } from '../data/contentStrings'
 import {
   CEFR,
   LearningModel,
@@ -237,6 +246,91 @@ function talkBoard(activity: LessonActivity, ctx: StudentBoardContext): StudentB
   }
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* The phrase curriculum                                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * What the learner sees during a phrase block.
+ *
+ * The whole design is one decision repeated: WHEN is the English on screen?
+ *
+ *   meaning   — nothing. The tutor is making the situation; a caption of the
+ *               answer would let the learner read instead of work out.
+ *   model     — the English, because they are supposed to be hearing it.
+ *   repeat    — the English, open, because saying it is the task.
+ *   swap      — the frame with the slot filled different ways.
+ *   retrieval — the MEANING only, in their own language. This is the screen
+ *               that makes unaided evidence possible, and putting the chunk
+ *               anywhere on it would quietly turn the whole system into a
+ *               reading test.
+ *   real use  — the questions. The phrases are one tap away and closed, so
+ *               reaching for them is the default and looking is the fallback.
+ */
+function phraseBoard(
+  step: MicroStep,
+  phrases: PhraseTarget[],
+  block: string,
+  ctx: StudentBoardContext,
+): StudentBoard {
+  const meaning = (p: PhraseTarget) => ct(ctx.lang, phraseTextKey(p.id, 'meaning'), p.meaning)
+  const cues = phrases.map((p) => ({ cue: meaning(p), answer: p.chunk }))
+  const chunks = phrases.map((p) => p.chunk)
+
+  if (step.move === 'retrieval') return { ...EMPTY, recallCues: cues }
+
+  switch (`${block}.${step.move}`) {
+    case 'meet.meaning':
+      /* Deliberately empty. The tutor is holding up a cup, waving, or acting
+         out a moment; the learner's job is to watch a person, not a screen. */
+      return { ...EMPTY }
+    case 'meet.model':
+      return {
+        ...EMPTY,
+        examples: phrases.flatMap((p) => (p.reply ? [p.say, p.reply] : [p.say])).slice(0, 8),
+      }
+    case 'meet.guided':
+      return { ...EMPTY, phrases: chunks, phrasesOpen: true, examples: phrases.map((p) => p.say) }
+    case 'use.guided':
+      return {
+        ...EMPTY,
+        phrases: chunks,
+        phrasesOpen: true,
+        /* The slot fillers on their own. Seeing the words that go in the gap
+           is what turns a memorised sentence into a frame the learner owns. */
+        words: phrases.flatMap((p) => (isFrame(p) ? p.slots.slice(0, 5) : [])),
+        examples: phrases
+          .flatMap((p) => (isFrame(p) ? p.slots.slice(0, 2).map((x) => fillSlot(p, x)) : p.examples.slice(0, 1)))
+          .slice(0, 6),
+      }
+    case 'exchange.guided':
+      return {
+        ...EMPTY,
+        examples: phrases.flatMap((p) => (p.reply ? [p.say, p.reply] : [p.say])).slice(0, 8),
+        phrases: chunks,
+        phrasesOpen: true,
+      }
+    case 'realUse.realUse': {
+      const openers = phrases.filter((p) => p.chunk.trim().endsWith('?')).map((p) => p.say)
+      const questions = (openers.length ? openers : phrases.map((p) => p.say)).slice(0, 6)
+      return {
+        ...EMPTY,
+        prompt: questions[0],
+        questions: questions.slice(1),
+        phrases: chunks,
+        /* Closed on purpose: the minute is for reaching, and a full list of
+           today's phrases on screen turns it into reading aloud. */
+        phrasesOpen: false,
+      }
+    }
+    case 'close.recap':
+      return { ...EMPTY, examples: chunks.slice(0, 8) }
+    default:
+      return { ...EMPTY, examples: phrases.map((p) => p.say).slice(0, 6) }
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 /* Entry point                                                                */
 /* -------------------------------------------------------------------------- */
@@ -251,6 +345,15 @@ export function buildStudentBoard(
   activity: LessonActivity,
   ctx: StudentBoardContext,
 ): StudentBoard {
+  /* The phrase curriculum, first: its blocks reuse the ordinary activity
+     kinds (a `meet` block is a microLesson, a `use` block is guided practice),
+     so anything below would claim them. */
+  const block = phraseBlockOf(activity)
+  if (block) {
+    const phrases = phrasePhrases(activity)
+    if (phrases.length) return phraseBoard(step, phrases, block, ctx)
+  }
+
   /* Spaced recall. Cued from MEANING, with the English answer held back for
      the tutor to reveal after the attempt — the whole value of the step is
      that the learner has to produce the word, not recognise it. */

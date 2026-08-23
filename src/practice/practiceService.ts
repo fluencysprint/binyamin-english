@@ -67,7 +67,7 @@ export function choosePracticeSet(
     }
   }
 
-  const review = buildReviewSet(model, now)
+  const review = buildReviewSet(model, now, lessons)
   if (!review) return null
   /* A review set is rebuilt from what is due, so an unfinished one from
      earlier today is resumed rather than restarted — otherwise a learner who

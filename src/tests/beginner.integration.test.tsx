@@ -88,7 +88,7 @@ describe('Scenario B — adult absolute-beginner first lesson', () => {
     expect(bundle.model.preA1Stage).toBe('P0')
 
     const lesson = await createLesson(bundle.student, bundle.model, [])
-    expect(lesson.plan.objective.ref).toMatch(/^beginner:/)
+    expect(lesson.plan.objective.ref).toMatch(/^(phrase:u\d+|beginner:P\d)$/)
 
     renderApp(`/tutor/student/${student.id}/lesson/${lesson.id}`)
 

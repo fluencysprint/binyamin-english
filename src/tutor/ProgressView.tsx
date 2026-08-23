@@ -183,6 +183,41 @@ export function LessonBriefingCard({
           </Block>
         )}
 
+        {/* The phrase curriculum, for a beginner. Ordered the way a tutor
+            uses it: a win to open on, the ones that have gone quiet, and how
+            much the recall block is about to ask for. */}
+        {briefing.phrases && (briefing.phrases.canSay.length > 0 || briefing.phrases.shaky.length > 0) && (
+          <Block title={t('briefing.phrases')}>
+            {briefing.phrases.canSay.length > 0 && (
+              <>
+                <p className={styles.why}>{t('briefing.phrasesCanSay')}</p>
+                <div className="cluster">
+                  {briefing.phrases.canSay.map((phrase) => (
+                    <span key={phrase} className="chip is-selected" dir="ltr" lang="en">
+                      <Bdi>{phrase}</Bdi>
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            {briefing.phrases.shaky.length > 0 && (
+              <>
+                <p className={styles.why}>{t('briefing.phrasesShaky')}</p>
+                <div className="cluster">
+                  {briefing.phrases.shaky.map((phrase) => (
+                    <span key={phrase} className="chip" dir="ltr" lang="en">
+                      <Bdi>{phrase}</Bdi>
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            {briefing.phrases.dueCount > 0 && (
+              <p className="muted">{t('briefing.phrasesDue', { count: briefing.phrases.dueCount })}</p>
+            )}
+          </Block>
+        )}
+
         {briefing.improving.length > 0 && (
           <Block title={t('briefing.improving')}>
             <IssueRows items={briefing.improving} />

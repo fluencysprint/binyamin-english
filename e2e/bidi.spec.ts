@@ -134,13 +134,32 @@ async function startHebrewLesson(page: import('@playwright/test').Page) {
   return lessonUrl
 }
 
+/**
+ * Walk forward through the lesson until the learner's own instruction is a
+ * Hebrew sentence with English quoted inside it.
+ *
+ * A beginner lesson opens on the step where the tutor is ACTING the meaning
+ * out and the learner's screen is deliberately bare, so the mixed-script case
+ * is a step or two in. Which step it lands on is a curriculum decision and is
+ * allowed to change; that there is one, and that it renders correctly, is not.
+ */
+async function firstMixedInstruction(page: import('@playwright/test').Page) {
+  for (let i = 0; i < 6; i++) {
+    const instruction = page.locator('section[dir="rtl"] p').first()
+    await expect(instruction).toBeVisible()
+    const text = await instruction.innerText()
+    if (/[֐-׿]/.test(text) && (await instruction.locator('bdi').count()) > 0) return instruction
+    await page.getByRole('button', { name: /השלב הבא/ }).click()
+  }
+  throw new Error('no Hebrew instruction with an embedded English target in this lesson')
+}
+
 test('an English phrase inside a Hebrew instruction keeps its quotes and reads left-to-right', async ({
   page,
 }) => {
   await startHebrewLesson(page)
 
-  const instruction = page.locator('section[dir="rtl"] p').first()
-  await expect(instruction).toBeVisible()
+  const instruction = await firstMixedInstruction(page)
   expect(await instruction.innerText()).toMatch(/[֐-׿]/)
 
   // The embedded English is in its own isolate, and the isolate carries the
@@ -174,7 +193,7 @@ test('the Hebrew sentence keeps its own punctuation, and never doubles a quote',
   page,
 }) => {
   await startHebrewLesson(page)
-  const instruction = page.locator('section[dir="rtl"] p').first()
+  const instruction = await firstMixedInstruction(page)
   const text = await instruction.innerText()
 
   // No doubled marks anywhere on the learner's screen.

@@ -25,6 +25,14 @@ const guide: Dict = {
     vocabPronConsolidation: 'Consolidation du vocabulaire et de la prononciation',
     successRecap: 'Bilan des réussites',
     recapOneWin: 'Bilan et une réussite',
+    phrase: {
+      recall: 'On y revient',
+      meet: 'Nouveau : {{phrases}}',
+      use: 'On change les mots : {{phrases}}',
+      exchange: 'On assemble',
+      realUse: 'Usage réel',
+      close: 'Ce que vous savez dire',
+    },
   },
 
   objective: {
@@ -60,6 +68,50 @@ const guide: Dict = {
         title: 'Vers le A1 : phrases simples et première lecture',
         rationale: 'Utiliser des phrases simples avec appui et commencer à lire des mots très familiers.',
       },
+    },
+  },
+
+  /* The ten phrase-curriculum units, and what each one buys the learner. */
+  unit: {
+    1: {
+      title: 'Quand on rencontre quelqu’un',
+      can: 'À la fin : ils savent saluer, remercier et prendre congé sans aide.',
+    },
+    2: {
+      title: 'Quand on ne comprend pas',
+      can: 'À la fin : ils savent interrompre et demander de l’aide au lieu d’acquiescer.',
+    },
+    3: {
+      title: 'Se présenter',
+      can: 'À la fin : ils savent donner leur nom, dire d’où ils viennent et poser la question en retour.',
+    },
+    4: {
+      title: 'Parler de soi',
+      can: 'À la fin : ils savent dire ce qu’ils aiment, ce qu’ils ont et ce qu’ils font.',
+    },
+    5: {
+      title: 'Demander ce dont on a besoin',
+      can: 'À la fin : ils savent demander poliment et refuser tout aussi poliment.',
+    },
+    6: {
+      title: 'Poser des questions',
+      can: 'À la fin : ils savent demander quoi, où, qui, combien et quelle heure il est.',
+    },
+    7: {
+      title: 'Les gestes du quotidien',
+      can: 'À la fin : ils savent dire ce qu’ils font, ce qu’ils peuvent et ce qu’ils ne peuvent pas.',
+    },
+    8: {
+      title: 'Faire durer la conversation',
+      can: 'À la fin : ils savent réagir, approuver, contredire et renvoyer la question.',
+    },
+    9: {
+      title: 'Dehors, dans la vraie vie',
+      can: 'À la fin : ils savent acheter, demander leur chemin et signaler un problème.',
+    },
+    10: {
+      title: 'Fixer un rendez-vous',
+      can: 'À la fin : ils savent proposer une heure, accepter un plan et refuser gentiment.',
     },
   },
 
@@ -212,6 +264,37 @@ const guide: Dict = {
       ifSucceed: 'Demande-lui de t’apprendre un mot à son tour.',
       howToExplain: 'Chaleureux, court et précis.',
       avoid: ['Les compliments vagues — nomme ce qui a réellement marché.'],
+    },
+    phrase: {
+      avoid: [
+        'Expliquer la grammaire. La phrase reste un bloc bien au-delà de cette étape.',
+        'Corriger pendant la minute d’usage réel : c’est le seul moment du cours où la fluidité prime sur l’exactitude.',
+        'Cocher « dit seul » pour quelque chose que vous avez dit avant. Cette seule habitude rendrait faux tout ce que l’apprenant voit à l’écran.',
+      ],
+      recall: {
+        goal: 'Découvrir ce qui a survécu à la semaine, avant d’ajouter quoi que ce soit.',
+        howToExplain: '« Voyons ce qu’il vous reste. Je donne le sens, vous donnez l’anglais. »',
+      },
+      meet: {
+        goal: 'Premier contact : ils comprennent la phrase et l’entendent dite correctement.',
+        howToExplain: 'Montrez le moment où elle sert. La phrase est un bloc : n’expliquez jamais ses parties.',
+      },
+      use: {
+        goal: 'Transformer une phrase en structure qu’ils remplissent avec leurs propres mots.',
+        howToExplain: '« Le début ne change pas. Seule la fin change. » Montrez-le, ne le nommez pas.',
+      },
+      exchange: {
+        goal: 'Faire fonctionner les phrases du jour comme une conversation, pas comme une liste.',
+        howToExplain: '« Je dis ceci, vous dites cela. » Puis échangez, pour qu’ils tiennent les deux moitiés.',
+      },
+      realUse: {
+        goal: 'Voir vers quelles phrases ils vont quand personne ne le leur demande.',
+        howToExplain: 'N’expliquez rien ici. Posez une vraie question et laissez le silence enseigner.',
+      },
+      close: {
+        goal: 'Leur laisser une chose vraie qu’ils savent dire, et noter ce que vous avez vu.',
+        howToExplain: '« La semaine dernière, vous n’aviez rien de tout ça. Aujourd’hui, vous avez dit celles-ci. » Redites-leur les phrases.',
+      },
     },
   },
 
@@ -697,6 +780,226 @@ const guide: Dict = {
       challenge: ['Demande-lui deux éléments dans la même phrase.'],
       doneWhen: 'Chaque élément a été retrouvé ou réexpliqué une fois.',
       next: 'Passer à l’objectif principal du cours.',
+    },
+    phrase: {
+      recall: {
+        retrieval: {
+          now: 'Demandez les phrases déjà vues, avant d’enseigner quoi que ce soit de nouveau.',
+          do: [
+            'Donnez le sens dans leur langue, ou montrez la carte sur leur écran.',
+            'Puis attendez. Comptez jusqu’à cinq dans votre tête avant d’aider.',
+            'Ne dites l’anglais qu’après leur essai.',
+          ],
+          studentDoes: [
+            'Essaient de produire chaque phrase à partir du sens seul.',
+          ],
+          lookFor: [
+            'Lesquelles viennent seules, et lesquelles vous devez amorcer.',
+            'Une bonne réponse lente reste fragile : notez-la comme telle.',
+          ],
+          help: [
+            'Dites seulement le premier mot, puis arrêtez-vous.',
+            'Si rien ne vient, dites la phrase entière et faites-la répéter : c’est « dit avec aide ».',
+          ],
+          challenge: [
+            'Demandez-leur d’en utiliser une dans une phrase sur aujourd’hui.',
+          ],
+          doneWhen: 'Chaque phrase de la carte a été demandée une fois.',
+          next: 'Cochez ce que vous avez vu, puis passez au nouveau groupe.',
+        },
+      },
+      meet: {
+        meaning: {
+          now: 'Rendez le sens évident avant même de dire l’anglais.',
+          do: [
+            'Créez d’abord la situation : un geste, un objet, un moment qu’ils reconnaissent.',
+            'Dites la phrase à l’intérieur de cette situation, pas comme un mot à apprendre.',
+            'Ne traduisez que s’ils sont perdus, et n’expliquez aucune grammaire.',
+          ],
+          studentDoes: [
+            'Vous regardent. Rien à produire pour l’instant.',
+          ],
+          lookFor: [
+            'Un hochement, un sourire, une réponse dans leur langue : tout signe que le sens est passé.',
+          ],
+          help: [
+            'Rendez-le plus concret : un objet réel, un dessin, un geste plus large.',
+            'Un mot dans leur langue, c’est bien. Puis revenez tout de suite à l’anglais.',
+          ],
+          challenge: [
+            'Demandez où ils s’en serviraient : un magasin, un appel, le travail.',
+          ],
+          doneWhen: 'Ils montrent qu’ils comprennent à quoi ça sert, dans n’importe quelle langue.',
+          next: 'Dites-le deux fois et laissez-les simplement écouter.',
+        },
+        model: {
+          now: 'Dites-le. Ne l’expliquez pas.',
+          do: [
+            'Dites chaque phrase deux fois : une fois à vitesse normale, une fois lentement.',
+            'Si elle a une réponse, dites les deux moitiés pour qu’ils entendent tout l’échange.',
+            'Ne leur demandez pas encore de répéter.',
+          ],
+          studentDoes: [
+            'Écoutent. Ne répètent que si ça sort tout seul.',
+          ],
+          lookFor: [
+            'Écoutent-ils, ou essaient-ils déjà de le dire ? Les deux conviennent.',
+          ],
+          help: [
+            'Réduisez à une seule phrase et dites-la quatre fois.',
+          ],
+          challenge: [
+            'Dites-le une fois au rythme d’une vraie conversation et demandez s’ils ont suivi.',
+          ],
+          doneWhen: 'Ils ont entendu chaque phrase au moins deux fois.',
+          next: 'Passez-leur la main : c’est à eux de le dire.',
+        },
+        guided: {
+          now: 'À eux. La phrase entière, pas mot à mot.',
+          do: [
+            'Dites-le, puis ouvrez la main vers eux et attendez.',
+            'Gardez la phrase d’un seul bloc. Ne la découpez pas en mots.',
+            'Trois essais chacune suffisent ; au-delà, cela devient du bachotage.',
+          ],
+          studentDoes: [
+            'Disent chaque phrase à voix haute, en copiant le rythme.',
+          ],
+          lookFor: [
+            'Est-ce un bloc fluide ou des mots séparés ?',
+            'Comprenez-vous ? C’est le critère ici, pas la perfection.',
+          ],
+          help: [
+            'Dites les deux derniers mots, puis la phrase entière. Laissez-les vous rejoindre.',
+          ],
+          challenge: [
+            'Redites-le plus vite et voyez s’ils suivent.',
+          ],
+          doneWhen: 'Chaque phrase est sortie de leur bouche au moins une fois.',
+          next: 'Maintenant, changez les mots à l’intérieur.',
+        },
+      },
+      use: {
+        guided: {
+          now: 'La même phrase, d’autres mots dans le trou.',
+          do: [
+            'Dites une version, puis proposez un mot nouveau et laissez-les construire la suivante.',
+            'Gardez la structure identique. Seul le trou change.',
+            'Prenez des mots de LEUR vie : leur travail, leur famille, leur rue.',
+          ],
+          studentDoes: [
+            'Font de nouvelles phrases avec la même structure.',
+          ],
+          lookFor: [
+            'Gardent-ils la structure stable pendant que le mot change ?',
+            'C’est tout l’enjeu : ils apprennent un mécanisme, pas une phrase.',
+          ],
+          help: [
+            'Revenez à une version fixe et répétez-la deux fois avant de changer à nouveau.',
+          ],
+          challenge: [
+            'Demandez un mot que vous n’avez pas proposé : quelque chose de leur vie.',
+          ],
+          doneWhen: 'Ils ont fait au moins trois phrases différentes avec une seule structure.',
+          next: 'Maintenant, demandez-le à froid, sans rien à l’écran.',
+        },
+        retrieval: {
+          now: 'Demandez-le sans rien montrer. C’est la partie qui compte.',
+          do: [
+            'Donnez seulement le sens : dans leur langue, ou en le mimant.',
+            'Ne dites rien en anglais avant. Sinon ils copient au lieu de se souvenir.',
+            'Attendez. Le silence, c’est le travail.',
+          ],
+          studentDoes: [
+            'Produisent la phrase à partir du sens seul.',
+          ],
+          lookFor: [
+            'Est-ce venu sans que vous amorciez ? C’est la seule chose qui compte comme « dit seul ».',
+          ],
+          help: [
+            'Donnez le premier son, pas le premier mot.',
+            'Si rien ne vient, dites-le et faites répéter : c’est « dit avec aide », et c’est honnête.',
+          ],
+          challenge: [
+            'Demandez-le à l’intérieur d’une question plutôt qu’isolé.',
+          ],
+          doneWhen: 'Chaque phrase du groupe a été demandée une fois, à froid.',
+          next: 'Cochez chacune, puis continuez.',
+        },
+      },
+      exchange: {
+        guided: {
+          now: 'Deux répliques, aller-retour. Vous commencez.',
+          do: [
+            'Vous dites la première réplique, ils répondent. Puis vous échangez les rôles.',
+            'Faites-le trois ou quatre fois, jusqu’à ce que la réponse vienne sans réfléchir.',
+            'Dites votre réplique exactement pareil à chaque fois.',
+          ],
+          studentDoes: [
+            'Tiennent les deux rôles d’un court échange.',
+          ],
+          lookFor: [
+            'La réponse vient-elle sans pause ?',
+            'Vous suivent-ils encore quand vous échangez les rôles ?',
+          ],
+          help: [
+            'Prenez le rôle difficile et laissez-leur le facile.',
+          ],
+          challenge: [
+            'Changez un mot de votre réplique sans prévenir et voyez s’ils s’adaptent.',
+          ],
+          doneWhen: 'Ils peuvent tenir l’un ou l’autre rôle sans aide.',
+          next: 'Abandonnez le script et discutez simplement.',
+        },
+      },
+      realUse: {
+        realUse: {
+          now: 'Discutez, c’est tout. Aucun script, rien à l’écran.',
+          do: [
+            'Posez une vraie question, sincèrement.',
+            'Laissez-les chercher. S’ils bloquent, attendez plus longtemps qu’il n’est confortable.',
+            'Ne corrigez rien ici, sauf si vous n’avez vraiment pas compris.',
+          ],
+          studentDoes: [
+            'Parlent avec vous en puisant dans tout l’anglais qu’ils ont.',
+          ],
+          lookFor: [
+            'Quelles phrases ils vont chercher seuls : la preuve la plus solide du cours.',
+            'Là où la conversation meurt. C’est le cours suivant.',
+          ],
+          help: [
+            'Posez une question plus simple et plus proche d’eux, puis revenez.',
+          ],
+          challenge: [
+            'Donnez une réponse courte de votre côté et attendez qu’ils vous posent une question.',
+          ],
+          doneWhen: 'Ils ont utilisé au moins une phrase du jour sans qu’on le leur demande.',
+          next: 'Clôturez le cours et cochez ce que vous avez vu.',
+        },
+      },
+      close: {
+        recap: {
+          now: 'Redites-leur ce qu’ils ont réussi aujourd’hui, puis cochez honnêtement.',
+          do: [
+            'Lisez les phrases qu’ils ont utilisées et laissez-les redire leur préférée.',
+            'Nommez une chose précise qui s’est améliorée. Pas « bravo ».',
+            'Puis parcourez la liste et cochez ce que vous avez réellement vu.',
+          ],
+          studentDoes: [
+            'Entendent ce qu’ils ont réussi et disent une phrase une dernière fois.',
+          ],
+          lookFor: [
+            'Lesquelles les font encore sourire, et lesquelles les laissent muets.',
+          ],
+          help: [
+            'Si la liste paraît longue, citez les trois meilleures et arrêtez-vous là.',
+          ],
+          challenge: [
+            'Demandez laquelle ils utiliseront avant le prochain cours, et où.',
+          ],
+          doneWhen: 'Chaque phrase est cochée et l’apprenant a entendu une chose concrète qu’il a bien faite.',
+          next: 'Terminez le cours : les devoirs se construisent seuls à partir de ces marques.',
+        },
+      },
     },
   },
 }

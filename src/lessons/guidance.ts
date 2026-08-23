@@ -38,6 +38,7 @@ import { beginnerKey, grammarKey, pronKey } from '../data/contentStrings'
 import { getGrammarById } from '../data/grammarLibrary'
 import { getPronunciationByArea } from '../data/pronunciationLibrary'
 import { beginnerActivities } from './beginnerContent'
+import { PhraseTarget, fillSlot, getPhrase, isFrame } from '../curriculum/phrases'
 import { warmupFollowUps } from './activityContent'
 import { roundsFor } from './fluency'
 import { cefrIndex } from '../utils/cefr'
@@ -352,6 +353,91 @@ function beginnerGuidance(
   }
 }
 
+/* ---- The phrase curriculum ----------------------------------------------- */
+
+/**
+ * Tutor guidance for a phrase block, assembled rather than authored.
+ *
+ * Every other content bank in this app carries its own prose per entry. A
+ * hundred phrase targets would have needed fifteen hundred hand-written tutor
+ * lines and six thousand translations of them — and the result would have been
+ * worse teaching, not better: the move for "meet a new chunk" is the same move
+ * whether the chunk is "Hello." or "Can we make it later?", and a tutor
+ * learning this app should meet the same six shapes every week until they stop
+ * needing to read them.
+ *
+ * So the instructional prose is per BLOCK and localized once, and the English
+ * — the chunks to model, the substitutions to practise — is filled in from the
+ * bank at render time.
+ */
+function phraseGuidance(
+  lang: UILanguage,
+  params: Record<string, string | number> | undefined,
+): { autopilot?: TutorAutopilot; card?: TutorCard } {
+  const block = String(params?.block ?? 'meet')
+  const phrases = String(params?.ids ?? '')
+    .split(',')
+    .map((id) => getPhrase(id.trim()))
+    .filter((p): p is PhraseTarget => Boolean(p))
+  if (phrases.length === 0) return {}
+
+  /* The block's FIRST move. An activity-level card is what the tutor opens
+     before the block starts, so it describes the block's opening move; the
+     step-by-step guidance underneath it covers the rest. */
+  const move = PHRASE_FIRST_MOVE[block] ?? 'meaning'
+  const step = `guide.step.phrase.${block}.${move}`
+  const card = `guide.card.phrase.${block}`
+  const p = {
+    chunk: phrases[0].chunk,
+    phrases: phrases.map((x) => x.chunk).join(' · '),
+    count: phrases.length,
+  }
+
+  /* English the tutor SAYS, never translated: the models and the substitution
+     examples that make the frame visible as a frame. */
+  const models = phrases.map((x) => x.say)
+  const practice = phrases
+    .flatMap((x) =>
+      isFrame(x) && x.slots.length
+        ? x.slots.slice(0, 2).map((slot) => fillSlot(x, slot))
+        : x.examples.slice(0, 1),
+    )
+    .slice(0, 6)
+
+  return {
+    autopilot: {
+      now: translate(lang, `${step}.now`, p),
+      say: models,
+      do: translateList(lang, `${step}.do`, p),
+      studentDoes: translateList(lang, `${step}.studentDoes`, p),
+      lookFor: translateList(lang, `${step}.lookFor`, p),
+      help: translateList(lang, `${step}.help`, p),
+      challenge: translateList(lang, `${step}.challenge`, p),
+      doneWhen: translate(lang, `${step}.doneWhen`, p),
+      next: [translate(lang, `${step}.next`, p)],
+    },
+    card: {
+      goal: translate(lang, `${card}.goal`, p),
+      listenFor: translateList(lang, `${step}.lookFor`, p),
+      ifStruggle: translateList(lang, `${step}.help`, p)[0] ?? '',
+      ifSucceed: translateList(lang, `${step}.challenge`, p)[0] ?? '',
+      howToExplain: translate(lang, `${card}.howToExplain`, p),
+      model: models,
+      practice,
+      avoid: translateList(lang, 'guide.card.phrase.avoid'),
+    },
+  }
+}
+
+const PHRASE_FIRST_MOVE: Record<string, string> = {
+  recall: 'retrieval',
+  meet: 'meaning',
+  use: 'guided',
+  exchange: 'guided',
+  realUse: 'realUse',
+  close: 'recap',
+}
+
 /** The English title of a beginner template, localized. */
 export function beginnerTitle(lang: UILanguage, id: string): string | undefined {
   const b = beginnerActivities.find((x) => x.id === id)
@@ -458,6 +544,8 @@ function build(
       return { autopilot: auto(lang, 'vocabulary', SAY.vocabulary) }
     case 'feedback':
       return { autopilot: auto(lang, 'feedback', SAY.feedback), card: card(lang, 'feedback', CARD_EN.feedback) }
+    case 'phrase':
+      return phraseGuidance(lang, guide.params)
     case 'beginner':
       return guide.id ? beginnerGuidance(lang, guide.id) : {}
     case 'beginnerRecap': {

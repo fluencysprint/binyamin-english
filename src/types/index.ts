@@ -523,6 +523,10 @@ export type GuideSource =
   | 'feedback'
   | 'beginner'
   | 'beginnerRecap'
+  /** A block of the phrase curriculum (src/curriculum/phrases.ts). `params`
+   *  carries which block it is — meet, use, recall, exchange, real use or the
+   *  close — and the English chunks it is built from. */
+  | 'phrase'
   | 'c1Review'
   | 'c1Communication'
   | 'c1Feedback'
@@ -552,6 +556,15 @@ export interface LessonActivity {
   tutorCard?: TutorCard
   /** Optional structured items (e.g. from the assessment bank). */
   itemIds?: string[]
+  /**
+   * Curriculum phrase targets this activity teaches, drills or asks for.
+   *
+   * The unit of a beginner lesson is the CHUNK, not the activity: this is
+   * what lets the runner score each phrase, the homework retrieve exactly
+   * what was taught, and the evidence line up across weeks. Ids come from
+   * src/curriculum/phrases.ts and are stable forever.
+   */
+  phraseIds?: string[]
   /** Related grammar concept or pronunciation area. */
   ref?: string
   optional?: boolean
@@ -591,6 +604,13 @@ export interface LessonPlan {
   phases: LessonPhase[]
   /** Total planned minutes (50 by default; ~50 for C1 coaching too). */
   totalMinutes: number
+  /**
+   * Of all the phrases this plan touches, the ones it INTRODUCES. Kept apart
+   * from the review targets because the delayed-retrieval half of the mastery
+   * rule needs to know which day a phrase was first taught — and because
+   * "eight new phrases" is a promise about the lesson the tutor can check.
+   */
+  newPhraseIds?: string[]
   /** Where this plan came from. */
   source: 'firstLesson' | 'generated' | 'manual'
 }
@@ -626,6 +646,17 @@ export interface LessonRecord {
    *  moves a word's strength and its next review date. Optional so lessons
    *  recorded before recall capture existed still load. */
   vocabularyReview?: Record<string, VocabRecallOutcome>
+  /**
+   * What the tutor actually saw for each phrase target, keyed by phrase id.
+   *
+   * Four rungs rather than the three-way score used elsewhere (see
+   * curriculum/phraseProgress.ts): at this level "understood it but could not
+   * say it" is real evidence, and calling that a failure would tell a
+   * beginner they achieved nothing on the day they first understood English.
+   * Optional so lesson records written before phrase targets existed load.
+   */
+  phraseVerdicts?: Record<string, PhraseVerdictValue>
+
   /** Objective outcome after teaching. */
   objectiveOutcome?: ScoreOutcome
   /**
@@ -670,9 +701,25 @@ export type HomeworkTask =
   | { kind: 'noticeLanguage'; target: string }
   /** Come to the next lesson with an answer ready. */
   | { kind: 'prepareAnswer'; question: string }
+  /**
+   * Retrieve today's phrase targets from their MEANING. The single most
+   * valuable thing a beginner can do alone: it is the same cold retrieval the
+   * lesson ended on, a day later, with nobody to model it first.
+   */
+  | { kind: 'sayPhrases'; ids: string[] }
+  /**
+   * Make new sentences from one frame taught today. Reuse rather than
+   * recognition — the point of teaching frames instead of sentences.
+   */
+  | { kind: 'usePhraseFrame'; id: string; slots: string[] }
 
 /** Whether the homework a lesson set actually came back. */
 export type HomeworkReview = 'done' | 'partly' | 'notDone'
+
+/** The four rungs of phrase evidence. Mirrored (and given its meaning) by
+ *  `PhraseVerdict` in src/curriculum/phraseProgress.ts; declared here so a
+ *  stored LessonRecord does not have to import the curriculum to be typed. */
+export type PhraseVerdictValue = 'notYet' | 'recognised' | 'guided' | 'unaided'
 
 /* --------------------------------------------------------------------------
    Practice evidence — what the learner actually did, on their own.
@@ -704,6 +751,8 @@ export type PracticeTargetKind =
   | 'pronunciation'
   | 'grammar'
   | 'speaking'
+  /** A curriculum chunk or sentence frame (src/curriculum/phrases.ts). */
+  | 'phrase'
 
 export interface PracticeItemResult {
   /** Stable id of the item within its set — lets a set be resumed exactly. */

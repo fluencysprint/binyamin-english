@@ -30,6 +30,8 @@ import {
 import { LearningModel } from '../types'
 import { Explanation, ProgressIssue, ProgressSnapshot, VocabRecallItem } from '../students/progress'
 import { homeworkOutcome } from '../students/evidence'
+import { phraseEvidence, phrasesDue } from '../curriculum/phraseProgress'
+import { getPhrase } from '../curriculum/phrases'
 
 /** Hard caps. A tutor reads this standing up, holding a coffee. */
 const MAX_CORRECTIONS = 3
@@ -97,9 +99,25 @@ export interface LessonBriefing {
    *  a briefing that recommends one thing while the lesson teaches another is
    *  worse than no recommendation at all. */
   recommendedFocus?: BriefingFocus
+  /** Where this learner stands on the phrase curriculum. Absent for a learner
+   *  who is past it — there is nothing to say, and an empty card is noise.
+   *
+   *  Three lists, and the tutor uses them in this order: open the lesson on a
+   *  win they can hear, know which ones have stopped arriving before the
+   *  recall block reaches them, and see how much is coming back today. */
+  phrases?: {
+    /** Produced unaided on two separate days, one after the teaching day. */
+    canSay: string[]
+    /** Used to come back and now doesn't. */
+    shaky: string[]
+    /** How many the recall block will ask for. */
+    dueCount: number
+  }
   /** True when there is genuinely nothing to brief — a first lesson. */
   isFirstLesson: boolean
 }
+
+const MAX_PHRASES = 5
 
 export function buildBriefing(
   input: {
@@ -193,6 +211,26 @@ export function buildBriefing(
       }
     })(),
     recommendedFocus,
+    /* Only where there is something to say. A learner who has never met a
+       phrase target, or who is long past Pre-A1, gets no card rather than an
+       empty one. */
+    phrases: (() => {
+      const evidence = phraseEvidence(completed, model)
+      if (evidence.size === 0) return undefined
+      const chunk = (id: string) => getPhrase(id)?.chunk
+      const named = (state: string) =>
+        [...evidence.values()]
+          .filter((e) => e.state === state)
+          .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+          .map((e) => chunk(e.id))
+          .filter((c): c is string => Boolean(c))
+          .slice(0, MAX_PHRASES)
+      return {
+        canSay: named('secure'),
+        shaky: named('shaky'),
+        dueCount: phrasesDue(evidence, now, 100).length,
+      }
+    })(),
     isFirstLesson: completed.length === 0,
   }
 }

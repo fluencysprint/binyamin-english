@@ -25,6 +25,14 @@ const guide: Dict = {
     vocabPronConsolidation: 'Consolidación de vocabulario y pronunciación',
     successRecap: 'Repaso de logros',
     recapOneWin: 'Repaso y un logro',
+    phrase: {
+      recall: 'Volvemos a lo de antes',
+      meet: 'Nuevo: {{phrases}}',
+      use: 'Cambiamos las palabras: {{phrases}}',
+      exchange: 'Lo juntamos todo',
+      realUse: 'Uso real',
+      close: 'Lo que ya sabes decir',
+    },
   },
 
   objective: {
@@ -60,6 +68,50 @@ const guide: Dict = {
         title: 'Camino al A1: frases sencillas y primera lectura',
         rationale: 'Usar frases sencillas con apoyo y empezar a leer palabras muy conocidas.',
       },
+    },
+  },
+
+  /* The ten phrase-curriculum units, and what each one buys the learner. */
+  unit: {
+    1: {
+      title: 'Cuando conoces a alguien',
+      can: 'Al final: saben saludar, dar las gracias y despedirse sin ayuda.',
+    },
+    2: {
+      title: 'Cuando no entiendes',
+      can: 'Al final: saben parar una conversación y pedir ayuda en vez de asentir sin más.',
+    },
+    3: {
+      title: 'Presentarte',
+      can: 'Al final: saben decir su nombre y de dónde son, y devolver la pregunta.',
+    },
+    4: {
+      title: 'Hablar de ti',
+      can: 'Al final: saben decir qué les gusta, qué tienen y a qué se dedican.',
+    },
+    5: {
+      title: 'Pedir lo que necesitas',
+      can: 'Al final: saben pedir algo con educación y también rechazarlo con educación.',
+    },
+    6: {
+      title: 'Hacer preguntas',
+      can: 'Al final: saben preguntar qué, dónde, quién, cuánto y qué hora es.',
+    },
+    7: {
+      title: 'Acciones del día a día',
+      can: 'Al final: saben decir qué están haciendo, qué pueden hacer y qué no.',
+    },
+    8: {
+      title: 'Mantener la conversación',
+      can: 'Al final: saben reaccionar, estar de acuerdo, discrepar y devolver la pregunta.',
+    },
+    9: {
+      title: 'Fuera, en la vida real',
+      can: 'Al final: saben comprar algo, preguntar el camino y decir que algo va mal.',
+    },
+    10: {
+      title: 'Quedar con alguien',
+      can: 'Al final: saben proponer una hora, aceptar un plan y rechazarlo con amabilidad.',
     },
   },
 
@@ -212,6 +264,37 @@ const guide: Dict = {
       ifSucceed: 'Pídele que te enseñe a ti una palabra.',
       howToExplain: 'Cálido, corto y concreto.',
       avoid: ['Elogios vagos: di qué salió bien exactamente.'],
+    },
+    phrase: {
+      avoid: [
+        'Explicar gramática. La frase es una sola pieza hasta mucho después de esta etapa.',
+        'Corregir durante el minuto de uso real: es la única parte de la clase donde la fluidez manda sobre la precisión.',
+        'Marcar «lo dijo solo» algo que dijiste tú antes. Esa sola costumbre volvería falso todo lo que el alumno ve en su pantalla.',
+      ],
+      recall: {
+        goal: 'Averiguar qué ha sobrevivido a la semana antes de añadir nada.',
+        howToExplain: '«Vamos a ver qué te queda. Yo doy el significado y tú das el inglés.»',
+      },
+      meet: {
+        goal: 'Primer contacto: entienden la frase y la oyen dicha como es.',
+        howToExplain: 'Muestra el momento en que se usa. La frase es una sola pieza: nunca expliques sus partes.',
+      },
+      use: {
+        goal: 'Convertir una frase en una estructura que puedan rellenar con sus palabras.',
+        howToExplain: '«El principio no cambia. Solo cambia el final.» Enséñalo, no le pongas nombre.',
+      },
+      exchange: {
+        goal: 'Hacer que las frases de hoy funcionen como conversación, no como lista.',
+        howToExplain: '«Yo digo esto, tú dices aquello.» Luego cambiad, para que lleven las dos mitades.',
+      },
+      realUse: {
+        goal: 'Ver a qué frases recurren cuando nadie se lo pide.',
+        howToExplain: 'Aquí no expliques nada. Haz una pregunta de verdad y deja que enseñe el silencio.',
+      },
+      close: {
+        goal: 'Dejarles una cosa cierta que ya saben decir, y anotar lo que has visto.',
+        howToExplain: '«La semana pasada no tenías nada de esto. Hoy has dicho estas.» Devuélveles las frases dichas.',
+      },
     },
   },
 
@@ -697,6 +780,226 @@ const guide: Dict = {
       challenge: ['Pídele dos de ellas en la misma frase.'],
       doneWhen: 'Cada una se ha recordado o se ha vuelto a enseñar una vez.',
       next: 'Pasar al foco principal de la clase.',
+    },
+    phrase: {
+      recall: {
+        retrieval: {
+          now: 'Pide las frases que ya conocen, antes de enseñar nada nuevo.',
+          do: [
+            'Da el significado en su idioma o señala la tarjeta de su pantalla.',
+            'Luego espera. Cuenta hasta cinco por dentro antes de ayudar.',
+            'Solo después de que lo intenten, di el inglés.',
+          ],
+          studentDoes: [
+            'Intentan producir cada frase solo a partir del significado.',
+          ],
+          lookFor: [
+            'Cuáles salen solas y cuáles necesitan que tú empieces.',
+            'Una respuesta correcta pero lenta sigue siendo frágil: márcala así.',
+          ],
+          help: [
+            'Di solo la primera palabra y para.',
+            'Si aun así no sale, di la frase entera y que la repitan: eso es «lo dijo con ayuda».',
+          ],
+          challenge: [
+            'Pídeles que usen una de ellas en una frase sobre hoy.',
+          ],
+          doneWhen: 'Se ha pedido una vez cada frase de la tarjeta.',
+          next: 'Marca lo que has visto y empieza el grupo nuevo.',
+        },
+      },
+      meet: {
+        meaning: {
+          now: 'Haz que el significado quede claro antes de decir el inglés.',
+          do: [
+            'Crea primero la situación: un gesto, un objeto, un momento que reconozcan.',
+            'Di la frase dentro de esa situación, no como una palabra que estudiar.',
+            'No traduzcas salvo que estén perdidos, y no expliques gramática en absoluto.',
+          ],
+          studentDoes: [
+            'Te miran. Todavía no tienen que producir nada.',
+          ],
+          lookFor: [
+            'Un gesto, una sonrisa, una respuesta en su idioma: cualquier señal de que lo han captado.',
+          ],
+          help: [
+            'Hazlo más concreto: un objeto real, un dibujo, gesticula más.',
+            'Una palabra en su idioma está bien. Después vuelve enseguida al inglés.',
+          ],
+          challenge: [
+            'Pregunta dónde lo usarían: una tienda, una llamada, el trabajo.',
+          ],
+          doneWhen: 'Muestran que entienden para qué sirve, en el idioma que sea.',
+          next: 'Dilo dos veces y deja que solo escuchen.',
+        },
+        model: {
+          now: 'Dilo. No lo expliques.',
+          do: [
+            'Di cada frase dos veces: una a velocidad normal y otra despacio.',
+            'Si tiene respuesta, di las dos mitades para que oigan el intercambio entero.',
+            'Todavía no les pidas que repitan.',
+          ],
+          studentDoes: [
+            'Escuchan. Repiten solo si les sale solo.',
+          ],
+          lookFor: [
+            '¿Escuchan o ya intentan decirlo? Las dos cosas están bien.',
+          ],
+          help: [
+            'Quédate con una sola frase y dila cuatro veces.',
+          ],
+          challenge: [
+            'Dilo una vez a velocidad de conversación real y pregunta si lo han pillado.',
+          ],
+          doneWhen: 'Han oído cada frase al menos dos veces.',
+          next: 'Pásales el turno: ahora lo dicen ellos.',
+        },
+        guided: {
+          now: 'Les toca. La frase entera, no palabra por palabra.',
+          do: [
+            'Dilo, luego abre la mano hacia ellos y espera.',
+            'Mantén la frase como una sola pieza. No la partas en palabras.',
+            'Con tres intentos cada una basta; más se convierte en machaque.',
+          ],
+          studentDoes: [
+            'Dicen cada frase en voz alta, copiando el ritmo.',
+          ],
+          lookFor: [
+            '¿Sale como una pieza fluida o como palabras sueltas?',
+            '¿Lo entiendes? Ese es el listón aquí, no la perfección.',
+          ],
+          help: [
+            'Di las dos últimas palabras y luego la frase entera. Deja que se te unan.',
+          ],
+          challenge: [
+            'Repíteselo más rápido y mira si te siguen.',
+          ],
+          doneWhen: 'Cada frase ha salido de su boca al menos una vez.',
+          next: 'Ahora cambia las palabras de dentro.',
+        },
+      },
+      use: {
+        guided: {
+          now: 'La misma frase, otras palabras en el hueco.',
+          do: [
+            'Di una versión, luego ofrece una palabra nueva y deja que construyan la siguiente.',
+            'Mantén la estructura idéntica. Solo cambia el hueco.',
+            'Usa palabras de SU vida: su trabajo, su familia, su calle.',
+          ],
+          studentDoes: [
+            'Forman frases nuevas con la misma estructura.',
+          ],
+          lookFor: [
+            '¿Mantienen la estructura firme mientras cambia la palabra?',
+            'De eso se trata: aprenden un mecanismo, no una frase.',
+          ],
+          help: [
+            'Vuelve a una versión fija y repítela dos veces antes de volver a cambiar.',
+          ],
+          challenge: [
+            'Pide una palabra que no hayas ofrecido: algo de su propia vida.',
+          ],
+          doneWhen: 'Han formado al menos tres frases distintas con una estructura.',
+          next: 'Ahora pídelo en frío, sin nada en la pantalla.',
+        },
+        retrieval: {
+          now: 'Pídelo sin mostrar nada. Esta es la parte que cuenta.',
+          do: [
+            'Da solo el significado: en su idioma o representándolo.',
+            'No digas nada en inglés antes. Si lo dices, copian en vez de recordar.',
+            'Espera. El silencio es el trabajo.',
+          ],
+          studentDoes: [
+            'Producen la frase solo a partir del significado.',
+          ],
+          lookFor: [
+            '¿Salió sin que tú empezaras? Solo eso cuenta como «lo dijo solo».',
+          ],
+          help: [
+            'Da el primer sonido, no la primera palabra.',
+            'Si aun así no sale, dilo y que repitan: eso es «lo dijo con ayuda», y es honesto.',
+          ],
+          challenge: [
+            'Pídelo dentro de una pregunta en vez de aislado.',
+          ],
+          doneWhen: 'Se ha pedido en frío una vez cada frase de este grupo.',
+          next: 'Marca cada una y sigue.',
+        },
+      },
+      exchange: {
+        guided: {
+          now: 'Dos líneas, ida y vuelta. Empiezas tú.',
+          do: [
+            'Tú dices la primera línea y ellos responden. Luego cambiáis de papel.',
+            'Repítelo tres o cuatro veces hasta que la respuesta ya no requiera pensar.',
+            'Di tu línea exactamente igual cada vez.',
+          ],
+          studentDoes: [
+            'Hacen los dos papeles de un intercambio corto.',
+          ],
+          lookFor: [
+            '¿Llega la respuesta sin pausa?',
+            '¿Siguen contigo cuando cambiáis de papel?',
+          ],
+          help: [
+            'Quédate tú con el papel difícil y déjales el fácil.',
+          ],
+          challenge: [
+            'Cambia una palabra de tu línea sin avisar y mira si se adaptan.',
+          ],
+          doneWhen: 'Pueden hacer cualquiera de los dos papeles sin ayuda.',
+          next: 'Deja el guion y hablad sin más.',
+        },
+      },
+      realUse: {
+        realUse: {
+          now: 'Solo hablad. Sin guion, sin nada en la pantalla.',
+          do: [
+            'Haz una pregunta de verdad, con intención real.',
+            'Deja que se estiren. Si se atascan, espera más de lo que resulta cómodo.',
+            'Aquí no corrijas nada, salvo que de verdad no hayas entendido.',
+          ],
+          studentDoes: [
+            'Hablan contigo tirando de todo el inglés que tengan.',
+          ],
+          lookFor: [
+            'A qué frases recurren solos: la evidencia más fuerte de la clase.',
+            'Dónde muere la conversación. Ahí está la próxima clase.',
+          ],
+          help: [
+            'Pregunta algo más fácil y más cercano a ellos, y luego vuelve.',
+          ],
+          challenge: [
+            'Da una respuesta corta tuya y espera a que te pregunten algo.',
+          ],
+          doneWhen: 'Han usado al menos una frase de hoy sin que se lo pidieras.',
+          next: 'Cierra la clase y marca lo que has visto.',
+        },
+      },
+      close: {
+        recap: {
+          now: 'Devuélveles lo que han conseguido hoy y luego márcalo con honestidad.',
+          do: [
+            'Lee las frases que han usado y deja que digan su favorita una vez más.',
+            'Nombra una cosa concreta que ha mejorado. No «muy bien».',
+            'Luego repasa la lista y marca lo que has visto de verdad.',
+          ],
+          studentDoes: [
+            'Oyen lo que han logrado y dicen una frase por última vez.',
+          ],
+          lookFor: [
+            'Cuáles todavía les iluminan la cara y sobre cuáles se han quedado callados.',
+          ],
+          help: [
+            'Si la lista se hace larga, nombra las tres mejores y para ahí.',
+          ],
+          challenge: [
+            'Pregunta cuál usarán antes de la próxima clase, y dónde.',
+          ],
+          doneWhen: 'Cada frase tiene una marca y el alumno ha oído algo concreto que hizo bien.',
+          next: 'Termina la clase: los deberes se construyen solos a partir de estas marcas.',
+        },
+      },
     },
   },
 }

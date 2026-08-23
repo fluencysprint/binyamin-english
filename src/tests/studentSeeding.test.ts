@@ -108,7 +108,11 @@ describe('new-student level seeding', () => {
     expect(bundle.model.preA1Stage).toBeDefined()
 
     const lesson = await createLesson(bundle.student, bundle.model, [])
-    expect(lesson.plan.objective.ref).toMatch(/^beginner:/)
+    /* The beginner pathway is the phrase curriculum: a Pre-A1 learner's
+       objective names the unit they are working through, not their internal
+       stage. `beginner:` remains valid — it is what the themed activity bank
+       falls back to once all hundred targets have been met. */
+    expect(lesson.plan.objective.ref).toMatch(/^(phrase:u\d+|beginner:P\d)$/)
   })
 
   it('an explicit placement snapshot outranks the triage choice', async () => {

@@ -738,6 +738,10 @@ const he: Dict = {
     openPractice: 'לפתוח את סבב התרגול',
     focus: 'המוקד להיום',
     none: 'אין דבר פתוח.',
+    phrases: 'משפטים',
+    phrasesCanSay: 'את אלה הם אומרים בלי עזרה — פתחו באחד מהם.',
+    phrasesShaky: 'אלה הפסיקו לחזור.',
+    phrasesDue: '{{count}} מיועדים להיזכרות בפתיחת השיעור היום.',
   },
   report: {
     title: 'דוח שיעור',
@@ -789,6 +793,8 @@ const he: Dict = {
       writeSentences: 'כתבו {{count}} משפטים עם {{target}}.',
       noticeLanguage: 'שימו לב ל־{{target}} השבוע ומצאו שלוש דוגמאות אמיתיות.',
       prepareAnswer: 'בואו לשיעור הבא עם תשובה מוכנה: {{question}}',
+      sayPhrases: 'אמרו את אלה בקול רם מהזיכרון, פעם ביום: {{phrases}}',
+      usePhraseFrame: 'הרכיבו שלושה משפטים משלכם עם {{frame}} (אפשר לנסות: {{words}}).',
     },
   },
   sampleReport: {
@@ -897,6 +903,18 @@ const he: Dict = {
     howToSay: 'איך מבטאים את הצליל',
   },
 
+  /* ---- Marking phrase evidence in a lesson ---------------------------- */
+  phrase: {
+    verdictTitle: 'מה באמת ראיתם?',
+    verdictRule: '“אמר לבד” פירושו ששום דבר לא היה על המסך ושלא אמרתם את זה לפניו. כל השאר הוא עדיין התקדמות אמיתית — סמנו מה שקרה, לא מה שקיוויתם שיקרה.',
+    verdict: {
+      notYet: 'עוד לא',
+      recognised: 'הבין',
+      guided: 'אמר בעזרה',
+      unaided: 'אמר לבד',
+    },
+  },
+
   student: {
     watchAndListen: 'הסתכלו והקשיבו.',
     listenToTutor: 'הקשיבו. עדיין לא צריך לדבר.',
@@ -922,6 +940,16 @@ const he: Dict = {
     fluencySprint: 'דברו {{seconds}} שניות. בלי לעצור.',
     fluencyAgain: 'אותו דבר שוב — הפעם תוך {{seconds}} שניות.',
     fluencyRecap: 'הקשיבו: הנה מה שהשתפר.',
+    phraseRecall: 'אמרו את אלה באנגלית. קודם נסו לבד, ורק אחר כך תסתכלו.',
+    phraseMeaning: 'הסתכלו. מה זה אומר?',
+    phraseListen: 'הקשיבו. עדיין לא צריך להגיד את זה.',
+    phraseListenTo: 'הקשיבו: “{{chunk}}” — עדיין לא צריך להגיד את זה.',
+    phraseRepeat: 'עכשיו אתם. אמרו את זה בקול רם.',
+    phraseSwap: 'אמרו את זה שוב — החליפו את החלק האחרון.',
+    phraseFromMeaning: 'אמרו את זה באנגלית. הפעם אין כלום על המסך.',
+    phraseExchange: 'עכשיו נדבר. השתמשו במשפטים של היום.',
+    phraseRealUse: 'פשוט דברו איתי. השתמשו באנגלית שכבר יש לכם.',
+    phraseClose: 'הנה האנגלית שהשתמשתם בה היום.',
   },
   /* ---- המסכים של הלומד עצמו ------------------------------------------ */
   studentHome: {
@@ -956,7 +984,11 @@ const he: Dict = {
       notComingBack: '“{{phrase}}” כבר לא חוזר.',
       stillWorkingOn: 'עוד שווה לעבוד על “{{phrase}}”.',
       wordsToRevisit: '{{count}} מילים לחזור אליהן: {{words}}.',
+      knownPhrases: 'את אלה אמרתם לבד, בשני ימים שונים: {{phrases}}.',
+      phrasesToRevisit: 'אלה הפסיקו לחזור — שוות עשר דקות: {{phrases}}.',
     },
+    phrasesYouCanSay: '{{count}} משפטים שאתם יודעים להגיד בלי עזרה.',
+    yourPhrases: 'משפטים שאתם יודעים להגיד',
   },
 
   practice: {
@@ -986,6 +1018,8 @@ const he: Dict = {
       write: 'כתבו {{count}} משפטים עם {{target}}.',
       notice: 'מצאו את {{target}} במקום אמיתי השבוע — סרטון, שיר, הודעה.',
       prepare: 'הכינו תשובה לזה. תישאלו על זה בשיעור הבא.',
+      sayPhrase: 'אמרו את זה באנגלית. נסו לפני שאתם מסתכלים.',
+      usePhraseFrame: 'הרכיבו {{count}} משפטים עם {{frame}} — בקול רם, עם מילים אחרות בכל פעם.',
     },
   },
 

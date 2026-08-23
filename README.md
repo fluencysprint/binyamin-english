@@ -61,6 +61,11 @@ what it asks them to do next is about them.
 - **Practice evidence, not self-report.** Each attempt is recorded as one of
   three things — produced unaided, produced after looking, not yet — which is
   what makes every claim on the next page truthful rather than encouraging.
+- **"Phrases you can say without help."** For a beginner this is the headline
+  number, and it is deliberately hard to earn: a phrase counts only after the
+  learner has produced it from its meaning alone, unaided, on two separate days
+  — one of them after the day it was taught. It moves slowly on purpose, which
+  is exactly why it is worth something when it moves.
 
 ### 3. Tutor system (behind a light access gate)
 - Student profiles and onboarding
@@ -76,6 +81,21 @@ what it asks them to do next is about them.
 - **Private tutor cards** on activities (goal, what to listen for, if they struggle /
   succeed, how to explain, models, practice, what to avoid), kept behind progressive
   disclosure so teaching theory never sits between the tutor and the next line
+- **A phrase-first Pre-A1 → early-A1 curriculum**: 100 high-utility spoken chunks and
+  sentence frames across ten units — meeting people, *repair language*, introductions,
+  talking about yourself, wants and needs, questions, everyday actions, conversation
+  reactions, practical situations, social planning. Repair language ("I don't
+  understand", "Can you say that again?", "What does ___ mean?") is taught **second**,
+  because without it a beginner's only strategy is to nod. Most targets carry a
+  substitutable slot, so a learner leaves with `Can I have ___, please?` rather than
+  ten memorized sentences.
+- **A beginner lesson has a spine, not a playlist**: come back to what's due (cold,
+  from meaning, before anything new) → meet it in a situation → model it → say it →
+  swap the words in the slot → **ask for it with nothing on the screen** → put it
+  together in a two-line exchange → an unscripted minute of real use → close and mark
+  what actually happened. Eight to ten new targets for an adult, six for a
+  five-year-old, and the count comes *down* when the evidence says the last lessons
+  have not landed.
 - **Grammar library** (A1–C1) and **pronunciation curriculum**, each entry carrying the
   full teaching sequence — meaning first, then model, notice, guided practice,
   retrieval, real use, and the exact words to say when correcting
@@ -91,6 +111,19 @@ what it asks them to do next is about them.
   and word banks — all derived from the same content banks the tutor guidance is built
   from, in the language selected right now. Support is present but closed, so nothing
   is on screen before the attempt.
+- **Per-phrase evidence, on four rungs.** At the moments production is actually
+  asked for, the tutor marks each target: *not yet · understood it · said it with
+  help · said it alone* — and the screen states what the last one means, because the
+  entire system rests on that one distinction. A phrase reaches "you can say this"
+  only after unaided production **on two different days, at least one of them after
+  the day it was taught**. Nothing can look mastered because it was shown, repeated,
+  or produced with the answer on screen. Anything that falls short comes back: due in
+  the next lesson if it has stopped arriving, three weeks out once it is solid.
+- **Homework that retrieves the lesson rather than extending it.** A beginner's set is
+  their own targets from today, cued from the *meaning* in their own language with the
+  English held back, plus one frame to fill with their own words. Nothing new is
+  introduced, and a phrase they could not say once is left for the tutor to re-teach
+  rather than sent home as a reminder that they failed.
 - **Fast correction capture** and a **persistent learning model** with spaced review
 - **A fix drill built from the learner's own recurring slips.** Once the same mistake
   has been captured in two lessons, "I am agree" → "I agree" becomes production
@@ -183,6 +216,16 @@ reason for it) is rebuilt from that id at render time by
 deliberate: switching the picker re-renders a lesson in the new language with no
 regeneration and no migration, and a plan saved months ago carries no stale
 English because it never carried any prose to begin with.
+
+The phrase curriculum follows exactly the same split. Every chunk, slot filler and
+example is English the learner is meant to hear and say, and is never translated;
+the one localized field is what the chunk **means**, because a learner with no
+English cannot be shown `Can I have ___, please?` and left to infer it — and the
+retrieval steps cue *from* that meaning, so it is the only thing on screen at the
+moment that matters most. The tutor's instructions for a phrase block are written
+once per block rather than once per phrase: the move for meeting a new chunk is the
+same whether the chunk is "Hello." or "Can we make it later?", and a tutor should
+meet the same six shapes every week until they stop needing to read them.
 
 Guidance prose written in code lives in [`src/locales/guide`](./src/locales/guide);
 prose that belongs to a content bank entry is keyed by content id in
@@ -283,10 +326,11 @@ prerendered HTML), contact handling, brand/name discipline, glyph safety, and
 end-to-end public/tutor flows (assessment → snapshot → booking, onboarding →
 dashboard, tutor gate, RTL switching, 404).
 
-Four suites carry most of the pedagogy and safety guarantees:
+A handful of suites carry most of the pedagogy and safety guarantees:
 
 | Suite | What it protects |
 | --- | --- |
+| `src/curriculum/phraseCurriculum.test.ts` | The mastery claim, attacked from several directions: a phrase shown, repeated, or produced with the answer on screen never reaches "you can say this"; unaided production on the teaching day alone is not enough; a phrase that stops coming back is due immediately; homework retrieves what the lesson taught and introduces nothing; and the retrieval screens carry the meaning with the English held off |
 | `src/tests/curriculum.test.ts` | The coverage matrix: every CEFR level has enough grammar, every declared pronunciation area has teaching content, every Pre-A1 stage × audience can fill a lesson without repeating, and no concept opens with an abstract rule or unexplained jargon |
 | `src/lessons/microSteps.test.ts` | Every activity, for every learner profile in the audit matrix, produces steps with all nine sections filled and an age-appropriate length |
 | `src/tests/educationalDecisions.test.ts` | The decisions themselves: a P0 child and a P0 older adult get different lessons, oral ability above reading ability never produces a paragraph, a repeated error picks the next objective, spaced review returns, and mastery needs repeated evidence |
@@ -304,7 +348,10 @@ overflow and rendered-rectangle overlap in all five locales, Hebrew RTL includin
 mixed Hebrew/English punctuation, live locale switching across several student
 profiles, speech playback and its failure path, dark mode, mobile keyboard
 semantics and validation messages, mode isolation, the manifest and every icon it
-declares, and the runtime SEO head.
+declares, and the runtime SEO head. `e2e/phraseLesson.spec.ts` runs a real beginner
+lesson: the tutor is not asked for a verdict before the learner has been asked for
+anything, the learner's retrieval screen carries the meaning and no English, and a
+phrase marked (or a word captured) mid-lesson is still there after a refresh.
 
 ---
 
@@ -417,6 +464,8 @@ src/
   audio/         Recorder hook + UI, playback/comparison list
   booking/       Inquiry formatting (copy-to-clipboard)
   components/    Reusable UI (layout, controls, modal, toast, ui primitives)
+  curriculum/    The 100-phrase Pre-A1 inventory, its mastery/recurrence engine,
+                 and the beginner lesson composer built from them
   data/          IndexedDB layer, backup, settings, content banks, example seed
   i18n/          Lightweight i18n provider + dictionary utilities
   lessons/       Lesson generator, activity content, completion logic, briefing

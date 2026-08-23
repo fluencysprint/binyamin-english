@@ -12,6 +12,7 @@ import { UILanguage } from '../types'
 import { grammarLibrary } from './grammarLibrary'
 import { pronunciationLibrary } from './pronunciationLibrary'
 import { beginnerActivities } from '../lessons/beginnerContent'
+import { phraseCurriculum } from '../curriculum/phrases'
 
 export interface ContentString {
   key: string
@@ -109,11 +110,34 @@ export function beginnerContentStrings(): ContentString[] {
   return out
 }
 
+/* ---- The phrase curriculum ---------------------------------------------- */
+
+/**
+ * A phrase target has exactly ONE translated field, and it is the important
+ * one: what the chunk means.
+ *
+ * Everything else about a phrase — the chunk, the slot fillers, the examples,
+ * the reply — is English the learner is meant to hear and say, and translating
+ * any of it would be translating the lesson. But a learner with no English at
+ * all cannot be shown "Can I have ___, please?" and left to infer it, and the
+ * retrieval steps cue FROM the meaning, so this string is the only thing on
+ * the screen at the moment that matters most. It falls back to English like
+ * every other content key, which is why it is audited here.
+ */
+export const phraseTextKey = (id: string, field: string) => `phrase.${id}.${field}`
+
+export function phraseContentStrings(): ContentString[] {
+  const out: ContentString[] = []
+  for (const p of phraseCurriculum) push(out, phraseTextKey(p.id, 'meaning'), p.meaning)
+  return out
+}
+
 /** Every content key that must exist in every non-English locale. */
 export function contentStrings(): ContentString[] {
   return [
     ...grammarContentStrings(),
     ...pronunciationContentStrings(),
     ...beginnerContentStrings(),
+    ...phraseContentStrings(),
   ]
 }

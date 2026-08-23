@@ -1,5 +1,6 @@
 import { HomeworkTask, ImprovementItem, LessonReport, ReportTopic, WentWellItem } from '../types'
 import { conceptTitle, localizedTitle } from '../lessons/guidance'
+import { getPhrase } from '../curriculum/phrases'
 import { useI18n } from '../i18n/I18nProvider'
 import { ArrowRightIcon, PrinterIcon } from '../components/icons'
 import { useToast } from '../components/Toast'
@@ -95,6 +96,21 @@ export function homeworkText(task: HomeworkTask, t: T, lang: UILanguage = 'en'):
       return t('report.homeworkItem.noticeLanguage', { target: task.target })
     case 'prepareAnswer':
       return t('report.homeworkItem.prepareAnswer', { question: task.question })
+    /* The phrases keep their English; what the learner reads is the
+       instruction around them. Chunks are joined with a middle dot rather
+       than commas because several of them end in a comma of their own. */
+    case 'sayPhrases':
+      return t('report.homeworkItem.sayPhrases', {
+        phrases: task.ids
+          .map((id) => getPhrase(id)?.chunk)
+          .filter(Boolean)
+          .join(' · '),
+      })
+    case 'usePhraseFrame':
+      return t('report.homeworkItem.usePhraseFrame', {
+        frame: getPhrase(task.id)?.chunk ?? task.id,
+        words: task.slots.join(', '),
+      })
   }
 }
 

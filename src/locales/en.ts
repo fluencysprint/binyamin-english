@@ -740,6 +740,10 @@ const en: Dict = {
     openPractice: 'Open the practice set',
     focus: 'Focus today',
     none: 'Nothing outstanding.',
+    phrases: 'Phrases',
+    phrasesCanSay: 'Says these without help — open on one of them.',
+    phrasesShaky: 'These have stopped coming back.',
+    phrasesDue: '{{count}} due for recall at the start of today’s lesson.',
   },
   report: {
     title: 'Lesson report',
@@ -791,6 +795,8 @@ const en: Dict = {
       writeSentences: 'Write {{count}} sentences using {{target}}.',
       noticeLanguage: 'Listen out for {{target}} this week. Notice three real examples.',
       prepareAnswer: 'Come to the next lesson with an answer ready: {{question}}',
+      sayPhrases: 'Say these out loud from memory, once a day: {{phrases}}',
+      usePhraseFrame: 'Make three sentences of your own with {{frame}} (try: {{words}}).',
     },
   },
   sampleReport: {
@@ -900,6 +906,18 @@ const en: Dict = {
     howToSay: 'How to make this sound',
   },
 
+  /* ---- Marking phrase evidence in a lesson ---------------------------- */
+  phrase: {
+    verdictTitle: 'What did you actually see?',
+    verdictRule: '“Said it alone” means nothing was on the screen and you did not say it first. Everything else is still real progress — mark what happened, not what you hoped for.',
+    verdict: {
+      notYet: 'Not yet',
+      recognised: 'Understood it',
+      guided: 'Said it with help',
+      unaided: 'Said it alone',
+    },
+  },
+
   student: {
     watchAndListen: 'Watch and listen.',
     listenToTutor: 'Listen. You do not have to speak yet.',
@@ -925,6 +943,16 @@ const en: Dict = {
     fluencySprint: 'Talk for {{seconds}} seconds. Do not stop.',
     fluencyAgain: 'Same thing again — {{seconds}} seconds this time.',
     fluencyRecap: 'Listen — here is what got better.',
+    phraseRecall: 'Say these in English. Try first, then look.',
+    phraseMeaning: 'Watch. What does this mean?',
+    phraseListen: 'Listen. You do not have to say it yet.',
+    phraseListenTo: 'Listen: “{{chunk}}” — you do not have to say it yet.',
+    phraseRepeat: 'Now you. Say it out loud.',
+    phraseSwap: 'Say it again — change the last part.',
+    phraseFromMeaning: 'Say it in English. Nothing on the screen this time.',
+    phraseExchange: 'Now we talk. Use today’s phrases.',
+    phraseRealUse: 'Just talk with me. Use the English you have.',
+    phraseClose: 'Here is the English you used today.',
   },
   /* ---- The learner's own screens ------------------------------------- */
   studentHome: {
@@ -959,7 +987,11 @@ const en: Dict = {
       notComingBack: '“{{phrase}}” has stopped coming back.',
       stillWorkingOn: 'Still worth working on: “{{phrase}}”.',
       wordsToRevisit: '{{count}} words to look at again: {{words}}.',
+      knownPhrases: 'You said these on your own, on two different days: {{phrases}}.',
+      phrasesToRevisit: 'These have stopped coming back — worth ten minutes: {{phrases}}.',
     },
+    phrasesYouCanSay: '{{count}} phrases you can say without help.',
+    yourPhrases: 'Phrases you can say',
   },
 
   practice: {
@@ -989,6 +1021,8 @@ const en: Dict = {
       write: 'Write {{count}} sentences using {{target}}.',
       notice: 'Find {{target}} somewhere real this week — a video, a song, a message.',
       prepare: 'Get an answer ready for this. You will be asked at the next lesson.',
+      sayPhrase: 'Say this in English. Try before you look.',
+      usePhraseFrame: 'Make {{count}} sentences with {{frame}} — out loud, with different words each time.',
     },
   },
 

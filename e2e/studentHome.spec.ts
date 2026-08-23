@@ -69,12 +69,22 @@ async function answerAll(page: Page, outcome: RegExp = /i got it/i, check?: () =
       break
     }
     await check?.()
-    const reveal = page.getByRole('button', { name: /show the answer/i })
+    /* Every interaction here is bounded and re-evaluated rather than awaited
+       indefinitely. Between two items React briefly holds the old card and the
+       new one, so a control that was visible a tick ago can be detached by the
+       time the click lands — which used to leave the walk waiting thirty
+       seconds for a button the finished set no longer had. `.first()` for the
+       same reason: a bare multi-match throws under strict mode. */
+    const reveal = page.getByRole('button', { name: /show the answer/i }).first()
+    const done = page.getByRole('button', { name: /^done$/i }).first()
+    const tap = (l: ReturnType<typeof page.getByRole>) =>
+      l.click({ timeout: 3000 }).then(() => true, () => false)
+
     if (await reveal.isVisible().catch(() => false)) {
-      await reveal.click()
-      await page.getByRole('button', { name: outcome }).click()
-    } else {
-      await page.getByRole('button', { name: /^done$/i }).click()
+      if (!(await tap(reveal))) continue
+      if (!(await tap(page.getByRole('button', { name: outcome }).first()))) continue
+    } else if (!(await tap(done))) {
+      continue
     }
     answered++
   }

@@ -1,0 +1,67 @@
+.panel {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.head {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.head p {
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.row {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--border);
+}
+
+.row:last-child {
+  border-block-end: 0;
+  padding-block-end: 0;
+}
+
+.chunk {
+  font-weight: 600;
+  /* The English target is the anchor of the row, so it stays readable at the
+     size a tutor glances at mid-conversation. */
+  font-size: var(--fs-md);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  flex: 1 1 auto;
+  min-width: 8ch;
+  text-align: center;
+}
+
+/* Only the rung that claims memory is coloured. Four coloured chips would be
+   a rating scale; one is a distinction worth making. */
+.unaided[aria-pressed='true'] {
+  background: var(--ok-tint);
+  border-color: var(--ok);
+}
+
+@media (min-width: 640px) {
+  .row {
+    grid-template-columns: minmax(12ch, 22ch) 1fr;
+    align-items: center;
+  }
+}

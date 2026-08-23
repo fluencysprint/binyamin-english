@@ -15,7 +15,7 @@ import {
   reviewHomework,
 } from '../students/studentService'
 import { buildBriefing } from '../lessons/briefing'
-import { objectiveRationale, objectiveTitle } from '../lessons/guidance'
+import { localizedTitle, objectiveRationale, objectiveTitle } from '../lessons/guidance'
 import { teachingStringsStatus, useTeachingStrings } from '../i18n/teachingStrings'
 import { HomeworkCard, LessonBriefingCard, ProgressSummary } from './ProgressView'
 import { getAudioMetaForStudent } from '../data/db'
@@ -235,7 +235,15 @@ export function StudentDashboardPage() {
                       <span className={styles.phaseTime} dir="ltr">
                         {p.startMin}–{p.endMin}
                       </span>
-                      <span className={styles.phaseName}>{t(`phases.${p.kind}`)}</span>
+                      {/* A phrase lesson's phases are six repeats of three
+                          kinds, so the kind name says nothing useful — its
+                          title names the English being taught, which is the
+                          only thing worth reading in a plan preview. */}
+                      <span className={styles.phaseName} dir="auto">
+                        {p.activities[0]?.guide?.src === 'phrase'
+                          ? localizedTitle(lang, p)
+                          : t(`phases.${p.kind}`)}
+                      </span>
                     </li>
                   ))}
                 </ol>
