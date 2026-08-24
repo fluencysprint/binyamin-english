@@ -3,6 +3,8 @@ import { useI18n } from '../i18n/I18nProvider'
 import { LockIcon } from '../components/icons'
 import { useModeAccess } from '../app/ModeGate'
 import { Bdi } from '../components/Bdi'
+import { BidiText } from '../components/BidiText'
+import { hasRTL } from '../utils/bidi'
 import styles from './TutorCardView.module.css'
 
 /** Renders a private tutor card. Hidden entirely in Student and Together modes
@@ -12,14 +14,19 @@ export function TutorCardView({ card }: { card?: TutorCard }) {
   const access = useModeAccess()
   if (!card || !access.tutorGuidance) return null
 
+  /* Some sections are always the English being taught (model, practice,
+     listenFor); others (avoid, in particular) are tutor instructions that
+     localize. A blanket dir="ltr" here was correct for the first kind and
+     silently broke list markers for the second — each item picks its own
+     direction from what it actually contains. */
   const section = (label: string, items: string[]) =>
     items.length > 0 && (
       <div className={styles.section}>
         <div className={styles.label}>{label}</div>
         <ul className={styles.list}>
           {items.map((it, i) => (
-            <li key={i} dir="ltr">
-              {it}
+            <li key={i} dir={hasRTL(it) ? 'rtl' : 'ltr'}>
+              <BidiText text={it} block />
             </li>
           ))}
         </ul>
@@ -38,16 +45,22 @@ export function TutorCardView({ card }: { card?: TutorCard }) {
       <div className={styles.twoCol}>
         <div className={styles.section}>
           <div className={styles.label}>{t('lesson.ifStruggle')}</div>
-          <p dir="ltr">{card.ifStruggle}</p>
+          <p dir={hasRTL(card.ifStruggle) ? 'rtl' : 'ltr'}>
+            <BidiText text={card.ifStruggle} />
+          </p>
         </div>
         <div className={styles.section}>
           <div className={styles.label}>{t('lesson.ifSucceed')}</div>
-          <p dir="ltr">{card.ifSucceed}</p>
+          <p dir={hasRTL(card.ifSucceed) ? 'rtl' : 'ltr'}>
+            <BidiText text={card.ifSucceed} />
+          </p>
         </div>
       </div>
       <div className={styles.section}>
         <div className={styles.label}>{t('lesson.howToExplain')}</div>
-        <p dir="ltr">{card.howToExplain}</p>
+        <p dir={hasRTL(card.howToExplain) ? 'rtl' : 'ltr'}>
+          <BidiText text={card.howToExplain} />
+        </p>
       </div>
       {section(t('lesson.model'), card.model)}
       {section(t('lesson.practice'), card.practice)}

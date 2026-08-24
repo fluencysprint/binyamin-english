@@ -229,7 +229,7 @@ export function LessonBriefingCard({
             <ul className={styles.list}>
               {briefing.homework.map((task, i) => (
                 <li key={i} className={styles.why} dir="auto">
-                  <BidiText text={homeworkText(task, t, lang)} />
+                  <BidiText text={homeworkText(task, t, lang)} block />
                 </li>
               ))}
             </ul>
@@ -333,7 +333,7 @@ export function HomeworkCard({ tasks, studentId }: { tasks: HomeworkTask[]; stud
       <ul className={styles.list}>
         {tasks.map((task, i) => (
           <li key={i} className={styles.why} dir="auto">
-            <BidiText text={homeworkText(task, t, lang)} />
+            <BidiText text={homeworkText(task, t, lang)} block />
           </li>
         ))}
       </ul>

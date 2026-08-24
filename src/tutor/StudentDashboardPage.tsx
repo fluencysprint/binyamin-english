@@ -22,6 +22,7 @@ import { getAudioMetaForStudent } from '../data/db'
 import { overallCefr } from '../utils/cefr'
 import { useModeAccess } from '../app/ModeGate'
 import { Bdi } from '../components/Bdi'
+import { BidiText } from '../components/BidiText'
 import { ArrowLeftIcon } from '../components/icons'
 import styles from './StudentDashboardPage.module.css'
 
@@ -240,9 +241,11 @@ export function StudentDashboardPage() {
                           title names the English being taught, which is the
                           only thing worth reading in a plan preview. */}
                       <span className={styles.phaseName} dir="auto">
-                        {p.activities[0]?.guide?.src === 'phrase'
-                          ? localizedTitle(lang, p)
-                          : t(`phases.${p.kind}`)}
+                        {p.activities[0]?.guide?.src === 'phrase' ? (
+                          <BidiText text={localizedTitle(lang, p)} block />
+                        ) : (
+                          t(`phases.${p.kind}`)
+                        )}
                       </span>
                     </li>
                   ))}

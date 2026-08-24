@@ -290,6 +290,20 @@ a {
   color: var(--brand-strong);
 }
 
+/* ---- Mixed-direction phrase lists (see BidiText's `block` prop) ---- */
+/* Several English phrases embedded in RTL prose (`Goodbye. · Can you say
+   that again, please?`) render as their own LTR block, one phrase per line,
+   rather than one long inline run that has to wrap inside the surrounding
+   RTL paragraph — see BidiText.tsx for why that wrapping breaks. */
+.bidi-phrases {
+  display: grid;
+  gap: var(--sp-1);
+}
+.bidi-phrase {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
 /* ---- Badges ---- */
 .badge {
   display: inline-flex;

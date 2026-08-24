@@ -6,6 +6,7 @@ import { useModeAccess } from '../app/ModeGate'
 import { TutorCardView } from './TutorCardView'
 import { Bdi } from '../components/Bdi'
 import { BidiText } from '../components/BidiText'
+import { hasRTL } from '../utils/bidi'
 import { quoted } from '../utils/quotes'
 import {
   ArrowRightIcon,
@@ -72,8 +73,8 @@ export function MicroStepView({
             </span>
           </span>
         </div>
-        <p className={styles.nowText} dir="ltr">
-          {step.now}
+        <p className={styles.nowText} dir={hasRTL(step.now) ? 'rtl' : 'ltr'}>
+          <BidiText text={step.now} />
         </p>
       </header>
 
@@ -195,8 +196,8 @@ function List({ items }: { items: string[] }) {
   return (
     <ul className={styles.list}>
       {items.map((item, i) => (
-        <li key={i} dir="ltr">
-          {item}
+        <li key={i} dir={hasRTL(item) ? 'rtl' : 'ltr'}>
+          <BidiText text={item} block />
         </li>
       ))}
     </ul>

@@ -82,17 +82,28 @@
   margin-bottom: var(--sp-1);
 }
 
+/* Bullets are drawn with `::before`, scoped to each LI's own direction —
+   not a native `::marker`, which is positioned relative to the shared <ul>'s
+   direction and drifts off an item whose own dir disagrees with it (a
+   Hebrew instruction next to an English exemplar in the same list). See
+   ReportView.module.css `.list` for the same pattern. */
 .list {
   margin: 0;
-  padding-inline-start: var(--sp-4);
+  list-style: none;
+  padding-inline-start: 0;
   display: grid;
   gap: var(--sp-1);
   line-height: var(--lh-snug);
 }
 .list li {
-  /* English exemplars stay LTR even under an RTL tutor UI. */
-  unicode-bidi: plaintext;
+  position: relative;
+  padding-inline-start: var(--sp-4);
   text-align: start;
+}
+.list li::before {
+  content: '•';
+  position: absolute;
+  inset-inline-start: 0;
 }
 .quotes {
   list-style: none;
@@ -100,6 +111,12 @@
   font-size: var(--fs-lg);
   font-weight: 600;
   margin-bottom: var(--sp-2);
+}
+.quotes li {
+  padding-inline-start: 0;
+}
+.quotes li::before {
+  content: none;
 }
 
 /* Colour-coding: the tutor learns the stripe faster than the label. */

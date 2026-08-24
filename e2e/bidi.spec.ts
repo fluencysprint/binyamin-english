@@ -305,15 +305,29 @@ test('an English sentence inside Hebrew homework wraps cleanly at 320px with no 
   )
   expect(overflow).toBeLessThanOrEqual(1)
 
-  // "She doesn't like it" is one of the embedded English corrections in the
-  // first homework task — it must render as an intact, LTR-isolated phrase.
-  const phrase = page.locator('bdi[dir="ltr"]', { hasText: "She doesn't like it" })
+  // The first homework task quotes TWO corrections joined by the app's
+  // phrase separator (" · "). BidiText's `block` prop renders 2+ joined
+  // phrases as their own LTR list — one `.bidi-phrase` per item — rather
+  // than one long inline run, which is what stops a phrase from scattering
+  // its punctuation when it has to wrap inside the surrounding RTL
+  // paragraph. "She doesn't like it" must render as an intact, LTR phrase.
+  const phrase = page.locator('.bidi-phrase', { hasText: "She doesn't like it" })
   await expect(phrase.first()).toBeVisible()
   expect(await phrase.first().evaluate((el) => getComputedStyle(el).direction)).toBe('ltr')
   const box = await phrase.first().boundingBox()
   expect(box).toBeTruthy()
   expect(box!.x).toBeGreaterThanOrEqual(0)
   expect(box!.x + box!.width).toBeLessThanOrEqual(321)
+
+  // The task's OTHER correction is a separate phrase line, not glued to this
+  // one with a bullet in between — the exact defect the screenshots behind
+  // this fix showed (several English phrases run together inside Hebrew
+  // prose, hard to parse and prone to wrapping mid-sentence).
+  const otherPhrase = page.locator('.bidi-phrase', { hasText: "I went to my cousin's house" })
+  await expect(otherPhrase.first()).toBeVisible()
+  const otherBox = await otherPhrase.first().boundingBox()
+  expect(otherBox).toBeTruthy()
+  expect(Math.abs(otherBox!.y - box!.y)).toBeGreaterThan(10)
 })
 
 /* ==========================================================================
@@ -388,5 +402,59 @@ test('the tutor SAY block quotes a line exactly once', async ({ page }) => {
     // Exactly one outer pair.
     expect(line.startsWith('“') && line.endsWith('”'), line).toBe(true)
     expect(line.slice(1, -1)).not.toContain('“')
+  }
+})
+
+/* ==========================================================================
+   The beginner phrase curriculum's lesson-preview list joins several full
+   English phrases with " · " inside a Hebrew phase title (e.g.
+   `חדש: Hello. · Good ___.`). Screenshotted failure: that run wrapped as one
+   long inline isolate inside the RTL list, so a trailing "?" could lead the
+   wrapped line and separate phrases ran together behind a bullet. BidiText's
+   `block` prop renders each phrase as its own line instead — this checks
+   that shape actually lands in a real layout, at phone width, in Hebrew.
+   ========================================================================== */
+
+test('a multi-phrase lesson-preview title renders each English phrase on its own line, not glued behind a bullet', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 900 })
+  await page.goto('/tutor')
+  await page.evaluate(() => localStorage.setItem('ewb:hideLessonOrientation', 'true'))
+  await page.getByPlaceholder(/access phrase/i).fill(TUTOR_GATE_PHRASE)
+  await page.getByRole('button', { name: /unlock/i }).click()
+  await page.goto('/tutor/data')
+  await page.getByLabel(/language/i).selectOption('he')
+  // Alex is the preA1 beginner profile the phrase curriculum drives — its
+  // first lesson preview always opens on a multi-phrase "meet" block.
+  await page.getByRole('button', { name: /Alex/ }).click()
+  await page.waitForURL(/\/tutor\/student\//)
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )
+  expect(overflow).toBeLessThanOrEqual(1)
+
+  const phraseGroup = page.locator('.bidi-phrases').first()
+  await expect(phraseGroup).toBeVisible()
+  expect(await phraseGroup.evaluate((el) => getComputedStyle(el).direction)).toBe('ltr')
+
+  const phrases = phraseGroup.locator('.bidi-phrase')
+  const count = await phrases.count()
+  expect(count).toBeGreaterThan(1)
+
+  // No bullet/middle-dot leaks into a rendered phrase line — the whole point
+  // of splitting on it was to stop phrases running together behind one.
+  for (const text of await phrases.allInnerTexts()) expect(text).not.toContain('·')
+
+  // Each phrase sits on its own line and inside the viewport — never
+  // overlapping the one before it, never clipped past the right edge.
+  const boxes = await phrases.evaluateAll((els) => els.map((el) => el.getBoundingClientRect()))
+  for (let i = 1; i < boxes.length; i++) {
+    expect(boxes[i].y).toBeGreaterThan(boxes[i - 1].y)
+  }
+  for (const box of boxes) {
+    expect(box.x).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width).toBeLessThanOrEqual(391)
   }
 })

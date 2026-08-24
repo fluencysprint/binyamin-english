@@ -139,6 +139,40 @@ describe('splitBidiRuns', () => {
   })
 })
 
+describe('splitBidiRuns phrase lists', () => {
+  /* Regression: `guide.title.phrase.meet` etc join several full English
+     sentences with " · " (`phraseList`), and `report.homeworkItem.sayPhrases`
+     does the same. Two or more of them inside one Hebrew sentence must come
+     back as a `phrases` array so a caller can render them as their own LTR
+     block instead of one long inline run that scatters punctuation when it
+     wraps across a line inside the RTL paragraph. */
+  it('splits a run of 2+ " · "-joined phrases into a phrases array', () => {
+    const text = 'חדש: Goodbye. · Can you say that again, please? · Can you speak slowly, please?'
+    const runs = splitBidiRuns(text).filter((r) => r.isolate)
+    expect(runs).toHaveLength(1)
+    expect(runs[0].phrases).toEqual([
+      'Goodbye.',
+      'Can you say that again, please?',
+      'Can you speak slowly, please?',
+    ])
+  })
+
+  it('does not treat a single phrase as a phrase list', () => {
+    const runs = splitBidiRuns('חדש: Just a moment, please.').filter((r) => r.isolate)
+    expect(runs[0].phrases).toBeUndefined()
+  })
+
+  it('does not treat a comma-joined word list as a phrase list', () => {
+    const runs = splitBidiRuns('נסו: afternoon, evening').filter((r) => r.isolate)
+    expect(runs[0].phrases).toBeUndefined()
+  })
+
+  it('never adds, drops or reorders a character for a phrase-list run', () => {
+    const text = 'חדש: Goodbye. · Can you say that again, please? · Can you speak slowly, please?'
+    expect(rejoin(text)).toBe(text)
+  })
+})
+
 describe('hasRTL', () => {
   it('is true for any text containing a Hebrew character, mixed or not', () => {
     expect(hasRTL('עברית בלבד')).toBe(true)

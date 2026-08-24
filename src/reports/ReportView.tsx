@@ -313,7 +313,7 @@ export function ReportView({
               const text = homeworkText(task, t, lang)
               return (
                 <li key={i} dir={hasRTL(text) ? 'auto' : 'ltr'}>
-                  <BidiText text={text} />
+                  <BidiText text={text} block />
                 </li>
               )
             })}

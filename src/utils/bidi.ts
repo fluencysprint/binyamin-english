@@ -46,10 +46,22 @@ const CLOSER_OF: Record<string, string> = Object.fromEntries(
   Object.entries(OPENER_FOR).map(([closer, opener]) => [opener, closer]),
 )
 
+/** Separator this app joins phrase/chunk lists with (`phraseList`,
+ *  `homeworkText`'s `sayPhrases`) — never used for a short word list, which
+ *  joins on `, ` instead. Its presence inside an isolate run is therefore an
+ *  unambiguous signal that the run is several full phrases, not one. */
+const PHRASE_SEP = ' · '
+
 export interface BidiRun {
   text: string
   /** True when this run must be rendered inside its own LTR isolate. */
   isolate: boolean
+  /** Set when `text` is 2+ phrases joined by `PHRASE_SEP`. A consumer that
+   *  opts in (`BidiText`'s `block` prop) can render these as a dedicated
+   *  LTR list instead of one long inline run — the shape that survives
+   *  wrapping inside an RTL paragraph without scattering punctuation or
+   *  gluing sentences together across a line break. */
+  phrases?: string[]
 }
 
 /**
@@ -125,8 +137,30 @@ export function splitBidiRuns(text: string): BidiRun[] {
       if (closer && text.slice(start, end + 1).includes(closer)) start = lead
     }
 
+    // The LAST phrase in a " · "-joined list has nothing after it to push
+    // `end` past its own terminal punctuation — every earlier phrase's `?`
+    // or `.` sits BEFORE the next phrase's letters and rides along for free,
+    // but the final one has no such letter to hide behind, so it was left
+    // outside the isolate for the outer (Hebrew) context to place — which is
+    // where a trailing "?" ending up on the wrong visual line comes from. A
+    // single embedded fragment with no PHRASE_SEP keeps the old behaviour
+    // (its trailing punctuation may genuinely belong to the Hebrew sentence).
+    if (text.slice(start, end + 1).includes(PHRASE_SEP)) {
+      let r = end + 1
+      while (r < text.length && /[.!?…]/.test(text[r])) r++
+      if (r > end + 1) end = r - 1
+    }
+
     if (start > cursor) runs.push({ text: text.slice(cursor, start), isolate: false })
-    runs.push({ text: text.slice(start, end + 1), isolate: true })
+    const runText = text.slice(start, end + 1)
+    const phrases = runText.includes(PHRASE_SEP)
+      ? runText.split(PHRASE_SEP).map((p) => p.trim()).filter(Boolean)
+      : []
+    runs.push(
+      phrases.length > 1
+        ? { text: runText, isolate: true, phrases }
+        : { text: runText, isolate: true },
+    )
     cursor = end + 1
     i = end + 1
   }

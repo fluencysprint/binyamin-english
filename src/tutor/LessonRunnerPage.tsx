@@ -57,6 +57,8 @@ import { formatDuration } from '../utils/time'
 import { setActiveLessonId } from '../data/settings'
 import { uid } from '../utils/id'
 import { Bdi } from '../components/Bdi'
+import { BidiText } from '../components/BidiText'
+import { hasRTL } from '../utils/bidi'
 import { ArrowLeftIcon, FamilyIcon, PauseIcon, PlayIcon, TimerIcon } from '../components/icons'
 import { StepActionBar } from './StepActionBar'
 import { PhraseVerdictPanel } from './PhraseVerdictPanel'
@@ -542,9 +544,11 @@ export function LessonRunnerPage() {
                   "Speaking & listening" says nothing about where the tutor is.
                   Its own title names the English being taught, which does. */}
               <span className={styles.phaseName} dir="auto">
-                {phase.activities[0]?.guide?.src === 'phrase'
-                  ? localizedTitle(lang, phase)
-                  : t(`phases.${phase.kind}`)}{' '}
+                {phase.activities[0]?.guide?.src === 'phrase' ? (
+                  <BidiText text={localizedTitle(lang, phase)} />
+                ) : (
+                  t(`phases.${phase.kind}`)
+                )}{' '}
                 · {phase.startMin}–{phase.endMin} {t('common.minutes')}
               </span>
               <span className="muted">
@@ -678,10 +682,12 @@ export function LessonRunnerPage() {
                     {steps.map((s, i) => (
                       <li key={s.id} aria-current={i === stepIndex ? 'step' : undefined}>
                         <button type="button" className="btn btn-sm btn-ghost" onClick={() => goStep(i)}>
-                          <span className="muted" dir="ltr">
-                            {t(`moves.${s.move}`)}
+                          <span className="muted" dir={hasRTL(t(`moves.${s.move}`)) ? 'rtl' : 'ltr'}>
+                            <BidiText text={t(`moves.${s.move}`)} />
                           </span>{' '}
-                          <span dir="ltr">{s.now}</span>
+                          <span dir={hasRTL(s.now) ? 'rtl' : 'ltr'}>
+                            <BidiText text={s.now} />
+                          </span>
                         </button>
                       </li>
                     ))}
