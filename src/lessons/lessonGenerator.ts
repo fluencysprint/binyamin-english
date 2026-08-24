@@ -434,15 +434,27 @@ function communicationActivity(
  * pronunciation moment (or, if today's whole objective WAS pronunciation, the
  * objective itself) is what improved; whichever of the two this lesson did
  * NOT already spend on is naturally what's still open for next time.
+ *
+ * IDs go in the params, not pre-formatted English — turning "g_present_perfect"
+ * or a pronunciation area into a sentence a tutor would actually say is
+ * `guidance.ts`'s job (see `feedbackSay`), because it already owns every other
+ * piece of English spoken in this app and is where that phrasing can be
+ * audited and tested as one thing.
  */
 function feedbackActivity(
-  objective: Pick<ObjectiveChoice, 'title' | 'kind'>,
+  objective: Pick<ObjectiveChoice, 'ref' | 'title' | 'kind' | 'better'>,
   pronArea: string | undefined,
 ): LessonActivity {
-  const pronTitle = pronArea ? getPronunciationByArea(pronArea)?.title : undefined
   const isPronObjective = objective.kind === 'pronunciation'
-  const focus = isPronObjective ? objective.title : pronTitle
-  const next = isPronObjective ? pronTitle : objective.title
+  const focusPronArea = isPronObjective ? objective.ref : pronArea
+  const nextPronArea = isPronObjective ? pronArea : undefined
+  const nextGrammarId = !isPronObjective && objective.kind === 'grammar' ? objective.ref : undefined
+  const nextPattern = !isPronObjective && objective.kind === 'pattern' ? objective.better ?? objective.title : undefined
+  const params: Record<string, string> = {}
+  if (focusPronArea) params.focusPronArea = focusPronArea
+  if (nextPronArea) params.nextPronArea = nextPronArea
+  if (nextGrammarId) params.nextGrammarId = nextGrammarId
+  if (nextPattern) params.nextPattern = nextPattern
   return {
     id: uid('act'),
     kind: 'feedback',
@@ -450,7 +462,7 @@ function feedbackActivity(
     titleKey: 'phases.feedback',
     studentPrompt: 'Let’s look at what we practiced, what went well, and one thing to focus on next.',
     studentPromptKey: 'student.listenToFeedback',
-    guide: { src: 'feedback', params: { ...(focus ? { focus } : {}), ...(next ? { next } : {}) } },
+    guide: { src: 'feedback', params },
   }
 }
 

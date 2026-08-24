@@ -237,18 +237,124 @@ const SAY: Record<string, string[]> = {
 }
 
 /**
- * The close of the lesson names what got clearer and what's next. `focus` /
- * `next` come from what this lesson actually taught (see `feedbackActivity`
- * in lessonGenerator.ts) — filled in automatically whenever the plan carries
- * them. A legacy plan with neither still gets a concrete, ready-to-say line
- * rather than a blank a tired tutor has to invent something for.
+ * How a tutor would actually SAY each pronunciation concept out loud, rather
+ * than the noun-phrase label used to title its card — "The TH sounds (think /
+ * this)" is a menu entry, not a sentence. `subject` slots into "Your ___
+ * {was/were} much clearer today", `topic` into "let's work on ___". Audited
+ * by hand against every area in `pronunciationLibrary.ts`.
+ */
+const PRON_FEEDBACK: Record<string, { subject: string; plural: boolean; topic: string }> = {
+  th: { subject: 'TH sounds', plural: true, topic: 'the TH sounds' },
+  r: { subject: 'American R', plural: false, topic: 'the American R' },
+  l: { subject: 'two Ls', plural: true, topic: 'the two Ls' },
+  vw: { subject: 'V and W sounds', plural: true, topic: 'V and W' },
+  finalConsonants: { subject: 'word endings', plural: true, topic: 'word endings' },
+  consonantClusters: { subject: 'consonant clusters', plural: true, topic: 'consonant clusters' },
+  vowels: { subject: 'vowel sounds', plural: true, topic: 'vowel sounds' },
+  americanR: { subject: 'R-colored vowels', plural: true, topic: 'R-colored vowels' },
+  wordStress: { subject: 'word stress', plural: false, topic: 'word stress' },
+  sentenceStress: { subject: 'sentence stress', plural: false, topic: 'sentence stress' },
+  rhythm: { subject: 'rhythm', plural: false, topic: 'rhythm' },
+  reducedVowels: { subject: 'reduced vowels', plural: true, topic: 'reduced vowels' },
+  linking: { subject: 'linking', plural: false, topic: 'linking words together' },
+  intonation: { subject: 'intonation', plural: false, topic: 'intonation' },
+}
+
+/**
+ * Same idea for grammar: what a tutor says isn't the card title. Audited by
+ * hand against every id in `grammarLibrary.ts`.
+ */
+const GRAMMAR_TOPIC: Record<string, string> = {
+  g_present_be: 'the verb “to be”',
+  g_pronouns_possessives: 'pronouns and possessives',
+  g_plurals: 'plurals',
+  g_have_got: 'saying what you have',
+  g_there_is_are: '“there is” and “there are”',
+  g_present_simple: 'the present simple',
+  g_wh_questions: 'question words',
+  g_can_ability: 'using “can”',
+  g_present_continuous: 'the present continuous',
+  g_prepositions_place: 'prepositions of place',
+  g_adverbs_frequency: 'adverbs of frequency',
+  g_articles: 'articles',
+  g_past_simple: 'the past simple',
+  g_countable_quantifiers: 'quantifiers',
+  g_comparatives: 'comparatives and superlatives',
+  g_going_to: '“going to” for plans',
+  g_will_future: '“will” for the future',
+  g_past_continuous: 'the past continuous',
+  g_must_have_to: '“have to” and “must”',
+  g_prepositions_time: 'prepositions of time',
+  g_present_perfect: 'the present perfect',
+  g_used_to: '“used to”',
+  g_should_advice: 'giving advice',
+  g_gerund_infinitive: '-ing and to + verb',
+  g_conditionals: 'conditionals',
+  g_reported_speech: 'reported speech',
+  g_passive: 'the passive voice',
+  g_relative_clauses: 'relative clauses',
+  g_modals_deduction: 'modals of deduction',
+  g_third_conditional: 'the third conditional',
+  g_wish_regret: 'wishes and regrets',
+  g_causative: 'the causative',
+  g_advanced_cohesion: 'linking and cohesion',
+  g_inversion_emphasis: 'emphasis and inversion',
+  g_hedging_register: 'hedging and register',
+}
+
+/**
+ * Safety net for an id neither table above knows (a future concept added to a
+ * library but not yet audited here) — strips the parenthetical detail and
+ * outer quote marks a card title carries, so it reads as prose rather than a
+ * UI label, even though it won't be as natural as a hand-written entry.
+ */
+function genericPhrase(title: string): string {
+  return title
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .replace(/^[“"]+|[”"]+$/g, '')
+    .trim()
+}
+
+function pronFeedback(area: string): { subject: string; plural: boolean; topic: string } {
+  const known = PRON_FEEDBACK[area]
+  if (known) return known
+  const phrase = genericPhrase(getPronunciationByArea(area)?.title ?? area)
+  return { subject: phrase, plural: /s$/i.test(phrase), topic: phrase }
+}
+
+function grammarTopic(id: string): string {
+  return GRAMMAR_TOPIC[id] ?? genericPhrase(getGrammarById(id)?.title ?? id)
+}
+
+/**
+ * The close of the lesson names what got clearer and what's next. The refs in
+ * `p` come from what this lesson actually taught (see `feedbackActivity` in
+ * lessonGenerator.ts) — turned into a natural spoken line automatically
+ * whenever the plan carries them. A legacy plan with none still gets a
+ * concrete, ready-to-say line rather than a blank a tired tutor has to invent
+ * something for.
  */
 function feedbackSay(p: Params): string[] {
-  const focus = typeof p.focus === 'string' && p.focus ? p.focus : undefined
-  const next = typeof p.next === 'string' && p.next ? p.next : undefined
+  const str = (k: string) => (typeof p[k] === 'string' && p[k] ? (p[k] as string) : undefined)
+  const focusArea = str('focusPronArea')
+  const nextArea = str('nextPronArea')
+  const nextGrammarId = str('nextGrammarId')
+  const nextPattern = str('nextPattern')
+
+  const focus = focusArea ? pronFeedback(focusArea) : undefined
+  const nextTopic = nextArea
+    ? pronFeedback(nextArea).topic
+    : nextGrammarId
+      ? grammarTopic(nextGrammarId)
+      : nextPattern
+        ? `saying “${nextPattern}”`
+        : undefined
+
   return [
-    focus ? `Today your “${focus}” was much clearer.` : 'Today your speaking was much clearer.',
-    next ? `Next time, let’s work on “${next}”.` : 'Next time, let’s work on one thing you noticed today.',
+    focus
+      ? `Your ${focus.subject} ${focus.plural ? 'were' : 'was'} much clearer today.`
+      : 'Today your speaking was much clearer.',
+    nextTopic ? `Next time, let’s work on ${nextTopic}.` : 'Next time, let’s work on one thing you noticed today.',
   ]
 }
 
