@@ -60,6 +60,12 @@ export function PracticePage() {
      learner cannot get out of. */
   const [retryQueue, setRetryQueue] = useState<string[]>([])
   const [retried, setRetried] = useState<string[]>([])
+  /* A read-only peek at an earlier answer — never the live item. This is what
+     "Previous" does here: it does not rewind the set (which would risk a
+     second result for the same item, i.e. duplicated evidence), it just shows
+     what was already answered. 0 = the most recent answer, 1 = the one
+     before that, and so on. `null` means "showing the live item". */
+  const [reviewOffset, setReviewOffset] = useState<number | null>(null)
 
   /* One load, one decision: what is this learner supposed to do, and where in
      it did they stop? Everything after this is local state — the set is pure,
@@ -86,6 +92,7 @@ export function PracticePage() {
       setAnswered(started.session.results)
       setRetryQueue([])
       setRetried([])
+      setReviewOffset(null)
       // Resume on the first item with no result — never on item one of a set
       // the learner is halfway through.
       const firstOpen = plan.set.items.findIndex((i) => !plan.doneItemIds.has(i.id))
@@ -100,16 +107,20 @@ export function PracticePage() {
   const item: PracticeItem | undefined = set?.items[index]
 
   const answer = useCallback(
-    async (outcome: PracticeOutcome) => {
+    async (outcome: PracticeOutcome, helpUsed?: 'hint' | 'choices') => {
       if (!set || !item || !session || !model) return
+      // A hint or a multiple-choice option is real help — it can never earn
+      // the "unaided" claim, whatever button was actually tapped.
+      const finalOutcome: PracticeOutcome = helpUsed && outcome === 'independent' ? 'afterSupport' : outcome
       const result: PracticeItemResult = {
         itemId: item.id,
         targetKind: item.targetKind,
         targetKey: item.targetKey,
         label: item.label,
-        outcome,
+        outcome: finalOutcome,
         at: Date.now(),
         ...(written.trim() ? { response: written.trim() } : {}),
+        ...(helpUsed ? { helpUsed } : {}),
       }
       const next = recordResult(model, session.id, result, set.items.length)
       setModel(next.model)
@@ -119,7 +130,7 @@ export function PracticePage() {
       setWritten('')
 
       const queue =
-        outcome === 'independent' || retried.includes(item.id) || retryQueue.includes(item.id)
+        finalOutcome === 'independent' || retried.includes(item.id) || retryQueue.includes(item.id)
           ? retryQueue
           : [...retryQueue, item.id]
       setRetryQueue(queue)
@@ -138,7 +149,7 @@ export function PracticePage() {
       /* Nothing new left. Anything that needed help comes round once more —
          the same question, a few minutes later, which is the cheapest real
          spacing a single sitting can offer. */
-      const [again, ...rest] = queue.filter((id) => id !== item.id || outcome === 'independent')
+      const [again, ...rest] = queue.filter((id) => id !== item.id || finalOutcome === 'independent')
       if (again !== undefined) {
         setRetryQueue(rest)
         setRetried((prev) => [...prev, again])
@@ -196,26 +207,96 @@ export function PracticePage() {
   }
 
   const doneCount = answered.length
+  const reviewing = reviewOffset !== null ? answered[answered.length - 1 - reviewOffset] : undefined
+
   return (
     <PracticeShell studentId={id}>
       <div className={styles.progress} aria-hidden="true">
         <div className={styles.progressBar} style={{ inlineSize: `${(doneCount / set.items.length) * 100}%` }} />
       </div>
-      <p className={styles.position} dir="ltr">
-        {index + 1} / {set.items.length}
-      </p>
+      <div className={styles.positionRow}>
+        {doneCount > 0 && !reviewing && (
+          <button
+            type="button"
+            className={`btn btn-sm btn-ghost ${styles.prevBtn}`}
+            onClick={() => setReviewOffset(0)}
+          >
+            <ArrowLeftIcon className="flip-in-rtl" /> {t('practice.previous')}
+          </button>
+        )}
+        <p className={styles.position} dir="ltr">
+          {index + 1} / {set.items.length}
+        </p>
+      </div>
 
-      <PracticeCard
-        key={item.id}
-        item={item}
-        revealed={phase === 'reveal'}
-        onReveal={() => setPhase('reveal')}
-        onAnswer={answer}
-        written={written}
-        onWrite={setWritten}
-        dir={dir}
-      />
+      {reviewing ? (
+        <ReviewCard
+          result={reviewing}
+          canGoOlder={reviewOffset! + 1 < answered.length}
+          onOlder={() => setReviewOffset((o) => (o === null ? 0 : o + 1))}
+          onBack={() => setReviewOffset((o) => (o === null || o === 0 ? null : o - 1))}
+        />
+      ) : (
+        <PracticeCard
+          key={item.id}
+          item={item}
+          revealed={phase === 'reveal'}
+          onReveal={() => setPhase('reveal')}
+          onAnswer={answer}
+          written={written}
+          onWrite={setWritten}
+          dir={dir}
+        />
+      )}
     </PracticeShell>
+  )
+}
+
+/** A read-only look at an answer already given — never a way to change it.
+ *  Nothing here calls `onAnswer`, so it cannot produce a second result for
+ *  the same item. */
+function ReviewCard({
+  result,
+  canGoOlder,
+  onOlder,
+  onBack,
+}: {
+  result: PracticeItemResult
+  canGoOlder: boolean
+  onOlder: () => void
+  onBack: () => void
+}) {
+  const { t, dir } = useI18n()
+  const outcomeLabel =
+    result.outcome === 'independent'
+      ? t('practice.gotIt')
+      : result.outcome === 'afterSupport'
+        ? t('practice.hadToLook')
+        : t('practice.notYet')
+
+  return (
+    <section className={styles.card} dir={dir}>
+      <p className={styles.instruction}>{t('practice.reviewingTitle')}</p>
+      <div className={styles.cue} dir="ltr" lang="en">
+        <span className={styles.cueEnglish}>{result.label}</span>
+      </div>
+      {result.response && (
+        <div className={styles.answer} dir="ltr" lang="en">
+          <span className={styles.answerText}>{result.response}</span>
+        </div>
+      )}
+      <p className={styles.checkLabel}>{t('practice.reviewingOutcome', { outcome: outcomeLabel })}</p>
+      <div className={styles.actions}>
+        <button type="button" className="btn btn-primary btn-lg btn-block" onClick={onBack}>
+          {t('practice.backToCurrent')}
+        </button>
+        {canGoOlder && (
+          <button type="button" className="btn btn-block" onClick={onOlder}>
+            {t('practice.previous')}
+          </button>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -248,6 +329,18 @@ function PracticeShell({
 
 /* -------------------------------------------------------------------------- */
 
+/** A cue that could honestly fit more than one English word gets a ladder
+ *  instead of a single guess-then-reveal: try from memory, then a small
+ *  hint, then recognise it among a few real options, and only then the
+ *  answer — never trapping a learner who knows a word that just is not the
+ *  one stored. Gated to meaning-cued vocabulary recall, where "one exact
+ *  word" is genuinely ambiguous; every other item type is unaffected. */
+function ladderEligible(item: PracticeItem): boolean {
+  return item.targetKind === 'vocabulary' && item.check === 'recall' && !!item.cueText && !!item.answer
+}
+
+type HelpStage = 'memory' | 'hint' | 'choices'
+
 function PracticeCard({
   item,
   revealed,
@@ -260,7 +353,7 @@ function PracticeCard({
   item: PracticeItem
   revealed: boolean
   onReveal: () => void
-  onAnswer: (outcome: PracticeOutcome) => void
+  onAnswer: (outcome: PracticeOutcome, helpUsed?: 'hint' | 'choices') => void
   written: string
   onWrite: (v: string) => void
   dir: 'ltr' | 'rtl'
@@ -269,6 +362,12 @@ function PracticeCard({
   const say = useSpeak()
   const canListen = useSpeechAvailable()
   const [seconds, setSeconds] = useState<number | null>(null)
+  // Resets automatically per item: the parent renders this component with
+  // `key={item.id}`, so a fresh item is a fresh mount, never carried-over help.
+  const [helpStage, setHelpStage] = useState<HelpStage>('memory')
+  const eligible = ladderEligible(item)
+  const helpUsed: 'hint' | 'choices' | undefined =
+    eligible && helpStage !== 'memory' ? (helpStage === 'choices' ? 'choices' : 'hint') : undefined
   /* The phrase meanings this screen cues from ship in the on-demand teaching
      chunk, not the initial bundle. Asking for them here is what makes a
      Russian learner's cue Russian rather than the English fallback. */
@@ -285,6 +384,19 @@ function PracticeCard({
     }
     return resolved
   }, [item, t])
+
+  // Shuffled once per item, not on every render — otherwise the options would
+  // visibly reorder themselves while the learner is looking at them.
+  const choices = useMemo(() => {
+    if (!item.distractors || !item.answer) return []
+    const all = [...item.distractors, item.answer]
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[all[i], all[j]] = [all[j], all[i]]
+    }
+    return all
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id])
 
   /* The sprint's clock. It counts DOWN and then stops: there is no penalty
      for running out, because the exercise is "keep talking for this long",
@@ -364,11 +476,61 @@ function PracticeCard({
       {!revealed ? (
         <div className={styles.actions}>
           {item.check === 'recall' ? (
-            /* One button, and it is not "next": the learner has to decide
-               they have tried before the answer can appear. */
-            <button className="btn btn-primary btn-lg btn-block" onClick={onReveal}>
-              {t('practice.showAnswer')}
-            </button>
+            eligible && helpStage === 'hint' ? (
+              <>
+                <p className={styles.checkLabel} dir="auto">
+                  <BidiTrans
+                    lang={lang}
+                    i18nKey="practice.hint"
+                    params={{
+                      letter: item.answer!.trim()[0]?.toLocaleUpperCase() ?? '',
+                      count: item.answer!.replace(/\s+/g, '').length,
+                    }}
+                    ltr={['letter']}
+                  />
+                </p>
+                <button className="btn btn-primary btn-lg btn-block" onClick={onReveal}>
+                  {t('practice.showAnswer')}
+                </button>
+                {item.distractors && item.distractors.length >= 2 && (
+                  <button
+                    type="button"
+                    className={`btn btn-sm btn-ghost ${styles.helpLink}`}
+                    onClick={() => setHelpStage('choices')}
+                  >
+                    {t('practice.stillNotSure')}
+                  </button>
+                )}
+              </>
+            ) : eligible && helpStage === 'choices' && choices.length > 0 ? (
+              <>
+                <p className={styles.checkLabel}>{t('practice.chooseOne')}</p>
+                <div className={styles.words} dir="ltr" lang="en">
+                  {choices.map((word) => (
+                    <button key={word} type="button" className={styles.word} onClick={onReveal}>
+                      {word}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              /* One button, and it is not "next": the learner has to decide
+                 they have tried before the answer can appear. */
+              <>
+                <button className="btn btn-primary btn-lg btn-block" onClick={onReveal}>
+                  {t('practice.showAnswer')}
+                </button>
+                {eligible && (
+                  <button
+                    type="button"
+                    className={`btn btn-sm btn-ghost ${styles.helpLink}`}
+                    onClick={() => setHelpStage('hint')}
+                  >
+                    {t('practice.needHint')}
+                  </button>
+                )}
+              </>
+            )
           ) : (
             <>
               <button
@@ -415,21 +577,26 @@ function PracticeCard({
             </div>
           )}
 
-          {/* The self-check. Three options because there are three honest answers:
-              got it, had to look, not yet. "Had to look" is the one that makes
-              the other two mean anything. */}
+          {/* The self-check. A hint or a multiple choice already used up the
+              "unaided" claim, so that option is not on offer here — only
+              "had to look" and "not yet" ever apply once help was given. */}
           <p className={styles.checkLabel}>{t('practice.howDidThatGo')}</p>
           <div className={styles.actions}>
+            {!helpUsed && (
+              <button
+                className="btn btn-primary btn-lg btn-block"
+                onClick={() => onAnswer('independent')}
+              >
+                {t('practice.gotIt')}
+              </button>
+            )}
             <button
-              className="btn btn-primary btn-lg btn-block"
-              onClick={() => onAnswer('independent')}
+              className={`btn ${helpUsed ? 'btn-primary btn-lg' : ''} btn-block`}
+              onClick={() => onAnswer('afterSupport', helpUsed)}
             >
-              {t('practice.gotIt')}
+              {helpUsed ? t('practice.saidWithHelp') : t('practice.hadToLook')}
             </button>
-            <button className="btn btn-block" onClick={() => onAnswer('afterSupport')}>
-              {t('practice.hadToLook')}
-            </button>
-            <button className="btn btn-block" onClick={() => onAnswer('incorrect')}>
+            <button className="btn btn-block" onClick={() => onAnswer('incorrect', helpUsed)}>
               {t('practice.notYet')}
             </button>
           </div>

@@ -138,7 +138,7 @@ const guide: Dict = {
       reading: 'Reads aloud or silently, then tells you what it meant.',
       writing: 'Writes on paper while you stay quiet.',
       microLesson: 'Watches and listens, then tries the new language once.',
-      guidedPractice: 'Produces the target language with your prompting, several times.',
+      guidedPractice: 'Says the new word or sentence themselves, with your help, several times.',
       communication: 'Does most of the talking. You are the audience, not the star.',
       fluency: 'Speaks without stopping for a fixed time, then says the same thing again in less time.',
       pronunciation: 'Listens, watches your mouth, and repeats out loud.',
@@ -151,8 +151,8 @@ const guide: Dict = {
       listening: 'They respond correctly to what they hear, two or three times running.',
       reading: 'They can tell you the main idea in their own words.',
       writing: 'They have written something they can read back to you.',
-      microLesson: 'They have produced the target language once, correctly, with help.',
-      guidedPractice: 'They produce it three times with only light prompting.',
+      microLesson: 'They have said the new word or sentence once, correctly, with your help.',
+      guidedPractice: 'They say it three times on their own, with only a little help from you.',
       communication: 'They have spoken for a real stretch and the topic is genuinely finished.',
       fluency: 'The final round is noticeably smoother than the first.',
       pronunciation: 'The target is noticeably clearer than at the start of the step.',
@@ -265,11 +265,16 @@ const guide: Dict = {
     },
     c1Communication: {
       goal: 'Sustained, nuanced communication. The learner drives; you shape.',
-      listenFor: ['precision', 'natural collocation', 'register', 'intonation for emphasis'],
-      ifStruggle: 'Offer a scaffold or a sharper angle, then step back.',
-      ifSucceed: 'Add a constraint (time limit, banned word, opposite view).',
+      listenFor: [
+        'Do they pick the exact right word, not just a correct one?',
+        'Do their word combinations sound natural, the way a native speaker would say them?',
+        'Does it sound right for the situation — not too casual, not too stiff?',
+        'Do they stress the right words to make their point clear?',
+      ],
+      ifStruggle: 'Give them one useful word, or ask a harder question — then let them keep talking.',
+      ifSucceed: 'Make it harder: give a time limit, ban a word, or ask them to argue the other side.',
       howToExplain: 'Note precise upgrades: “‘significant’ fits better than ‘big’ here.”',
-      avoid: ['Reverting to textbook drills at this level.'],
+      avoid: ['Going back to repeat-after-me exercises — at this level, let them talk.'],
     },
     beginnerRecap: {
       goal: 'Consolidate today’s items and end on a real success.',
@@ -518,15 +523,15 @@ const guide: Dict = {
       ],
     },
     c1Communication: {
-      do: ['Interject only to elevate — a sharper word, a harder angle, a constraint.'],
+      do: ['Only jump in to make it better — a sharper word, a harder question, or a new rule to follow.'],
       lookFor: [
-        'Precision and register (this is a “{{category}}” task) — not just correctness.',
+        'Do they pick the exact right word, and does it fit a “{{category}}” task — not just grammatically correct?',
         'Do they reach for the easy word or the precise one?',
       ],
       next: [
         'Fluent and precise → raise it: “{{follow1}}”',
         'Good but generic → push for nuance: “{{follow2}}”',
-        'Flagging → “{{follow3}}”, or add a constraint (banned word, time limit, opposite view)',
+        'Flagging → “{{follow3}}”, or make it harder: ban a word, add a time limit, or ask for the opposite view',
       ],
     },
     c1Feedback: {
@@ -763,11 +768,11 @@ const guide: Dict = {
       },
     },
     fix: {
-      now: 'Fix drill — the slips this learner keeps making, said the right way.',
+      now: 'Fixing old mistakes — the slips this learner keeps making, said the right way.',
       cue: 'You said “{{said}}”. The English is “{{better}}”. Say it with me.',
       do: [
         'One pair at a time. They say the RIGHT version out loud, twice.',
-        'Then ask for a sentence of their own with it — the fix has to leave the drill.',
+        'Then ask for a sentence of their own with it — repeating it back is not enough on its own.',
         'Do not explain the rule unless they ask. This is about the habit, not the theory.',
       ],
       studentDoes: ['Says the correct version out loud, then uses it in a sentence of their own.'],
@@ -875,7 +880,7 @@ const guide: Dict = {
           do: [
             'Say it, then open your hand toward them and wait.',
             'Keep the phrase as one piece. Do not break it into words.',
-            'Three tries each is plenty — more turns it into a drill.',
+            'Three tries each is plenty — more than that just feels like repeat-after-me practice.',
           ],
           studentDoes: [
             'Says each phrase out loud, copying the rhythm.',

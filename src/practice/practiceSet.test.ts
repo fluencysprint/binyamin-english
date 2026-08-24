@@ -70,6 +70,41 @@ describe('a homework task becomes one screen per thing to retrieve', () => {
     expect(set.items[0].cue).toBe('stakeholder')
   })
 
+  it('offers other real words as multiple-choice options for a meaning-cued word', () => {
+    const model = addVocabulary(initLearningModel('stu1'), [
+      { term: 'deadline', meaning: 'the day something must be finished' },
+      { term: 'stakeholder', meaning: 'a person affected by a project' },
+      { term: 'workload', meaning: 'how much work you have' },
+      { term: 'follow up', meaning: 'to check again after a first message' },
+    ])
+    const set = buildHomeworkSet(
+      lessonWithHomework([{ kind: 'useWordsInSentences', terms: ['deadline'] }]),
+      student,
+      model,
+      () => 0.5,
+    )!
+    const item = set.items[0]
+    expect(item.distractors).toBeDefined()
+    expect(item.distractors!.length).toBeGreaterThanOrEqual(2)
+    // The target itself is never offered as one of its own distractors.
+    expect(item.distractors).not.toContain('deadline')
+    for (const d of item.distractors!) {
+      expect(model.vocabulary.some((v) => v.term.trim() === d)).toBe(true)
+    }
+  })
+
+  it('offers no multiple-choice step when there are not enough other words for a fair set', () => {
+    const model = addVocabulary(initLearningModel('stu1'), [
+      { term: 'deadline', meaning: 'the day something must be finished' },
+    ])
+    const set = buildHomeworkSet(
+      lessonWithHomework([{ kind: 'useWordsInSentences', terms: ['deadline'] }]),
+      student,
+      model,
+    )!
+    expect(set.items[0].distractors).toBeUndefined()
+  })
+
   it('gives an activity with no single right answer a done/skip check, not a self-grade', () => {
     const set = buildHomeworkSet(
       lessonWithHomework([{ kind: 'repeatFluency', topic: 'Your last holiday', seconds: 45 }]),

@@ -216,7 +216,7 @@ export const beginnerActivities: BeginnerActivityTemplate[] = [
       do: ['Pass an object back and forth to trigger “thank you”.'],
       lookFor: ['Do they say “thank you” when receiving?', 'Clarity of “th”? (don’t over-correct yet)'],
       next: ['Uses both naturally → Continue', 'Uses one → Continue, model the other', 'Neither → tap Easier'],
-      teacherTip: 'Don’t drill the “th” sound here — reward the polite phrase; refine sounds later.',
+      teacherTip: 'Don’t stop to fix the “th” sound here — praise the polite phrase; work on sounds later.',
     },
     tutorCard: {
       goal: 'Two high-frequency courtesy chunks used in context.',
@@ -250,7 +250,7 @@ export const beginnerActivities: BeginnerActivityTemplate[] = [
     },
     tutorCard: {
       goal: 'Recognize and produce numbers 1–5.',
-      listenFor: ['Sequence accuracy', '“three” vs “free” (note, don’t drill)'],
+      listenFor: ['Do the numbers come out in the right order?', '“three” vs “free” — just notice it, don’t stop to fix it'],
       ifStruggle: 'Count 1–3 only, with fingers.',
       ifSucceed: 'Count real objects; ask “how many?”.',
       howToExplain: 'We count: one, two, three…',
@@ -736,8 +736,8 @@ export const beginnerActivities: BeginnerActivityTemplate[] = [
       next: ['Count three real objects together.'],
     },
     tutorCard: {
-      goal: 'Produce the first three number words reliably.',
-      listenFor: ['Order', 'clarity of “three” (note it, do not drill it)'],
+      goal: 'They can say the first three numbers reliably.',
+      listenFor: ['Do the numbers come in the right order?', 'Is “three” clear? Just notice it, don’t stop to fix it'],
       ifStruggle: 'One and two only.',
       ifSucceed: 'Extend to five and ask “how many?”.',
       howToExplain: 'Fingers first, words second.',

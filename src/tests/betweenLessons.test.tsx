@@ -218,6 +218,57 @@ describe('the learner can do the whole set alone, on a phone', () => {
     expect(screen.queryByText(meaning.term)).toBeNull()
   })
 
+  it('offers a hint, then fair choices, for a word cued only by its meaning — and never counts that as unaided', async () => {
+    const user = userEvent.setup()
+    const student = await seedAcceptanceStudent()
+    renderAs(`/tutor/student/${student.id}/practice`, student.id, 'student')
+
+    await screen.findByText(/say it the better way/i)
+    for (let i = 0; i < 12; i++) {
+      if (screen.queryByText(/what is the english for this/i)) break
+      const reveal = screen.queryByRole('button', { name: /show the answer/i })
+      if (reveal) {
+        await user.click(reveal)
+        await user.click(screen.getByRole('button', { name: /i got it/i }))
+      } else {
+        await user.click(screen.getByRole('button', { name: /^done$/i }))
+      }
+    }
+    const meaning = WORKPLACE_WORDS.find((w) => screen.queryByText(w.meaning) !== null)!
+    expect(meaning).toBeDefined()
+
+    // A learner stuck on the exact stored word gets a hint first...
+    await user.click(screen.getByRole('button', { name: /need a hint/i }))
+    expect(screen.getByText(new RegExp(`${meaning.term[0].toUpperCase()}.*${meaning.term.replace(/\s+/g, '').length} letters`, 'i'))).toBeInTheDocument()
+
+    // ...and, still unsure, a small set of real options to recognise from.
+    await user.click(screen.getByRole('button', { name: /still not sure/i }))
+    const otherTerms = WORKPLACE_WORDS.map((w) => w.term)
+    const optionBtn = screen
+      .getAllByRole('button')
+      .find((b) => otherTerms.includes(b.textContent?.trim() ?? ''))
+    expect(optionBtn).toBeDefined()
+    await user.click(optionBtn!)
+
+    // Once help was used, the self-check can no longer offer "I got it" —
+    // only that help was needed, or that it still did not land.
+    expect(screen.getByText(meaning.term)).toBeInTheDocument() // the reveal
+    expect(screen.queryByRole('button', { name: /^i got it$/i })).toBeNull()
+    await user.click(screen.getByRole('button', { name: /said it right/i }))
+
+    await waitFor(async () => {
+      const model = (await getLearningModel(student.id))!
+      const result = model.practiceSessions!.flatMap((s) => s.results).find((r) => r.label === meaning.term)
+      expect(result).toBeDefined()
+    })
+    const model = (await getLearningModel(student.id))!
+    const result = model.practiceSessions!.flatMap((s) => s.results).find((r) => r.label === meaning.term)!
+    // A hint plus multiple choice is real help — it can earn "after support",
+    // never the unaided "independent" claim, whichever button was tapped.
+    expect(result.outcome).toBe('afterSupport')
+    expect(result.helpUsed).toBe('choices')
+  })
+
   it('a half-finished set is resumed, not restarted', async () => {
     const user = userEvent.setup()
     const student = await seedAcceptanceStudent()
@@ -288,6 +339,36 @@ describe('the learner can do the whole set alone, on a phone', () => {
     renderAs(`/tutor/student/${student.id}`, student.id, 'student')
     await screen.findByRole('heading', { name: /^today$/i })
     expect(screen.getByRole('button', { name: /^continue$/i })).toBeInTheDocument()
+  })
+
+  it('lets the learner look back at what they already answered, without changing it', async () => {
+    const user = userEvent.setup()
+    const student = await seedAcceptanceStudent()
+    renderAs(`/tutor/student/${student.id}/practice`, student.id, 'student')
+
+    await screen.findByText(/say it the better way/i)
+    // Nothing answered yet — there is nothing to look back at.
+    expect(screen.queryByRole('button', { name: /^previous$/i })).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: /show the answer/i }))
+    await user.click(screen.getByRole('button', { name: /i got it/i }))
+    await screen.findByText(/what is the english for this|say it/i)
+
+    // One answer recorded — Previous now offers a read-only look at it.
+    await user.click(await screen.findByRole('button', { name: /^previous$/i }))
+    expect(screen.getByText(/what you answered/i)).toBeInTheDocument()
+    expect(screen.getByText('I agree with the plan')).toBeInTheDocument()
+    // Looking back is not a second attempt: no answer buttons here.
+    expect(screen.queryByRole('button', { name: /^i got it$/i })).toBeNull()
+
+    const before = (await getLearningModel(student.id))!.practiceSessions![0].results.length
+    await user.click(screen.getByRole('button', { name: /back to where you were/i }))
+    const after = (await getLearningModel(student.id))!.practiceSessions![0].results.length
+
+    // Reading it back recorded nothing new — evidence cannot be duplicated
+    // just by looking at it — and the live item picks up right where it was.
+    expect(after).toBe(before)
+    expect(screen.queryByText(/what you answered/i)).toBeNull()
   })
 })
 

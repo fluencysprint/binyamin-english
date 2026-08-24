@@ -251,11 +251,16 @@ const guide: Dict = {
     },
     c1Communication: {
       goal: 'Conversación larga y con matices. Él lleva la voz; tú das forma.',
-      listenFor: ['precisión', 'combinaciones naturales de palabras', 'registro', 'entonación para enfatizar'],
-      ifStruggle: 'Dale un apoyo o un ángulo más afilado y hazte a un lado.',
-      ifSucceed: 'Añade una restricción (tiempo, palabra prohibida, postura contraria).',
+      listenFor: [
+        '¿Elige la palabra exacta, no solo una correcta?',
+        '¿Sus combinaciones de palabras suenan naturales, como las de un hablante nativo?',
+        '¿Suena adecuado para la situación, ni demasiado informal ni demasiado rígido?',
+        '¿Pone énfasis en las palabras correctas para que se entienda su idea?',
+      ],
+      ifStruggle: 'Dale una palabra útil, o hazle una pregunta más difícil, y deja que siga hablando.',
+      ifSucceed: 'Hazlo más difícil: pon un límite de tiempo, prohíbe una palabra, o pídele que defienda la postura contraria.',
       howToExplain: 'Señala mejoras exactas: «aquí “significant” encaja mejor que “big”».',
-      avoid: ['Volver a ejercicios de libro de texto a este nivel.'],
+      avoid: ['Volver a ejercicios de repetir lo que digo — a este nivel, deja que hable él.'],
     },
     beginnerRecap: {
       goal: 'Asentar lo de hoy y terminar con un logro real.',
@@ -503,15 +508,15 @@ const guide: Dict = {
       ],
     },
     c1Communication: {
-      do: ['Interrumpe solo para subir el nivel: una palabra más precisa, un ángulo más duro, una restricción.'],
+      do: ['Interrumpe solo para mejorarlo: sugiere una palabra más precisa, haz una pregunta más difícil, o añade una regla nueva.'],
       lookFor: [
-        'Precisión y registro (esta tarea es de tipo «{{category}}»), no solo corrección.',
+        '¿Elige la palabra exacta, y encaja con una tarea de tipo «{{category}}» — no solo si es correcta gramaticalmente?',
         '¿Va a por la palabra fácil o a por la exacta?',
       ],
       next: [
         'Fluido y preciso → sube el listón: «{{follow1}}»',
         'Bien pero genérico → pide matiz: «{{follow2}}»',
-        'Se apaga → «{{follow3}}», o añade una restricción (palabra prohibida, tiempo, postura contraria)',
+        'Se apaga → «{{follow3}}», o hazlo más difícil: prohíbe una palabra, pon un límite de tiempo, o pide la postura contraria',
       ],
     },
     c1Feedback: {

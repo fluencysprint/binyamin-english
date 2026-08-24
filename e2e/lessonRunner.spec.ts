@@ -108,6 +108,38 @@ test.describe('the tutor always knows what to do right now', () => {
     }
   })
 
+  test('"Previous" returns to exactly the step it left, even across a phase boundary', async ({ page }) => {
+    // A tutor who taps Previous right after "Next step" rolled them into a
+    // new phase must land back on the LAST step of the phase they just left
+    // — not its first step, which used to silently skip every step in
+    // between and leave the tutor lost mid-lesson.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await startLesson(page)
+
+    const nowLine = () => page.getByRole('region', { name: /do this now/i }).locator('p').first().textContent()
+    const stepLabel = () => page.getByLabel(/where we are/i).getByText(/step \d+ of \d+/i).textContent()
+    const nextBtn = page.getByRole('button', { name: /next step/i })
+    const prevBtn = page.getByRole('button', { name: /^previous$/i })
+
+    let crossed = false
+    let lastStepOfPreviousPhase: string | null = null
+    for (let i = 0; i < 20 && !crossed; i++) {
+      if (!(await nextBtn.isVisible().catch(() => false))) break
+      const beforeLine = await nowLine()
+      const beforeLabel = await stepLabel()
+      await nextBtn.click()
+      const afterLabel = await stepLabel()
+      if (afterLabel && beforeLabel && /step 1 of/i.test(afterLabel) && !/step 1 of/i.test(beforeLabel)) {
+        crossed = true
+        lastStepOfPreviousPhase = beforeLine
+      }
+    }
+    expect(crossed).toBe(true)
+
+    await prevBtn.click()
+    await expect.poll(nowLine).toBe(lastStepOfPreviousPhase)
+  })
+
   test('shows where we are in the lesson, and what to do about the time', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await startLesson(page)

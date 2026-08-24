@@ -203,7 +203,7 @@ export const DEMO_PROFILES: DemoProfile[] = [
         },
         {
           category: 'pronunciation',
-          said: 'I focus on ð stakeholders',
+          said: 'I focus on de stakeholders',
           better: 'I focus on the stakeholders',
           explanation: 'TH sound in “the” — light tongue tap, not a hard D.',
           priority: 'medium',

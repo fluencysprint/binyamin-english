@@ -468,7 +468,7 @@ const followUpsByCategory: Record<string, FollowUpSet> = {
   constraint: {
     simple: ['Again, but shorter.', 'Try without that word.', 'One more time.'],
     standard: ['Now say it without that word.', 'Say the same thing in three sentences.', 'Try again, more formally.', 'Now do it in ten seconds.'],
-    advanced: ['Do it again with no adjectives.', 'Same idea, opposite register.', 'Now the version you would say on the radio.'],
+    advanced: ['Do it again with no adjectives.', 'Same idea, but say it much more formally, like a news report.', 'Now the version you would say on the radio.'],
   },
   abstract: {
     simple: ['What do you think?', 'Is that good or bad?', 'Why?'],

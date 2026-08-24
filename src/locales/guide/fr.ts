@@ -251,11 +251,16 @@ const guide: Dict = {
     },
     c1Communication: {
       goal: 'Une parole longue et nuancée. C’est lui qui mène ; toi, tu façonnes.',
-      listenFor: ['la précision', 'les associations de mots naturelles', 'le registre', 'l’intonation d’insistance'],
-      ifStruggle: 'Donne un appui ou un angle plus vif, puis retire-toi.',
-      ifSucceed: 'Ajoute une contrainte (temps limité, mot interdit, position inverse).',
+      listenFor: [
+        'Choisit-il le mot exact, pas seulement un mot correct ?',
+        'Ses associations de mots sonnent-elles naturelles, comme chez un natif ?',
+        'Est-ce adapté à la situation — ni trop familier, ni trop guindé ?',
+        'Met-il l’accent sur les bons mots pour que son idée soit claire ?',
+      ],
+      ifStruggle: 'Donne-lui un mot utile, ou pose une question plus difficile, puis laisse-le continuer à parler.',
+      ifSucceed: 'Complique la tâche : donne une limite de temps, interdis un mot, ou demande-lui de défendre le point de vue opposé.',
       howToExplain: 'Signale les améliorations exactes : « ici, “significant” va mieux que “big” ».',
-      avoid: ['Revenir à des exercices de manuel à ce niveau.'],
+      avoid: ['Revenir à des exercices de répétition — à ce niveau, laisse-le parler.'],
     },
     beginnerRecap: {
       goal: 'Consolider ce qui a été vu aujourd’hui et finir sur une vraie réussite.',
@@ -503,15 +508,15 @@ const guide: Dict = {
       ],
     },
     c1Communication: {
-      do: ['N’interviens que pour rehausser — un mot plus juste, un angle plus dur, une contrainte.'],
+      do: ['N’interviens que pour améliorer — propose un mot plus juste, pose une question plus difficile, ou ajoute une nouvelle règle.'],
       lookFor: [
-        'La précision et le registre (c’est une tâche de type « {{category}} ») — pas seulement la correction.',
+        'Choisit-il le mot exact, et est-ce adapté à une tâche de type « {{category}} » — pas seulement grammaticalement correct ?',
         'Va-t-il vers le mot facile ou vers le mot exact ?',
       ],
       next: [
         'Fluide et précis → monte d’un cran : « {{follow1}} »',
         'Bien mais générique → demande de la nuance : « {{follow2}} »',
-        'Il s’essouffle → « {{follow3}} », ou ajoute une contrainte (mot interdit, temps limité, position inverse)',
+        'Il s’essouffle → « {{follow3}} », ou complique la tâche : interdis un mot, donne une limite de temps, ou demande le point de vue opposé',
       ],
     },
     c1Feedback: {

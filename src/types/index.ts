@@ -769,6 +769,11 @@ export interface PracticeItemResult {
    *  Local like everything else; it is the one thing a tutor can look at and
    *  say "you wrote this" at the next lesson. */
   response?: string
+  /** How they got to a correct answer, when they needed help — never set for
+   *  a plain unaided recall. `outcome` already reflects this (a hint or a
+   *  multiple choice can never earn 'independent'); this is the detail of
+   *  WHICH kind of help, kept for anyone reading the evidence back later. */
+  helpUsed?: 'hint' | 'choices'
 }
 
 /** One run through a practice set, on the learner's own device. */

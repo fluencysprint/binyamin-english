@@ -75,4 +75,25 @@ describe('demo profiles', () => {
   it('throws on an unknown profile id instead of silently seeding something', async () => {
     await expect(seedDemoStudent('does-not-exist')).rejects.toThrow()
   })
+
+  it('never shows a bare IPA character standing in for a word — spell mispronunciations with plain letters', () => {
+    // IPA/phonetic-extension symbols are fine inside /slashes/ (real notation,
+    // e.g. "/ɪz/"), but a stray one outside slashes means a word got replaced
+    // by a phonetic symbol instead of a spelled-out mispronunciation like
+    // "sree" for "three" — that's what produced "I focus on ð stakeholders".
+    const strayIpaPattern = /[ɐ-ʯƀ-ɏ]/
+    for (const p of DEMO_PROFILES) {
+      if (!p.lesson) continue
+      for (const c of p.lesson.corrections) {
+        for (const field of [c.said, c.better] as const) {
+          const withoutSlashNotation = field.replace(/\/[^/]*\//g, '')
+          expect(withoutSlashNotation).not.toMatch(strayIpaPattern)
+        }
+      }
+      for (const v of p.lesson.vocabulary) {
+        expect(v.term.replace(/\/[^/]*\//g, '')).not.toMatch(strayIpaPattern)
+        expect(v.meaning.replace(/\/[^/]*\//g, '')).not.toMatch(strayIpaPattern)
+      }
+    }
+  })
 })

@@ -384,7 +384,7 @@ const CARD_EN: Record<string, { model: string[]; practice: string[] }> = {
   },
   c1Communication: {
     model: ['Consider: “arguably”, “to some extent”, “that said…”.'],
-    practice: ['Keep the learner talking; interject only to elevate.'],
+    practice: ['Keep the learner talking. Only jump in to make it better — a sharper word, a harder question.'],
   },
   beginnerRecap: { model: ['Today you learned: hello, thank you.'], practice: ['Recall 2–3 words from today.'] },
 }

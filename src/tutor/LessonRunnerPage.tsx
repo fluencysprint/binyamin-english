@@ -19,6 +19,7 @@ import {
   CorrectionCategory,
   ItemResponse,
   LearningModel,
+  LessonPhase,
   LessonRecord,
   ScoreOutcome,
   Skill,
@@ -96,6 +97,35 @@ const PHASE_SKILL: Record<LessonPhaseKind, Skill> = {
   pronunciation: 'pronunciation',
   vocabulary: 'vocabulary',
   feedback: 'speaking',
+}
+
+/** Builds the micro-steps for one phase. Shared by the current-phase memo and
+ *  by back-navigation, which needs to know how many steps a phase it is not
+ *  currently on has — so it can land on the LAST one instead of the first. */
+function buildPhaseSteps(
+  phase: LessonPhase | undefined,
+  { student, model, lang }: { student: StudentProfile; model: LearningModel; lang: UILanguage },
+): MicroStep[] {
+  if (!phase) return []
+  const ctx = {
+    student,
+    model,
+    level: overallCefr(model.skillEstimates),
+    lang,
+    activityIndex: 0,
+  }
+  const built = phase.activities.flatMap((activity, activityIndex) =>
+    buildMicroSteps(activity, { ...ctx, activityIndex }),
+  )
+  if (phase.kind === 'warmup' && phase.activities[0]) {
+    const retrieval = buildRetrievalStep(ctx, phase.activities[0].id)
+    if (retrieval) return [built[0], retrieval, ...built.slice(1)].filter(Boolean)
+  }
+  if (phase.kind === 'guidedPractice' && phase.activities[0]) {
+    const fix = buildFixStep(ctx, phase.activities[0].id)
+    if (fix) return [fix, ...built]
+  }
+  return built
 }
 
 export function LessonRunnerPage() {
@@ -317,30 +347,7 @@ export function LessonRunnerPage() {
     // from lives outside React, and this is what tells us it changed.
     void teaching
     if (!student || !model || !phaseForSteps) return []
-    const ctx = {
-      student,
-      model,
-      level: overallCefr(model.skillEstimates),
-      lang,
-      activityIndex: 0,
-    }
-    const built = phaseForSteps.activities.flatMap((activity, activityIndex) =>
-      buildMicroSteps(activity, { ...ctx, activityIndex }),
-    )
-    // Spaced review rides at the front of the warm-up, where it belongs
-    // pedagogically — and only when this learner genuinely has something due.
-    if (phaseForSteps.kind === 'warmup' && phaseForSteps.activities[0]) {
-      const retrieval = buildRetrievalStep(ctx, phaseForSteps.activities[0].id)
-      if (retrieval) return [built[0], retrieval, ...built.slice(1)].filter(Boolean)
-    }
-    /* The learner's own recurring slips, drilled where production practice
-       belongs: after the objective has been taught, before free conversation.
-       Only fires when there is something that has actually recurred. */
-    if (phaseForSteps.kind === 'guidedPractice' && phaseForSteps.activities[0]) {
-      const fix = buildFixStep(ctx, phaseForSteps.activities[0].id)
-      if (fix) return [fix, ...built]
-    }
-    return built
+    return buildPhaseSteps(phaseForSteps, { student, model, lang })
     /* `lang` is a dependency on purpose: switching the interface language
        rebuilds the guidance in that language on the spot, with no regeneration
        and no reload. */
@@ -416,19 +423,25 @@ export function LessonRunnerPage() {
     stepsRemaining,
   })
 
-  const goPhase = (idx: number) => {
+  const goPhase = (idx: number, landStepIndex = 0) => {
     const clamped = Math.max(0, Math.min(phases.length - 1, idx))
     setPhaseIndex(clamped)
-    setStepIndex(0)
+    setStepIndex(landStepIndex)
     setStepStartedAt(elapsedRef.current)
-    persist({ currentPhaseIndex: clamped, currentStepIndex: 0 })
+    persist({ currentPhaseIndex: clamped, currentStepIndex: landStepIndex })
   }
 
   /** Move within the phase; running off either end moves phase, so "next" is
-   *  always one obvious action rather than two different buttons. */
+   *  always one obvious action rather than two different buttons. Going
+   *  backward across a phase boundary lands on the LAST step of the previous
+   *  phase — not its first — so "previous" always moves exactly one step,
+   *  never several steps forward in disguise. */
   const goStep = (idx: number) => {
     if (idx < 0) {
-      if (phaseIndex > 0) goPhase(phaseIndex - 1)
+      if (phaseIndex > 0) {
+        const prevSteps = buildPhaseSteps(phases[phaseIndex - 1], { student, model, lang })
+        goPhase(phaseIndex - 1, Math.max(0, prevSteps.length - 1))
+      }
       return
     }
     if (idx >= steps.length) {

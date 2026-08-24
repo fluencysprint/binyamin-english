@@ -93,6 +93,12 @@ export interface PracticeItem {
   answer?: string
   /** Extra English revealed alongside the answer — a sound's practice words. */
   answerWords?: string[]
+  /** Other real words the learner has met, offered alongside `answer` as a
+   *  multiple-choice step for a learner stuck on a from-memory recall item —
+   *  a cue can honestly fit more than one word, and recognising the right
+   *  one is real (if lesser) progress before a straight reveal. Present only
+   *  where there were enough other words to make a fair set of options. */
+  distractors?: string[]
   /** Seconds on the clock, for a timed speaking item. */
   seconds?: number
   /** Whether this item offers a place to type. Writing tasks only: everything
@@ -132,6 +138,26 @@ function meaningIndex(model: LearningModel): Map<string, VocabularyItem> {
   return new Map(model.vocabulary.map((v) => [v.term.trim().toLocaleLowerCase(), v]))
 }
 
+/** Up to `count` other real words this learner has met, for a multiple-choice
+ *  step — never invented text, so an option is never obviously fake. Omits
+ *  the field entirely (via the empty array a caller then drops) when there
+ *  are not enough other words to make a fair set. */
+function pickDistractors(
+  vocabulary: VocabularyItem[],
+  excludeTerm: string,
+  count: number,
+  rng: () => number,
+): string[] {
+  const exclude = excludeTerm.trim().toLocaleLowerCase()
+  const pool = vocabulary.map((v) => v.term.trim()).filter((t) => t.toLocaleLowerCase() !== exclude)
+  const shuffled = [...pool]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled.slice(0, count)
+}
+
 /* -------------------------------------------------------------------------- */
 /* Homework                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -147,6 +173,7 @@ function itemsForTask(
   index: number,
   student: StudentProfile,
   model: LearningModel,
+  rng: () => number,
 ): PracticeItem[] {
   const at = (n: number | string) => `hw${index}-${n}`
   const meanings = meaningIndex(model)
@@ -173,6 +200,7 @@ function itemsForTask(
     case 'useWordsInSentences':
       return task.terms.map((term, i) => {
         const meaning = meanings.get(term.trim().toLocaleLowerCase())?.meaning?.trim()
+        const distractors = meaning ? pickDistractors(model.vocabulary, term, 3, rng) : []
         return {
           id: `${at(i)}-${slug(term)}`,
           targetKind: 'vocabulary' as const,
@@ -183,6 +211,7 @@ function itemsForTask(
           cueText: meaning,
           cue: meaning ? undefined : term.trim(),
           answer: term.trim(),
+          ...(distractors.length >= 2 ? { distractors } : {}),
           estimatedSeconds: 40,
         }
       })
@@ -344,10 +373,12 @@ export function buildHomeworkSet(
   lesson: LessonRecord,
   student: StudentProfile,
   model: LearningModel,
+  /** Injectable for deterministic tests — defaults to Math.random. */
+  rng: () => number = Math.random,
 ): PracticeSet | null {
   const tasks = lesson.report?.homework ?? []
   if (tasks.length === 0) return null
-  const items = tasks.flatMap((task, i) => itemsForTask(task, i, student, model))
+  const items = tasks.flatMap((task, i) => itemsForTask(task, i, student, model, rng))
   if (items.length === 0) return null
   return { source: 'homework', lessonId: lesson.id, items, minutes: minutesOf(items) }
 }
@@ -375,6 +406,8 @@ export function buildReviewSet(
   /** Completed lessons, for the phrase curriculum's own review schedule.
    *  Optional: callers holding only a model still get words and slips. */
   lessons: LessonRecord[] = [],
+  /** Injectable for deterministic tests — defaults to Math.random. */
+  rng: () => number = Math.random,
 ): PracticeSet | null {
   const items: PracticeItem[] = []
 
@@ -422,6 +455,7 @@ export function buildReviewSet(
     .slice(0, REVIEW_CAP - items.length)
   for (const v of due) {
     const meaning = v.meaning?.trim()
+    const distractors = meaning ? pickDistractors(model.vocabulary, v.term, 3, rng) : []
     items.push({
       id: `rv-w-${slug(v.term)}`,
       targetKind: 'vocabulary',
@@ -432,6 +466,7 @@ export function buildReviewSet(
       cueText: meaning,
       cue: meaning ? undefined : v.term.trim(),
       answer: v.term.trim(),
+      ...(distractors.length >= 2 ? { distractors } : {}),
       estimatedSeconds: 40,
     })
   }
