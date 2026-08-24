@@ -6,7 +6,7 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: var(--sp-4);
 }
 .h2 {
   font-size: var(--fs-lg);
@@ -19,19 +19,33 @@
   color: var(--text-muted);
   margin: 0;
 }
-.block + .block {
-  margin-top: var(--sp-4);
+/* Everything inside a Block — the title and whatever paragraphs, lists,
+   chips or buttons follow it — used to rely on each child bringing its own
+   top margin. Most of them (the badge+why headline, the practice button,
+   the chip cluster) brought none, so a button could land flush against the
+   text above it; the couple that did bring one (.list, .empty) stacked it on
+   top of the grid/flex gap from the block ABOVE, doubling that gap on
+   mobile where blocks stack in one column. One gap, applied once, here. */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
 }
 .list {
   list-style: none;
-  margin: var(--sp-2) 0 0;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
   min-width: 0;
 }
+/* A row's headline (badge + label + why) and its optional "said → better"
+   detail line below it are two distinct lines, not one flush block. */
 .row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
   min-width: 0;
 }
 .item {
@@ -79,7 +93,7 @@
 }
 .history {
   list-style: none;
-  margin: var(--sp-2) 0 0;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -104,7 +118,7 @@
 .empty {
   color: var(--text-muted);
   font-size: var(--fs-sm);
-  margin: var(--sp-2) 0 0;
+  margin: 0;
 }
 /* Briefing sits above the fold and should read as one calm block, not as a
    stack of competing cards. */

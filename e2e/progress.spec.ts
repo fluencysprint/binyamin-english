@@ -80,6 +80,33 @@ test('progress and briefing fit a phone without sideways scrolling', async ({ pa
   }
 })
 
+test('the "open practice set" button never touches the text above it', async ({ page }) => {
+  /* Regression: the homework Block's children (a paragraph, this button, a
+     chip cluster) relied on each child bringing its own top margin. Most
+     brought none, so the button rendered flush against whatever preceded it
+     — worst on Spanish/Russian, where the translated label is long enough
+     to make the crowding obvious. ProgressView.module.css now gives every
+     Block a single `gap`, so this checks a real rendered gap survives. */
+  await openDemoStudent(page)
+
+  const briefing = page.getByRole('region', { name: /where we left off/i })
+  const openPractice = briefing.getByRole('link', { name: /open the practice set/i })
+  await expect(openPractice).toBeVisible()
+
+  const { gap, prevTag } = await openPractice.evaluate((el) => {
+    const prev = el.previousElementSibling as HTMLElement
+    const prevBox = prev.getBoundingClientRect()
+    const ownBox = el.getBoundingClientRect()
+    return { gap: ownBox.top - prevBox.bottom, prevTag: prev.tagName }
+  })
+
+  // Loose bounds: catches both the old flush-against-text bug (gap ~0) and a
+  // doubled-margin regression (gap much larger than one spacing step), while
+  // not pinning the test to one exact token value.
+  expect(gap, `gap after <${prevTag}>`).toBeGreaterThan(4)
+  expect(gap, `gap after <${prevTag}>`).toBeLessThan(40)
+})
+
 test('a word recalled mid-lesson is reported back and leaves the review queue', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   const studentId = await openDemoStudent(page)

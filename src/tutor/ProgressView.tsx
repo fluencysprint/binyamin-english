@@ -441,7 +441,7 @@ export function ProgressSummary({
             ))}
           </ul>
           {progress.recentVocabulary.length > 0 && (
-            <div className="cluster" style={{ marginTop: 'var(--sp-2)' }}>
+            <div className="cluster">
               {progress.recentVocabulary.slice(0, 12).map((term) => (
                 <span key={term} className="chip is-selected">
                   <Bdi>{term}</Bdi>
