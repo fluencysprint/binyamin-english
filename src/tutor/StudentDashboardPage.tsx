@@ -15,14 +15,14 @@ import {
   reviewHomework,
 } from '../students/studentService'
 import { buildBriefing } from '../lessons/briefing'
-import { localizedTitle, objectiveRationale, objectiveTitle } from '../lessons/guidance'
+import { objectiveRationale, objectiveTitle, phraseChunksFor } from '../lessons/guidance'
 import { teachingStringsStatus, useTeachingStrings } from '../i18n/teachingStrings'
 import { HomeworkCard, LessonBriefingCard, ProgressSummary } from './ProgressView'
 import { getAudioMetaForStudent } from '../data/db'
 import { overallCefr } from '../utils/cefr'
 import { useModeAccess } from '../app/ModeGate'
 import { Bdi } from '../components/Bdi'
-import { BidiText } from '../components/BidiText'
+import { BidiTrans } from '../components/BidiTrans'
 import { ArrowLeftIcon } from '../components/icons'
 import styles from './StudentDashboardPage.module.css'
 
@@ -242,7 +242,13 @@ export function StudentDashboardPage() {
                           only thing worth reading in a plan preview. */}
                       <span className={styles.phaseName} dir="auto">
                         {p.activities[0]?.guide?.src === 'phrase' ? (
-                          <BidiText text={localizedTitle(lang, p)} block />
+                          <BidiTrans
+                            lang={lang}
+                            i18nKey={p.titleKey ?? 'guide.title.plain'}
+                            params={{ phrases: phraseChunksFor(p.activities[0]) }}
+                            ltr={['phrases']}
+                            block
+                          />
                         ) : (
                           t(`phases.${p.kind}`)
                         )}

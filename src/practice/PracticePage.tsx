@@ -15,6 +15,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { useI18n } from '../i18n/I18nProvider'
 import { BidiText } from '../components/BidiText'
+import { BidiTrans } from '../components/BidiTrans'
 import { useSpeak, useSpeechAvailable } from '../components/useSpeak'
 import { SpeakerIcon, ArrowLeftIcon } from '../components/icons'
 import { ModeSwitcher, LockButton } from '../tutor/ModeSwitcher'
@@ -298,7 +299,12 @@ function PracticeCard({
   return (
     <section className={styles.card} dir={dir} aria-live="polite">
       <p className={styles.instruction}>
-        <BidiText text={t(item.instructionKey, params)} />
+        <BidiTrans
+          lang={lang}
+          i18nKey={item.instructionKey}
+          params={params}
+          ltr={item.instructionLtrParams ?? []}
+        />
       </p>
 
       {/* Their own language cue — a meaning, in the language they think in.

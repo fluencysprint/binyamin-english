@@ -49,7 +49,7 @@ import {
 } from '../lessons/microSteps'
 import { lessonPhraseIds } from '../curriculum/phraseProgress'
 import { getPhrase, PhraseTarget } from '../curriculum/phrases'
-import { activityGuidance, localizedTitle, objectiveTitle } from '../lessons/guidance'
+import { activityGuidance, objectiveTitle, phraseChunksFor } from '../lessons/guidance'
 import { loadTeachingStrings, teachingStringsStatus, useTeachingStrings } from '../i18n/teachingStrings'
 import { pacingAdvice, pacingFor } from '../lessons/pacing'
 import { overallCefr } from '../utils/cefr'
@@ -58,6 +58,7 @@ import { setActiveLessonId } from '../data/settings'
 import { uid } from '../utils/id'
 import { Bdi } from '../components/Bdi'
 import { BidiText } from '../components/BidiText'
+import { BidiTrans } from '../components/BidiTrans'
 import { hasRTL } from '../utils/bidi'
 import { ArrowLeftIcon, FamilyIcon, PauseIcon, PlayIcon, TimerIcon } from '../components/icons'
 import { StepActionBar } from './StepActionBar'
@@ -545,7 +546,12 @@ export function LessonRunnerPage() {
                   Its own title names the English being taught, which does. */}
               <span className={styles.phaseName} dir="auto">
                 {phase.activities[0]?.guide?.src === 'phrase' ? (
-                  <BidiText text={localizedTitle(lang, phase)} />
+                  <BidiTrans
+                    lang={lang}
+                    i18nKey={phase.titleKey ?? 'guide.title.plain'}
+                    params={{ phrases: phraseChunksFor(phase.activities[0]) }}
+                    ltr={['phrases']}
+                  />
                 ) : (
                   t(`phases.${phase.kind}`)
                 )}{' '}

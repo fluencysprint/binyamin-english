@@ -70,6 +70,12 @@ export interface PracticeItem {
   /** The instruction, in the learner's own language. */
   instructionKey: string
   instructionParams?: Record<string, string | number>
+  /** Which `instructionParams` names are dynamic English/LTR learning content
+   *  (a phrase, a frame) rather than a number or a translated label — set
+   *  here because this module is the one place that knows which value is
+   *  which. The renderer isolates exactly these params by VALUE instead of
+   *  re-deriving the boundary by scanning the finished translated string. */
+  instructionLtrParams?: string[]
   /** Instruction params whose VALUE is itself an i18n key, resolved by the
    *  renderer. Keeps this module pure — it has no dictionary and must not
    *  bake one locale's wording into a stored-looking structure. */
@@ -240,6 +246,7 @@ function itemsForTask(
           check: 'doIt' as const,
           instructionKey: 'practice.item.write',
           instructionParams: { count: task.count, target: task.target },
+          instructionLtrParams: ['target'],
           writing: canType(student),
           estimatedSeconds: 150,
         },
@@ -255,6 +262,7 @@ function itemsForTask(
           check: 'doIt' as const,
           instructionKey: 'practice.item.notice',
           instructionParams: { target: task.target },
+          instructionLtrParams: ['target'],
           estimatedSeconds: 60,
         },
       ]
@@ -301,6 +309,7 @@ function itemsForTask(
           check: 'doIt' as const,
           instructionKey: 'practice.item.usePhraseFrame',
           instructionParams: { count: 3, frame: p.chunk },
+          instructionLtrParams: ['frame'],
           cue: task.slots.join(' · '),
           answerWords: p.examples.slice(0, 3),
           writing: canType(student) && p.slots.length > 0,

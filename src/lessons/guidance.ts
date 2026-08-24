@@ -477,6 +477,21 @@ function beginnerGuidance(
 /* ---- The phrase curriculum ----------------------------------------------- */
 
 /**
+ * The English chunks a phrase-block activity is built from, read back from
+ * the ids it stores on `guide.params.ids` — never parsed out of `title` or a
+ * rendered/translated string. This is what a phrase-title render should pass
+ * as `BidiTrans`'s `phrases` param: each chunk isolated with its own exact
+ * value, punctuation included, rather than a substring recovered from the
+ * finished "New: {{phrases}}" string.
+ */
+export function phraseChunksFor(activity: { guide?: ActivityGuide } | undefined): string[] {
+  return String(activity?.guide?.params?.ids ?? '')
+    .split(',')
+    .map((id) => getPhrase(id.trim())?.chunk)
+    .filter((c): c is string => Boolean(c))
+}
+
+/**
  * Tutor guidance for a phrase block, assembled rather than authored.
  *
  * Every other content bank in this app carries its own prose per entry. A

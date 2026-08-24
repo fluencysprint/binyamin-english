@@ -9,7 +9,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { LessonActivity } from '../types'
-import { activityGuidance } from './guidance'
+import { activityGuidance, phraseChunksFor } from './guidance'
 import { pronunciationLibrary } from '../data/pronunciationLibrary'
 import { grammarLibrary } from '../data/grammarLibrary'
 
@@ -92,5 +92,33 @@ describe('feedback close: natural spoken lines', () => {
     // No matching library entry either, so the area code itself is the best
     // we can do — but it must not be wrapped in raw quotes or parentheses.
     expect(focusLine).toBe('Your madeUpFutureArea was much clearer today.')
+  })
+})
+
+describe('phraseChunksFor', () => {
+  /* A phrase block's title used to be built by translating "New: {{phrases}}"
+     into one finished string and letting BidiText re-derive where the
+     English started and ended — the bug this reads back the ids to avoid.
+     `phraseChunksFor` gives a renderer the array directly, from the ids the
+     activity actually stores, never from a rendered/translated string. */
+  it('reads the chunks back from the ids the activity stores, in order', () => {
+    const activity: LessonActivity = {
+      id: 'act',
+      kind: 'speakingListening',
+      title: 'New: Hello. · Good ___.',
+      studentPrompt: 'x',
+      guide: { src: 'phrase', params: { block: 'meet', ids: 'hello,goodMorning' } },
+    }
+    expect(phraseChunksFor(activity)).toEqual(['Hello.', 'Good ___.'])
+  })
+
+  it('is empty for an activity with no phrase ids', () => {
+    const activity: LessonActivity = {
+      id: 'act',
+      kind: 'feedback',
+      title: 'x',
+      studentPrompt: 'x',
+    }
+    expect(phraseChunksFor(activity)).toEqual([])
   })
 })

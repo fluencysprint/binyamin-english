@@ -12,9 +12,8 @@
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n/I18nProvider'
 import { Bdi } from '../components/Bdi'
-import { BidiText } from '../components/BidiText'
 import { formatDate } from '../utils/time'
-import { homeworkText } from '../reports/ReportView'
+import { HomeworkItemText } from '../reports/ReportView'
 import { BriefingFocus, LessonBriefing } from '../lessons/briefing'
 import { Explanation, ProgressIssue, ProgressSnapshot } from '../students/progress'
 import { conceptTitle } from '../lessons/guidance'
@@ -229,7 +228,7 @@ export function LessonBriefingCard({
             <ul className={styles.list}>
               {briefing.homework.map((task, i) => (
                 <li key={i} className={styles.why} dir="auto">
-                  <BidiText text={homeworkText(task, t, lang)} block />
+                  <HomeworkItemText task={task} lang={lang} />
                 </li>
               ))}
             </ul>
@@ -333,7 +332,7 @@ export function HomeworkCard({ tasks, studentId }: { tasks: HomeworkTask[]; stud
       <ul className={styles.list}>
         {tasks.map((task, i) => (
           <li key={i} className={styles.why} dir="auto">
-            <BidiText text={homeworkText(task, t, lang)} block />
+            <HomeworkItemText task={task} lang={lang} />
           </li>
         ))}
       </ul>

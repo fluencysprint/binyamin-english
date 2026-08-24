@@ -2,6 +2,7 @@ import { HomeworkTask, ImprovementItem, LessonReport, ReportTopic, WentWellItem 
 import { conceptTitle, localizedTitle } from '../lessons/guidance'
 import { getPhrase } from '../curriculum/phrases'
 import { useI18n } from '../i18n/I18nProvider'
+import { translate } from '../i18n/translate'
 import { ArrowRightIcon, PrinterIcon } from '../components/icons'
 import { useToast } from '../components/Toast'
 import { cefrLabel } from '../utils/cefr'
@@ -9,6 +10,7 @@ import { formatDate } from '../utils/time'
 import { PRONUNCIATION_RATING_KEY } from '../data/pronunciationLibrary'
 import { Bdi } from '../components/Bdi'
 import { BidiText } from '../components/BidiText'
+import { BidiTrans } from '../components/BidiTrans'
 import { quoted, localizeInlineQuotes } from '../utils/quotes'
 import { hasRTL } from '../utils/bidi'
 import { UILanguage } from '../types'
@@ -111,6 +113,122 @@ export function homeworkText(task: HomeworkTask, t: T, lang: UILanguage = 'en'):
         frame: getPhrase(task.id)?.chunk ?? task.id,
         words: task.slots.join(', '),
       })
+  }
+}
+
+/**
+ * `homeworkText`, as React nodes with the English isolated by VALUE rather
+ * than recovered by scanning the finished string — see `BidiTrans`. Mirrors
+ * `homeworkText`'s switch exactly; the two must stay in sync, since this is
+ * what renders on screen and `homeworkText` is what gets printed or copied.
+ *
+ * Sentence-shaped content (a corrected sentence, a phrase) gets its own line
+ * when there are several — `sayCorrected`, `sayPhrases`. A short list of
+ * words or examples (`terms`, `words`) stays one inline isolate, comma-joined,
+ * matching how a Hebrew sentence would naturally introduce it ("try: morning,
+ * afternoon, evening") rather than fragmenting every token onto its own line.
+ */
+export function HomeworkItemText({ task, lang }: { task: HomeworkTask; lang: UILanguage }) {
+  switch (task.kind) {
+    case 'sayCorrected':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.sayCorrected"
+          params={{ items: task.items.map((i) => quoted(i.better, lang)) }}
+          ltr={['items']}
+          block
+        />
+      )
+    case 'sayWordsAloud':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.sayWordsAloud"
+          params={{ terms: task.terms.join(', ') }}
+          ltr={['terms']}
+        />
+      )
+    case 'useWordsInSentences':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.useWordsInSentences"
+          params={{ terms: task.terms.join(', ') }}
+          ltr={['terms']}
+        />
+      )
+    case 'repeatFluency':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.repeatFluency"
+          params={{ topic: task.topic, seconds: task.seconds }}
+          ltr={['topic']}
+        />
+      )
+    case 'practiceSound':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.practiceSound"
+          params={{ area: translate(lang, `pron.${task.area}`), words: task.words.join(', ') }}
+          ltr={['words']}
+        />
+      )
+    case 'writeSentences':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.writeSentences"
+          params={{ count: task.count, target: task.target }}
+          ltr={['target']}
+        />
+      )
+    case 'noticeLanguage':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.noticeLanguage"
+          params={{ target: task.target }}
+          ltr={['target']}
+        />
+      )
+    case 'prepareAnswer':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.prepareAnswer"
+          params={{ question: task.question }}
+          ltr={['question']}
+        />
+      )
+    case 'sayPhrases':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.sayPhrases"
+          params={{
+            phrases: task.ids
+              .map((id) => getPhrase(id)?.chunk)
+              .filter((c): c is string => Boolean(c)),
+          }}
+          ltr={['phrases']}
+          block
+        />
+      )
+    case 'usePhraseFrame':
+      return (
+        <BidiTrans
+          lang={lang}
+          i18nKey="report.homeworkItem.usePhraseFrame"
+          params={{
+            frame: getPhrase(task.id)?.chunk ?? task.id,
+            words: task.slots.join(', '),
+          }}
+          ltr={['frame', 'words']}
+        />
+      )
   }
 }
 
@@ -313,7 +431,7 @@ export function ReportView({
               const text = homeworkText(task, t, lang)
               return (
                 <li key={i} dir={hasRTL(text) ? 'auto' : 'ltr'}>
-                  <BidiText text={text} block />
+                  <HomeworkItemText task={task} lang={lang} />
                 </li>
               )
             })}

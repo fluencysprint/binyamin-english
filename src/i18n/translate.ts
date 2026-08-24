@@ -11,6 +11,7 @@ import { UILanguage } from '../types'
 import { flatten, interpolate } from './dict'
 import { locales } from '../locales'
 import { guideTable } from './teachingStrings'
+import { hasRTL } from '../utils/bidi'
 
 const cache = new Map<UILanguage, Record<string, string>>()
 function flatFor(lang: UILanguage): Record<string, string> {
@@ -67,4 +68,65 @@ export function translateList(
 /** True when the locale (or English) defines this key at all. */
 export function hasKey(lang: UILanguage, key: string): boolean {
   return lookup(lang, key) !== undefined
+}
+
+/** One piece of a translated template: either literal locale text, or the
+ *  value of a placeholder. `items` is set when the placeholder's value was
+ *  supplied as an array (several English chunks, not one). */
+export interface TranslateSegment {
+  text: string
+  /** True when this segment is dynamic English/LTR learning content that
+   *  must render in its own isolate rather than participate in the
+   *  surrounding RTL run — set by the caller via `ltrKeys`, never guessed
+   *  from the text itself. */
+  ltr: boolean
+  items?: string[]
+}
+
+/**
+ * Split a template into segments at its `{{name}}` placeholders, instead of
+ * interpolating them into one finished string.
+ *
+ * `interpolate` (used by `translate`) has to hand back a single string, so a
+ * consumer that later needs to isolate the English pieces has no choice but
+ * to re-derive placeholder boundaries by scanning the finished text — which
+ * cannot tell "this trailing period is the end of the English sentence" from
+ * "this trailing period ends the Hebrew sentence", because by then both are
+ * the same kind of character. Here the boundary is never lost: each
+ * placeholder's value is kept as its own segment, exactly as the caller
+ * supplied it (including any punctuation the value itself carries), so a
+ * renderer can isolate precisely the values named in `ltrKeys` and leave
+ * every other character exactly where the locale wrote it.
+ *
+ * Segments never isolate anything when the template itself has no RTL
+ * script — an LTR locale (English, Russian, Spanish, French) gets the same
+ * plain text `translate` would have produced.
+ */
+export function translateSegments(
+  lang: UILanguage,
+  key: string,
+  params: Record<string, string | number | string[]>,
+  ltrKeys: readonly string[],
+): TranslateSegment[] {
+  const template = lookup(lang, key) ?? key
+  const isolateEligible = hasRTL(template)
+  const ltrSet = new Set(ltrKeys)
+  const segments: TranslateSegment[] = []
+  const re = /\{\{\s*(\w+)\s*\}\}/g
+  let cursor = 0
+  let m: RegExpExecArray | null
+  while ((m = re.exec(template))) {
+    if (m.index > cursor) segments.push({ text: template.slice(cursor, m.index), ltr: false })
+    const name = m[1]
+    const raw = name in params ? params[name] : undefined
+    const ltr = isolateEligible && ltrSet.has(name)
+    if (Array.isArray(raw)) {
+      segments.push({ text: raw.join(' · '), ltr, items: raw })
+    } else {
+      segments.push({ text: raw === undefined ? m[0] : String(raw), ltr })
+    }
+    cursor = re.lastIndex
+  }
+  if (cursor < template.length) segments.push({ text: template.slice(cursor), ltr: false })
+  return segments
 }

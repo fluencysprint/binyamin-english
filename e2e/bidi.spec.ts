@@ -458,3 +458,95 @@ test('a multi-phrase lesson-preview title renders each English phrase on its own
     expect(box.x + box.width).toBeLessThanOrEqual(391)
   }
 })
+
+/* ==========================================================================
+   The "where we left off" briefing card, at the exact production defect this
+   is a follow-up to: a homework instruction that embeds BOTH a single English
+   sentence frame ("Good ___.") AND a short comma-joined example list
+   ("morning, afternoon, evening") inside one Hebrew sentence, with a Hebrew
+   parenthetical wrapping the second one.
+
+   Screenshotted failure: the frame's own trailing period and the closing
+   `).` after the word list were never inside an isolate (the OLD heuristic
+   only absorbed trailing punctuation for a run of 2+ " · "-joined phrases —
+   see bidi.test.ts), so both landed on the wrong side of their English
+   content. `HomeworkItemText`/`BidiTrans` fix this structurally: `frame` and
+   `words` are isolated by their own VALUE, never recovered by scanning the
+   finished translated string, so nothing is left to fall outside either
+   isolate. Finishing Casey's first phrase lesson is what makes this exact
+   instruction reproducible — it always yields a "usePhraseFrame" homework
+   task for "Good ___." with slots morning/afternoon/evening.
+   ========================================================================== */
+
+async function finishCaseysFirstLesson(page: import('@playwright/test').Page) {
+  await page.goto('/tutor')
+  await page.evaluate(() => localStorage.setItem('ewb:hideLessonOrientation', 'true'))
+  await page.getByPlaceholder(/access phrase/i).fill(TUTOR_GATE_PHRASE)
+  await page.getByRole('button', { name: /unlock/i }).click()
+  await page.goto('/tutor/data')
+  await page.getByLabel(/language/i).selectOption('he')
+  await page.getByRole('button', { name: /Casey/ }).click()
+  await page.waitForURL(/\/tutor\/student\//)
+  await page.getByRole('button', { name: /התחלת שיעור ראשון/ }).click()
+  await page.waitForURL(/\/lesson\//)
+  await page.getByRole('button', { name: /Casey/ }).first().click()
+  await page.getByRole('dialog').getByRole('button', { name: /^סיום$/ }).click()
+  await page.waitForURL(/\/tutor\/student\//)
+}
+
+for (const width of [390, 820, 1280]) {
+  test(`usePhraseFrame homework isolates the frame and the example words at ${width}px, punctuation on the right side of each`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await finishCaseysFirstLesson(page)
+
+    const item = page.locator('li', { hasText: 'הרכיבו' }).first()
+    await expect(item).toBeVisible()
+
+    const bdis = item.locator('bdi')
+    await expect(bdis).toHaveCount(2)
+    await expect(bdis.nth(0)).toHaveText('Good ___.')
+    await expect(bdis.nth(1)).toHaveText('morning, afternoon, evening')
+    for (const bdi of await bdis.all()) {
+      expect(await bdi.evaluate((el) => (el as HTMLElement).getAttribute('dir'))).toBe('ltr')
+    }
+
+    // Lossless: the line reads exactly like the acceptance screenshot, in
+    // logical order, with both trailing marks — "Good ___." and the closing
+    // ").") — attached to the English/Hebrew content they actually belong to.
+    const text = (await item.innerText()).replace(/\s+/g, ' ').trim()
+    expect(text).toBe(
+      'הרכיבו שלושה משפטים משלכם עם Good ___. (אפשר לנסות: morning, afternoon, evening).',
+    )
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    )
+    expect(overflow).toBeLessThanOrEqual(1)
+  })
+}
+
+test('the same homework line renders as plain, unisolated text in English — no visible regression', async ({
+  page,
+}) => {
+  await page.goto('/tutor')
+  await page.evaluate(() => localStorage.setItem('ewb:hideLessonOrientation', 'true'))
+  await page.getByPlaceholder(/access phrase/i).fill(TUTOR_GATE_PHRASE)
+  await page.getByRole('button', { name: /unlock/i }).click()
+  await page.goto('/tutor/data')
+  await page.getByRole('button', { name: /Casey/ }).click()
+  await page.waitForURL(/\/tutor\/student\//)
+  await page.getByRole('button', { name: /start first lesson/i }).click()
+  await page.waitForURL(/\/lesson\//)
+  await page.getByRole('button', { name: /Casey/ }).first().click()
+  await page.getByRole('dialog').getByRole('button', { name: /^finish$/i }).click()
+  await page.waitForURL(/\/tutor\/student\//)
+
+  const item = page.locator('li', { hasText: 'Make three sentences' }).first()
+  await expect(item).toBeVisible()
+  // English has no RTL script anywhere in the sentence, so nothing needs an
+  // isolate — this is the "pay nothing" path `translateSegments` documents.
+  await expect(item.locator('bdi')).toHaveCount(0)
+  await expect(item).toContainText('Good ___. (try: morning, afternoon, evening).')
+})
