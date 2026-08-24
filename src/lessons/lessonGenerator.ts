@@ -428,7 +428,21 @@ function communicationActivity(
   }
 }
 
-function feedbackActivity(): LessonActivity {
+/**
+ * The close of the lesson names what got clearer and what's next, so a tutor
+ * running on empty at minute 50 never has to invent either one. Today's
+ * pronunciation moment (or, if today's whole objective WAS pronunciation, the
+ * objective itself) is what improved; whichever of the two this lesson did
+ * NOT already spend on is naturally what's still open for next time.
+ */
+function feedbackActivity(
+  objective: Pick<ObjectiveChoice, 'title' | 'kind'>,
+  pronArea: string | undefined,
+): LessonActivity {
+  const pronTitle = pronArea ? getPronunciationByArea(pronArea)?.title : undefined
+  const isPronObjective = objective.kind === 'pronunciation'
+  const focus = isPronObjective ? objective.title : pronTitle
+  const next = isPronObjective ? pronTitle : objective.title
   return {
     id: uid('act'),
     kind: 'feedback',
@@ -436,7 +450,7 @@ function feedbackActivity(): LessonActivity {
     titleKey: 'phases.feedback',
     studentPrompt: 'Let’s look at what we practiced, what went well, and one thing to focus on next.',
     studentPromptKey: 'student.listenToFeedback',
-    guide: { src: 'feedback' },
+    guide: { src: 'feedback', params: { ...(focus ? { focus } : {}), ...(next ? { next } : {}) } },
   }
 }
 
@@ -624,7 +638,7 @@ function standardPhases(
     titleKey: 'phases.feedback',
     startMin: 47,
     endMin: 50,
-    activities: [feedbackActivity()],
+    activities: [feedbackActivity(objective, pronArea)],
   })
   return phases
 }

@@ -229,12 +229,27 @@ const SAY: Record<string, string[]> = {
   'writing.intermediate': ['Write a short paragraph about your plans, using linking words.'],
   'writing.advanced': ['Write a concise opinion with a clear position and one counterpoint.'],
   vocabulary: ['What’s one word or phrase from today worth keeping?'],
-  feedback: ['Today your ___ was much clearer.', 'Next time, let’s work on ___.'],
   c1Feedback: ['A more precise way to say that would be…', 'One thing to refine for next time: …'],
   c1Consolidation: ['Let’s lock in the best phrasing from today — say it once more.'],
   c1ReviewEmpty: ['Any phrasing that felt off last time we can polish now.'],
   beginnerRecapChild: ['You did SO well today!', 'Can you say “hello”? …“my name is”?', 'High five!'],
   beginnerRecapAdult: ['Today you used real English — nice work.', 'Let’s say your best phrase one more time.'],
+}
+
+/**
+ * The close of the lesson names what got clearer and what's next. `focus` /
+ * `next` come from what this lesson actually taught (see `feedbackActivity`
+ * in lessonGenerator.ts) — filled in automatically whenever the plan carries
+ * them. A legacy plan with neither still gets a concrete, ready-to-say line
+ * rather than a blank a tired tutor has to invent something for.
+ */
+function feedbackSay(p: Params): string[] {
+  const focus = typeof p.focus === 'string' && p.focus ? p.focus : undefined
+  const next = typeof p.next === 'string' && p.next ? p.next : undefined
+  return [
+    focus ? `Today your “${focus}” was much clearer.` : 'Today your speaking was much clearer.',
+    next ? `Next time, let’s work on “${next}”.` : 'Next time, let’s work on one thing you noticed today.',
+  ]
 }
 
 /** Model / practice lines for the deeper card — also English by design. */
@@ -543,7 +558,7 @@ function build(
     case 'vocabulary':
       return { autopilot: auto(lang, 'vocabulary', SAY.vocabulary) }
     case 'feedback':
-      return { autopilot: auto(lang, 'feedback', SAY.feedback), card: card(lang, 'feedback', CARD_EN.feedback) }
+      return { autopilot: auto(lang, 'feedback', feedbackSay(p)), card: card(lang, 'feedback', CARD_EN.feedback) }
     case 'phrase':
       return phraseGuidance(lang, guide.params)
     case 'beginner':
